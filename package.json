@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "dev": "npm run build -- --sourcemap=inline --watch",
+    "build": "bun build js/widget.jsx --minify --format=esm --outdir=src/seal/static --asset-naming=[name].[ext]"
+  },
+  "dependencies": {
+    "@anywidget/react": "^0.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": { "vite": "^6.0.7" }
+}
