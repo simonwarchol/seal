@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import Seal from "./seal/seal.jsx";
 import { createRender, useModelState } from "@anywidget/react";
 
