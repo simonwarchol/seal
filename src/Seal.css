@@ -1,0 +1,17 @@
+#root {
+	width:100vw;
+	height:100vh;
+	text-align: center;
+  }
+  
+  .seal{
+	display: flex;
+	height: 100%;
+	width: 100%;
+  }
+  
+  #main-container {
+	width: 100vw;
+	height: 100vh;
+  }
+  
