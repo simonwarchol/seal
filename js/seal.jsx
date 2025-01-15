@@ -7,7 +7,7 @@ const render = createRender(() => {
 	return (
 		<div className="seal">
 			<button onClick={() => setValue(value + 1)}>
-				count issst {value}
+				count iss_____st {value}
 			</button>
 		</div>
 	);
