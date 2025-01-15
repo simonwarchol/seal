@@ -13,17 +13,20 @@ module.exports = {
     rules: [
       {
         test: /\.jsx$/,
-        use: {
-          loader: 'builtin:swc-loader',
-          options: {
-            jsc: {
-              parser: {
-                syntax: 'ecmascript',
-                jsx: true,
+        use: [
+          {
+            loader: 'builtin:swc-loader',
+            options: {
+              jsc: {
+                parser: {
+                  syntax: 'ecmascript',
+                  jsx: true,
+                },
               },
             },
           },
-        },
+          { loader: 'babel-loader' },
+        ],
         type: 'javascript/auto',
       },
       {
