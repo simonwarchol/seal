@@ -56,7 +56,7 @@ module.exports = {
       // do not specify a `name` here
       type: 'module',
     },// Optional: Ensure the file extension is suitable for ESM
-    path: 'src/seal/static',
+    path: 'widget/static',
   },
   plugins: [new rspack.CssExtractRspackPlugin({})],
 

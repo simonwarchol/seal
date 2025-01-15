@@ -7,6 +7,11 @@ const ReactCompilerConfig = {
 };
 
 export default defineConfig({
+  output: {
+    distPath: {
+      root: 'build/dist/',
+    },
+  },
   plugins: [pluginReact(), pluginBabel({
     include: /\.(?:jsx|tsx)$/,
     babelLoaderOptions(opts) {
