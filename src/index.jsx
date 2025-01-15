@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import Seal from "./Seal.jsx";
+import Seal from "./components/seal.jsx";
 
 function App() {
   const [value, setValue] = useState(0);
