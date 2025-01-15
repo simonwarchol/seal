@@ -11,6 +11,6 @@ except importlib.metadata.PackageNotFoundError:
 
 
 class Seal(anywidget.AnyWidget):
-    _esm = pathlib.Path(__file__).parent / "static" / "seal.js"
+    _esm = pathlib.Path(__file__).parent / "static" / "seal.mjs"
     _css = pathlib.Path(__file__).parent / "static" / "seal.css"
     value = traitlets.Int(0).tag(sync=True)
