@@ -1,18 +1,14 @@
-import { useState } from "react";
-
+import * as React from "react";
 import "./seal.css";
-import { useModelState } from "@anywidget/react";
 
 
 
 
-const Seal = () => {
-	const [value, setValue] = useState(0);
+const Seal = ({value, setValue}) => {
 	return (
 		<div className="seal">
-			poop
 			<button onClick={() => setValue(value + 1)}>
-				c098899890ount ok {value}
+				count on {value}
 			</button>
 		</div>
 	);
