@@ -10,8 +10,11 @@ export default defineConfig({
     widget: {
       output: {
         distPath: {
-          root: 'widget/',
+          root: 'widget/static',
+          js: '',
+          css: '',
         },
+        legalComments: 'none',
         filename: {
           js: 'seal.js',
           css: 'seal.css',
