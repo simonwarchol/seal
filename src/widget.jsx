@@ -1,5 +1,5 @@
 import React from "react";
-import Seal from "./components/seal.jsx";
+import Seal from "./Seal.jsx";
 import { createRender, useModelState } from "@anywidget/react";
 
 const render = createRender(() => {
