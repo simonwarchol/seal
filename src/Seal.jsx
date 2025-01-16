@@ -4,7 +4,7 @@ const Seal = ({ value, setValue }) => {
 	return (
 		<div className="seal">
 			<button onClick={() => setValue(value + 1)}>
-				countt on {value}
+				cnt on {value}
 			</button>
 		</div>
 	);
