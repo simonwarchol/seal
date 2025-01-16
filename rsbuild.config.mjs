@@ -16,11 +16,10 @@ export default defineConfig({
         },
         legalComments: 'none',
         filename: {
-          js: 'seal.js',
-          css: 'seal.css',
+          js: '[name].js',
+          css: '[name].css',
         },
       },
-
       performance: {
         chunkSplit: {
           strategy: 'all-in-one',

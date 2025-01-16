@@ -1,0 +1,63 @@
+.st0 {
+    fill: none;
+}
+
+.st1 {
+    fill: #f2c300;
+}
+
+.st2 {
+    fill: #ffce00;
+}
+
+.st3 {
+    fill: #5b5b5b;
+}
+
+.st4,
+.st5 {
+    fill: #1c274c;
+}
+
+.st6 {
+    fill: #8d93a5;
+    isolation: isolate;
+}
+
+.st7 {
+    fill: #fff;
+    cursor: pointer;
+}
+
+.st5 {
+    fill-rule: evenodd;
+}
+
+#flashlight,
+#flashlight-shadow,
+#flashlight-buttons {
+    transform: translate(0, -250px);
+}
+
+.MuiToggleButtonGroup-root .MuiToggleButton-root {
+    padding: 0px;
+    border: 0;
+    margin: 3px;
+    /* background-color: black; */
+}
+
+.MuiToggleButtonGroup-root .MuiIcon-root {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px;
+    margin: 0px;
+    height: 40px;
+    width: 40px;
+}
+
+.MuiToggleButtonGroup-root .MuiIcon-root img {
+    height: 100%;
+    width: 100%;
+    display: block;
+}

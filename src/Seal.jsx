@@ -1,11 +1,10 @@
 import "./Seal.css";
 import React from "react";
+import Viewer from "./views/Viewer";
 const Seal = ({ value, setValue }) => {
 	return (
 		<div className="Seal">
-			<button onClick={() => setValue(value + 1)}>
-				cnt on {value}
-			</button>
+			<Viewer value={value} setValue={setValue} />
 		</div>
 	);
 };
