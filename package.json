@@ -1,9 +1,9 @@
 {
   "scripts": {
-    "widget": "rspack build --watch",
-    "dev": "rsbuild dev --open",
-    "build": "rsbuild build",
-    "preview": "rsbuild preview"
+    "widget": "rsbuild build --config=rsbuild.widget.config.mjs",
+    "dev": "rsbuild dev --open --config=rsbuild.web.config.mjs",
+    "build": "rsbuild build --config=rsbuild.web.config.mjs",
+    "preview": "rsbuild preview --config=rsbuild.web.config.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
