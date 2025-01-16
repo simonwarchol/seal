@@ -14,6 +14,6 @@ class Seal(anywidget.AnyWidget):
     """Seal widget"""
 
     build_dir = pathlib.Path(__file__).parents[1] / "widget" / "static"
-    _esm = build_dir / "index.js"
-    _css = build_dir / "index.css"
+    _esm = build_dir / "seal.js"
+    _css = build_dir / "seal.css"
     value = traitlets.Int(0).tag(sync=True)

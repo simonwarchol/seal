@@ -20,16 +20,19 @@ export default defineConfig({
           css: '[name].css',
         },
       },
+      mode: 'none',
       performance: {
         chunkSplit: {
           strategy: 'all-in-one',
         },
+        buildCache: true,
+
       },
       tools: {
         htmlPlugin: false,
         rspack: (config) => {
           config.experiments.outputModule = true;
-          config.module.parser.javascript.dynamicImportMode = 'eager'
+          config.module.parser.javascript.dynamicImportMode = 'eager';
           config.output.library = {
             type: 'module',
           };
@@ -50,13 +53,16 @@ export default defineConfig({
       },
     },
   },
-  plugins: [pluginReact(), pluginBabel({
-    include: /\.(?:jsx|tsx)$/,
-    babelLoaderOptions(opts) {
-      opts.plugins?.unshift([
-        'babel-plugin-react-compiler',
-        ReactCompilerConfig,
-      ]);
-    },
-  })],
+  plugins: [
+    pluginReact(),
+    pluginBabel({
+      include: /\.(?:jsx|tsx)$/,
+      babelLoaderOptions(opts) {
+        opts.plugins?.unshift([
+          'babel-plugin-react-compiler',
+          ReactCompilerConfig,
+        ]);
+      },
+    })
+  ],
 });

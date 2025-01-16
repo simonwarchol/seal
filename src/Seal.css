@@ -1,16 +1,6 @@
-#root {
-	width: 100vw;
-	height: 100vh;
-	text-align: center;
-}
-
-.Seal {
+.Seal,
+#main-container {
 	display: flex;
 	height: 100%;
 	width: 100%;
-}
-
-#main-container {
-	width: 100vw;
-	height: 100vh;
 }

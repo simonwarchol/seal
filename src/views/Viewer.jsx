@@ -287,7 +287,7 @@ function Viewer({ value, setValue}) {
       <Button value={value} setValue={setValue} />
       <Vitessce
         config={vc.toJSON()}
-        height={windowHeight}
+        height={'200px'}
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />
