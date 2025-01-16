@@ -29,6 +29,7 @@ export default defineConfig({
         htmlPlugin: false,
         rspack: (config) => {
           config.experiments.outputModule = true;
+          config.module.parser.javascript.dynamicImportMode = 'eager'
           config.output.library = {
             type: 'module',
           };
