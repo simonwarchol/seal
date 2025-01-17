@@ -18,7 +18,7 @@ export default defineConfig({
         },
         filenameHash: false,
         minify: false,
-
+        dataUriLimit: 100 * 1024,
         legalComments: 'none',
         filename: {
           js: '[name].js',
@@ -27,13 +27,10 @@ export default defineConfig({
         sourceMap: false
 
       },
-      mode: 'none',
       performance: {
         chunkSplit: {
           strategy: 'all-in-one',
         },
-        buildCache: true,
-
       },
       tools: {
         htmlPlugin: false,
@@ -72,17 +69,13 @@ export default defineConfig({
       },
     },
   },
- 
-  plugins: [
-    pluginReact(),
-    pluginBabel({
-      include: /\.(?:jsx|tsx)$/,
-      babelLoaderOptions(opts) {
-        opts.plugins?.unshift([
-          'babel-plugin-react-compiler',
-          ReactCompilerConfig,
-        ]);
-      },
-    })
-  ],
+  plugins: [pluginReact(), pluginBabel({
+    include: /\.(?:jsx|tsx)$/,
+    babelLoaderOptions(opts) {
+      opts.plugins?.unshift([
+        'babel-plugin-react-compiler',
+        ReactCompilerConfig,
+      ]);
+    },
+  })],
 });
