@@ -154,6 +154,7 @@ function SetDiff(props) {
 
     return (
         <>
+        
             <Box sx={{
                 display: 'flex', width: '100%', pointerEvents: checked ? 'auto' : 'none'
             }}>

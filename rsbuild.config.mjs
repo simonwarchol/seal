@@ -54,6 +54,17 @@ export default defineConfig({
       },
     },
     web: {
+      html: {
+        title: 'SEAL',
+        appIcon: {
+          name: 'SEAL',
+          icons: [
+            { src: './src/public/icon-192.png', size: 192 },
+            { src: './src/public/icon-512.png', size: 512 },
+          ],
+        },
+        favicon: './src/public/favicon.ico',
+      },
       output: {
         distPath: {
           root: 'build/dist/',
@@ -61,6 +72,7 @@ export default defineConfig({
       },
     },
   },
+ 
   plugins: [
     pluginReact(),
     pluginBabel({

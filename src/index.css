@@ -10,7 +10,10 @@ body {
 	margin: 0;
 	padding: 0;
 }
-
+.vit-makeStyles-titleInfo{
+	width:0 !important;
+	height:0 !important;
+}
 .Seal {
 	display: flex;
 	height: 100%;

@@ -5,7 +5,7 @@ import {
   vconcat
 } from "@vitessce/config";
 import { useState, useEffect, useContext } from "react";
-
+import "../index.css";
 import "../Seal.css";
 // import { VitS } from "@vitessce/vit-s";
 import { Vitessce, PluginFileType, PluginViewType } from "@vitessce/all";
@@ -284,11 +284,7 @@ function Viewer({ value, setValue, height }) {
     <div id={"main-container"}>
       <Vitessce
         config={vc.toJSON()}
-<<<<<<< HEAD
-        height={'200px'}
-=======
         height={height || windowHeight}
->>>>>>> 92c3b7c07b429063644258255972e5c7d2ebd5ef
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />

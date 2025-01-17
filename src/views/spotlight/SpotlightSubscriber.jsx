@@ -6,10 +6,7 @@ import React, {
   forwardRef,
   PureComponent,
 } from "react";
-import { helpers, centroid } from '@turf/turf';
 import { Icon } from '@material-ui/core';
-
-
 import { debounce, find, isEqual, merge } from "lodash-es";
 import {
   TitleInfo,
@@ -97,6 +94,7 @@ import { PointerIconSVG, SelectLassoIconSVG } from "@vitessce/icons";
 import { CenterFocusStrong, ErrorSharp } from "@material-ui/icons";
 import { SpotlightBitmaskLayer } from "./SpotlightBitmaskLayer";
 import useStore from "../../store";
+import housePointer from "../../public/housePointer.svg";
 
 const getCursorWithTool = () => "crosshair";
 const getCursor = (interactionState) =>
@@ -268,7 +266,7 @@ function ToolMenu(props) {
         isActive={activeTool === 'NEIGHBORHOOD_POINTER'}
       >
         <Icon style={{ textAlign: 'center' }}>
-          <img style={{ height: 24, width: 24 }} src="/housePointer.svg" />
+          <img style={{ height: 24, width: 24 }} src={housePointer} />
         </Icon>
       </IconTool>
     </div>

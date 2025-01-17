@@ -72,7 +72,7 @@ export const useStyles = makeStyles(theme => ({
     left: '0',
     width: '100%',
     margin: '0',
-    padding: '0',
+    padding: '0 0 40px 0',
     height: 'auto',
     display: 'block',
     boxSizing: 'content-box', /* So the width will be 100% + 17px */
