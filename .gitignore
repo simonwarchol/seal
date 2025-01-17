@@ -182,4 +182,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-widget/static
+seal/static

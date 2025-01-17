@@ -12,7 +12,7 @@ export default defineConfig({
       mode: 'production',
       output: {
         distPath: {
-          root: 'widget/static',
+          root: 'seal/static',
           js: '',
           css: '',
         },
