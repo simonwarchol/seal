@@ -16,6 +16,7 @@
     "@mui/material": "^6.1.0",
     "@mui/x-charts": "^7.18.0",
     "@mui/x-tree-view": "^7.17.0",
+    "@rspack/core": "^1.1.8",
     "@turf/turf": "^7.1.0",
     "@vitessce/all": "^3.5.0",
     "@vitessce/config": "^3.5.0",
