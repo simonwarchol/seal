@@ -13,7 +13,7 @@ import {
   ViewType as vt,
   CoordinationType as ct,
   FileType as ft,
-  DataType as dt,ju
+  DataType as dt
 } from "@vitessce/constants";
 
 
