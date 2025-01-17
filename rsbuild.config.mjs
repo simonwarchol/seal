@@ -1,6 +1,7 @@
 import { defineConfig } from '@rsbuild/core';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginBabel } from '@rsbuild/plugin-babel';
+import { rspack } from '@rspack/core';
 
 const ReactCompilerConfig = {
   target: '18',
@@ -8,17 +9,23 @@ const ReactCompilerConfig = {
 export default defineConfig({
   environments: {
     widget: {
+      mode: 'production',
       output: {
         distPath: {
           root: 'widget/static',
           js: '',
           css: '',
         },
+        filenameHash: false,
+        minify: false,
+
         legalComments: 'none',
         filename: {
           js: '[name].js',
           css: '[name].css',
         },
+        sourceMap: false
+
       },
       mode: 'none',
       performance: {
@@ -32,7 +39,8 @@ export default defineConfig({
         htmlPlugin: false,
         rspack: (config) => {
           config.experiments.outputModule = true;
-          config.module.parser.javascript.dynamicImportMode = 'eager';
+          config.module.parser.javascript.dynamicImportMode = 'eager'
+          config.optimization.minimizer = []
           config.output.library = {
             type: 'module',
           };
@@ -42,7 +50,7 @@ export default defineConfig({
       source: {
         entry: {
           index: './src/widget.jsx',
-        },
+        }
       },
     },
     web: {

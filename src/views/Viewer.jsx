@@ -13,18 +13,16 @@ import {
   ViewType as vt,
   CoordinationType as ct,
   FileType as ft,
-  DataType as dt,
+  DataType as dt,ju
 } from "@vitessce/constants";
 
-import Button from "./Button";
 
 import { ObsSetsManagerSubscriber } from "./setsManager/ObsSetsManagerSubscriber";
 import { LayerControllerSubscriber } from "./controller/LayerControllerSubscriber";
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
-function Viewer({ value, setValue}) {
+function Viewer({ value, setValue, height }) {
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
-  // Set up event listener to update the window height state
   useEffect(() => {
     const handleResize = () => {
       setWindowHeight(window.innerHeight);
@@ -284,10 +282,13 @@ function Viewer({ value, setValue}) {
 
   return (
     <div id={"main-container"}>
-      <Button value={value} setValue={setValue} />
       <Vitessce
         config={vc.toJSON()}
+<<<<<<< HEAD
         height={'200px'}
+=======
+        height={height || windowHeight}
+>>>>>>> 92c3b7c07b429063644258255972e5c7d2ebd5ef
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />

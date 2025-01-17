@@ -7,9 +7,7 @@ const render = createRender(() => {
 	const [value, setValue] = useModelState("value");
 
 	return (
-		<div id="widget">
-			<Seal value={value} setValue={setValue} />
-		</div>
+		<Seal value={value} setValue={setValue} height={'600'} />
 	);
 });
 
