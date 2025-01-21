@@ -70,7 +70,7 @@ def get_shapes(path):
 
 
 # @profile
-def load(dataset="exemplar-001"):
+def load(dataset="exemplar-001", df=None):
     global shapes, csv_df, tree, tile_size, image_io, image_zarr, seg_io, seg_zarr, set_csv_path
     global segmentation_path, csv_path, image_path, cut_seg_cells, cut_cells, embedding_image_path, embedding_segmentation_path
     global selection_pkl, dataset_name
@@ -78,7 +78,7 @@ def load(dataset="exemplar-001"):
     if csv_df is not None:
         return
     if True:
-        print("Loading exemplar-001")
+        print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (
             "/Users/swarchol/Research/exemplar-001/registration/exemplar-001.ome.tif"
@@ -109,7 +109,9 @@ def load(dataset="exemplar-001"):
     # shapes = get_shapes(image_path)
     # if path ends with .csv, read csv, if ends with .parquet, read parquet
     print("Reading csv", csv_path)
-    if parquet_path is not None:
+    if df is not None:
+        csv_df = df
+    elif parquet_path is not None:
         csv_df = pd.read_parquet(parquet_path)
     elif csv_path.endswith(".csv"):
         csv_df = pd.read_csv(csv_path)
@@ -448,7 +450,7 @@ if __name__ == "__main__":
     load()
 
     uvicorn.run("main:app", host="localhost", port=8181, reload=True, workers=8)
-    # get_tile_raster(5, 2, 0)
+#     # get_tile_raster(5, 2, 0)
     # get_tile_raster(2, 2, 0)
     # get_tile_raster(7, 2, 0)
     # get_tile_raster(2, 2, 0)

@@ -5,10 +5,12 @@ import "./index.css";
 
 const render = createRender(() => {
 	const [value, setValue] = useModelState("value");
+	const [config, setConfig] = useModelState("config");
+	console.log('xxx', config)
 
 	return (
-		<div style={{ height: '600px', width: '600px' }}>
-			<Seal value={value} setValue={setValue} height={'600'} />
+		<div id="widget" style={{ height: '600px'}}>
+			<Seal value={value} setValue={setValue} height={'600'} config={config} />
 		</div>
 	);
 });

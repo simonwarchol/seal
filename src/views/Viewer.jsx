@@ -21,7 +21,7 @@ import { ObsSetsManagerSubscriber } from "./setsManager/ObsSetsManagerSubscriber
 import { LayerControllerSubscriber } from "./controller/LayerControllerSubscriber";
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
-function Viewer({ value, setValue, height }) {
+function Viewer({ value, setValue, height, config }) {
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   useEffect(() => {
     const handleResize = () => {
@@ -110,10 +110,9 @@ function Viewer({ value, setValue, height }) {
   const exemplarDataset = {
     embeddingImageUrl: "http://localhost:8181/files/embedding_image.ome.tif",
     embeddingSegmentationUrl: "http://localhost:8181/files/embedding_segmentation.ome.tif",
-    csvUrl: "http://localhost:8181/files/csv.csv",
-    cluster2: "kmeans",
-    cluster1: "agcluster",
-    iamgeUrl: "http://localhost:8181/files/image.ome.tif",
+    csvUrl: "http://localhost:8181/files/csv.csv", 
+    clusterColumns: ["kmeans", "agcluster"],  
+    imageUrl: "http://localhost:8181/files/image.ome.tif",
     segmentationUrl: "http://localhost:8181/files/segmentation.ome.tif",
 
   };
@@ -122,15 +121,15 @@ function Viewer({ value, setValue, height }) {
     // embeddingImageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
     embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif",
     csvUrl: "http://localhost:8181/files/set_csv.csv",
-    cluster1: "kmeans",
-    cluster2: "cluster_2d",
-    iamgeUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
+    clusterColumns: ["kmeans", "cluster_2d"],
+    imageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
 
 
   };
-  let dataset = exemplarDataset;
+  let dataset = config || exemplarDataset;
+  console.log('XxX', dataset)
 
 
   const vc = new VitessceConfig({
@@ -139,6 +138,12 @@ function Viewer({ value, setValue, height }) {
     description:
       "Small lung adenocarcinoma specimen from a tissue microarray (TMA), imaged using CyCIF.",
   });
+  const obsSets = dataset?.clusterColumns.map((column) => {
+    return {
+      "name": column,
+      "column": column
+    }
+  })
   const ds0 = vc
     .addDataset("embedding")
     .addFile({
@@ -176,16 +181,7 @@ function Viewer({ value, setValue, height }) {
       fileType: "obsSets.csv",
       options: {
         obsIndex: "CellID",
-        obsSets: [
-          {
-            "name": dataset.cluster1,
-            "column": dataset.cluster1
-          },
-          {
-            "name": dataset.cluster2,
-            "column": dataset.cluster2
-          }
-        ],
+        obsSets: obsSets,
         tooltipsVisible: false
       },
       coordinationValues: {
@@ -200,7 +196,7 @@ function Viewer({ value, setValue, height }) {
     .addDataset("orig")
     .addFile({
       fileType: "image.ome-tiff",
-      url: dataset.iamgeUrl,
+      url: dataset.imageUrl,
       options: {
         tooltipsVisible: false
       },
@@ -240,16 +236,7 @@ function Viewer({ value, setValue, height }) {
       fileType: "obsSets.csv",
       options: {
         obsIndex: "CellID",
-        obsSets: [
-          {
-            "name": dataset.cluster1,
-            "column": dataset.cluster1
-          },
-          {
-            "name": dataset.cluster2,
-            "column": dataset.cluster2
-          }
-        ],
+        obsSets: obsSets,
         tooltipsVisible: false
       },
       coordinationValues: {
@@ -287,7 +274,6 @@ function Viewer({ value, setValue, height }) {
       <Vitessce
         config={vc.toJSON()}
         height={height || windowHeight}
-        
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />
