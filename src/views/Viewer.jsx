@@ -280,12 +280,14 @@ function Viewer({ value, setValue, height }) {
   vc.layout(hconcat(vconcat(v2, v4), v1, v3));
   // vc.layout(hconcat(v1, v2));
 
+  console.log('HEIGHT', height, windowHeight)
+
   return (
     <div id={"main-container"}>
       <Vitessce
         config={vc.toJSON()}
         height={height || windowHeight}
-        width={'100'}
+        
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />

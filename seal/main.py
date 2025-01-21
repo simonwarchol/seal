@@ -20,7 +20,6 @@ from scipy.spatial import cKDTree
 import tifffile as tf
 import pickle
 from sklearn.ensemble import RandomForestClassifier
-import ripley
 from sklearn.inspection import permutation_importance
 from sklearn.model_selection import train_test_split
 # from line_profiler_pycharm import profile
@@ -102,8 +101,8 @@ def load(dataset="exemplar-001"):
         segmentation_path = "/Volumes/Simon/Greg/WD-76845-097_mask_pyr.ome.tif"
         embedding_image_path = "/Volumes/Simon/Greg/tiled.ome.tif"
         embedding_segmentation_path = "/Volumes/Simon/Greg/tiled-mask.ome.tif"
-        csv_path = "/Users/swarchol/Research/bed/data/updated_renamed.csv"
-        set_csv_path = "/Users/swarchol/Research/bed/data/small.csv"
+        csv_path = "/Users/swarchol/Research/seal/data/updated_renamed.csv"
+        set_csv_path = "/Users/swarchol/Research/seal/data/small.csv"
         parquet_path = None
         cut_cells = None
         dataset_name = "greg"
@@ -120,7 +119,7 @@ def load(dataset="exemplar-001"):
     tile_size = 1024
 
     selection_pkl = pickle.load(
-        open("/Users/swarchol/Research/bed/data/results.pkl", "rb")
+        open("/Users/swarchol/Research/seal/data/results.pkl", "rb")
     )
 
 
@@ -332,7 +331,7 @@ async def handle_selection(selection_data: SelectionSet):
     selection_pkl[dataset_name][path[0]][path[1]] = these_results
     if changes:
         # You should write the updated selection_pkl to the pickle file at this point.
-        with open("/Users/swarchol/Research/bed/data/results.pkl", "wb") as f:
+        with open("/Users/swarchol/Research/seal/data/results.pkl", "wb") as f:
             pickle.dump(selection_pkl, f)
 
     return {"message": "Complete", "data": {"feat_imp": feat_imp, "hulls": results}}
