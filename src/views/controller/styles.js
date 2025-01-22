@@ -33,7 +33,8 @@ export const useControllerSectionStyles = makeStyles(() => ({
   layerControllerRoot: {
     width: '100%',
     flexDirection: 'column',
-    padding: '0px 8px',
+    padding: '0',
+    margin: '0',
   },
   layerControllerGrid: {
     marginTop: '10px',

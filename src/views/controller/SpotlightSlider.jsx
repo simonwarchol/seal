@@ -85,124 +85,139 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                     value={'left'}
                     exclusive
                     aria-label="text alignment"
+                    sx={{ width: '100%' }}
                 >
                     <Grid 
                         container 
-                        spacing={2} 
-                        justifyContent="center"
+                        spacing={0} 
+                        justifyContent="space-around"
                         alignItems="flex-start"
-                        sx={{ px: 2 }}
+                        // sx={{ px: 2 }}
                     >
                         {/* Background Column */}
                         <Grid 
                             item 
                             xs={4} 
-                            sx={{ 
-                                display: 'flex',
-                                justifyContent: 'center'
-                            }}
+                            container
+                            direction="column"
+                            alignItems="center"
+                            spacing={0.5}
+                            style={{ padding: '0px 5px' }}
                         >
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                            }}>
+                            <Grid item>
                                 <span style={{ fontSize: '12px' }}>Background</span>
-                                <div style={{
-                                    display: 'flex',
-                                    borderTop: '2px solid black',
-                                }}>
+                            </Grid>
+                            <Grid item container justifyContent="center" sx={{ borderTop: '2px solid black', pt: 1 }}>
+                                <Grid item xs={6}>
                                     <ToggleButton
                                         value="show"
                                         selected={selectedBackground === 'show'}
                                         onClick={() => setSelectedBackground('show')}
-                                        sx={{ opacity: selectedBackground === 'show' ? 1 : 0.5 }}
+                                        sx={{ 
+                                            opacity: selectedBackground === 'show' ? 1 : 0.5,
+                                            padding: '4px',
+                                            minWidth: 0,
+                                            border: '1px solid rgba(0, 0, 0, 0.12)',
+                                            mr: 1
+                                        }}
                                     >
-                                        <Icon style={{ height: '60px', width: 'auto' }}>
+                                        <Icon style={{ height: '45px', width: 'auto' }}>
                                             <img src={showBackground} />
                                         </Icon>
                                     </ToggleButton>
+                                </Grid>
+                                <Grid item xs={6}>
                                     <ToggleButton
                                         value="hide"
                                         selected={selectedBackground === 'hide'}
                                         onClick={() => setSelectedBackground('hide')}
-                                        sx={{ opacity: selectedBackground === 'hide' ? 1 : 0.5 }}
+                                        sx={{ 
+                                            opacity: selectedBackground === 'hide' ? 1 : 0.5,
+                                            padding: '4px',
+                                            minWidth: 0,
+                                            border: '1px solid rgba(0, 0, 0, 0.12)'
+                                        }}
                                     >
-                                        <Icon style={{ height: '60px', width: 'auto' }}>
+                                        <Icon style={{ height: '45px', width: 'auto' }}>
                                             <img src={hideBackground} />
                                         </Icon>
                                     </ToggleButton>
-                                </div>
-                            </div>
+                                </Grid>
+                            </Grid>
                         </Grid>
 
                         {/* Selection Column */}
                         <Grid 
                             item 
                             xs={4}
-                            sx={{ 
-                                display: 'flex',
-                                justifyContent: 'center'
-                            }}
+                            container
+                            direction="column"
+                            alignItems="center"
+                            spacing={0.5}
+                            style={{ padding: '0px 5px' }}
+
                         >
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                            }}>
+                            <Grid item xs={12}>
                                 <span style={{ fontSize: '12px' }}>Selection</span>
-                                <div style={{
-                                    display: 'flex',
-                                    borderTop: '2px solid black',
-                                }}>
+                            </Grid>
+                            <Grid item container justifyContent="center" sx={{ borderTop: '2px solid black', pt: 1 }}>
+                                <Grid item xs={6}>
                                     <ToggleButton
                                         value="spotlight"
                                         selected={selectedSelection === 'spotlight'}
                                         onClick={() => setSelectedSelection('spotlight')}
-                                        sx={{ opacity: selectedSelection === 'spotlight' ? 1 : 0.5 }}
+                                        sx={{ 
+                                            opacity: selectedSelection === 'spotlight' ? 1 : 0.5,
+                                            padding: '4px',
+                                            minWidth: 0,
+                                            border: '1px solid rgba(0, 0, 0, 0.12)',
+                                            mr: 1
+                                        }}
                                     >
-                                        <Icon style={{ height: '60px', width: 'auto' }}>
+                                        <Icon style={{ height: '45px', width: 'auto' }}>
                                             <img src={spotlightSelection} />
                                         </Icon>
                                     </ToggleButton>
+                                </Grid>
+                                <Grid item xs={6}>
                                     <ToggleButton
                                         value="outline"
                                         selected={selectedSelection === 'outline'}
                                         onClick={() => setSelectedSelection('outline')}
-                                        sx={{ opacity: selectedSelection === 'outline' ? 1 : 0.5 }}
+                                        sx={{ 
+                                            opacity: selectedSelection === 'outline' ? 1 : 0.5,
+                                            padding: '4px',
+                                            minWidth: 0,
+                                            border: '1px solid rgba(0, 0, 0, 0.12)'
+                                        }}
                                     >
-                                        <Icon style={{ height: '60px', width: 'auto' }}>
+                                        <Icon style={{ height: '45px', width: 'auto' }}>
                                             <img src={outlineSelection} />
                                         </Icon>
                                     </ToggleButton>
-                                </div>
-                            </div>
+                                </Grid>
+                            </Grid>
                         </Grid>
 
                         {/* Opacity Column */}
                         <Grid 
                             item 
                             xs={4}
-                            sx={{ 
-                                display: 'flex',
-                                justifyContent: 'center'
-                            }}
+                            container
+                            direction="column"
+                            alignItems="center"
+                            spacing={0.5}
+                            style={{ padding: '0px 5px' }}
                         >
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                width: '100%',
-                            }}>
+                            <Grid item>
                                 <span style={{ fontSize: '12px' }}>Opacity</span>
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    borderTop: '2px solid black',
-                                    width: '100%',
-                                    paddingTop: '10px',
-                                    opacity: visible ? 1 : 0.1
-                                }}>
+                            </Grid>
+                            <Grid item container sx={{ 
+                                borderTop: '2px solid black', 
+                                pt: 1,
+                                opacity: visible ? 1 : 0.1
+                            }}>
+                                <Grid item xs={12}>
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1873.3 650" version="1.1" style={{ maxHeight: '150px' }}>
                                         <g id="flashlight">
                                             <path
@@ -279,6 +294,8 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                             ))}
                                         </g>
                                     </svg>
+                                </Grid>
+                                <Grid item xs={12}>
                                     <Slider
                                         id={`layer-${name}-opacity-closed`}
                                         value={activeIndex + 1}
@@ -298,8 +315,8 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                             }
                                         }}
                                     />
-                                </div>
-                            </div>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </ToggleButtonGroup>
