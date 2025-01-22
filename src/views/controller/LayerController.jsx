@@ -517,11 +517,88 @@ export default function LayerController(props) {
           expanded={!disabled && isExpanded}
           id={`layer-controls-accordion-${layerControlsId}`}
         >
-
-          <SpotlightSlider useOverflowEllipsisGridStyles={useOverflowEllipsisGridStyles}
-            name={name} opacity={opacity} setOpacity={setOpacity}
-            titleClass={overflowEllipsisGridClasses.item} setVisible={setVisible} visible={visible} visibleSetting={visibleSetting}
+          <AccordionSummary
+            classes={{
+              root: accordionClasses.accordionSummaryRoot,
+              content: accordionClasses.content,
+              expanded: accordionClasses.expanded,
+              expandIcon: accordionClasses.expandIcon,
+            }}
+            expandIcon={<ExpandMoreIcon role="presentation" />}
+            aria-controls={`layer-${name}-controls`}
+            aria-expanded={isExpanded}
+          >
+            <Grid container direction="column" m={1} justifyContent="center">
+              <Grid item classes={{ item: overflowEllipsisGridClasses.item }}>
+                <Button
+                  aria-label="Toggle layer visibility"
+                  onClick={(e) => {
+                    if (!disabled) {
+                      e.stopPropagation();
+                      const nextVisible = typeof visible === "boolean" ? !visible : false;
+                      setVisible(nextVisible);
+                    }
+                  }}
+                  style={{
+                    marginRight: 8,
+                    marginBottom: 2,
+                    padding: 0,
+                    minWidth: 0,
+                  }}
+                >
+                  <Visibility />
+                </Button>
+                Segmentation Mask
+              </Grid>
+              {!disabled && !isExpanded && (
+                <Grid
+                  container
+                  direction="row"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Grid item xs={6}>
+                    <InputLabel
+                      htmlFor={`layer-${name}-opacity-closed`}
+                      classes={{ root: inputLabelClasses.inputLabelRoot }}
+                    >
+                      Opacity:
+                    </InputLabel>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Slider
+                      id={`layer-${name}-opacity-closed`}
+                      value={opacity}
+                      onChange={(e, v) => setOpacity(v)}
+                      valueLabelDisplay="auto"
+                      aria-label={`Adjust opacity for layer ${name}`}
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      orientation="horizontal"
+                    />
+                  </Grid>
+                </Grid>
+              )}
+            </Grid>
+          </AccordionSummary>
+          <AccordionDetails
+            classes={{ root: accordionClasses.accordionDetailsRoot }}
+            id={`layer-${name}-controls`}
+            m={0}
+            p={0}
+          >
+            <SpotlightSlider 
+              useOverflowEllipsisGridStyles={useOverflowEllipsisGridStyles}
+              name={name} 
+              opacity={opacity} 
+              setOpacity={setOpacity}
+              titleClass={overflowEllipsisGridClasses.item} 
+              setVisible={setVisible} 
+              visible={visible} 
+              visibleSetting={visibleSetting}
             />
+          </AccordionDetails>
         </Accordion>
       ) : (
         <Accordion

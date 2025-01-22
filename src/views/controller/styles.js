@@ -44,7 +44,7 @@ export const useAccordionStyles = makeStyles(theme => ({
   accordionDetailsRoot: {
     width: '100%',
     flexDirection: 'column',
-    padding: '8px 8px 24px 8px',
+    padding: '2px'
   },
   accordionSummaryRoot: {
     padding: '0px 8px',

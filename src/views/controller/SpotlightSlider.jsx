@@ -79,29 +79,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
 
     return (
         <Grid container spacing={0} sx={{ width: '100%' }}>
-            <Grid item classes={{ item: titleClass }}>
-                <Button
-                    aria-label="Toggle layer visibility"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        const nextVisible =
-                            typeof visible === "boolean" ? !visible : false;
-                        setVisible(nextVisible);
-                    }}
-                    sx={{
-                        color: 'black',
-                    }}
-                    style={{
-                        marginRight: 8,
-                        marginBottom: 2,
-                        padding: 0,
-                        minWidth: 0,
-                    }}
-                >
-                    <Visibility />
-                </Button>
-                Cell Segmentation
-            </Grid>
+            
             <Grid item xs={12}>
                 <ToggleButtonGroup
                     value={'left'}
