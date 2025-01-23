@@ -11,17 +11,7 @@ export const useStyles = makeStyles(theme => ({
     display: 'block',
   },
   /* position setIntersectIcon on the right */
-  setDisplayIcons: {
-    zIndex: 1000,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    cursor: 'pointer',
-    pointerEvents: 'auto',
-    '& button': {
-      focus: 'none',
-    },
-  },
+  
   setDiff: {
     position: 'fixed',
     bottom: 20,
@@ -31,7 +21,16 @@ export const useStyles = makeStyles(theme => ({
     justifyContent: 'flex-end',
     padding: 0,
     pointerEvents: 'none',
-
+  },
+  layerOverlays: {
+    position: 'fixed',
+    top: 20,
+    right: 20,
+    width: '40%',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    padding: 0,
+    pointerEvents: 'none',
   },
   setOperationButtons: {
     backgroundColor: theme.palette.grayLight,

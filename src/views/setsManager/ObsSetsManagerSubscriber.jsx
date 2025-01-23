@@ -63,8 +63,7 @@ import {
   handleImportJSON
 } from '@vitessce/sets-utils';
 import { capitalize, getDefaultColor } from '@vitessce/utils';
-import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
-import { Title as TitleIcon } from '@material-ui/icons';
+
 import { GroupWork as GroupWorkIcon } from '@material-ui/icons';
 import { useStyles } from './styles.js';
 import './styles.css'
@@ -75,7 +74,8 @@ import { MenuSVG } from '@vitessce/icons';
 import HelpTooltip from './HelpTooltip.jsx';
 import PopoverMenu from './PopoverMenu.jsx';
 import useStore from '../../store';
-import SetDiff from './SetDiff';
+import SetDiff from './SetDiff.jsx';
+import LayerOverlays from './LayerOverlays.jsx';
 
 
 
@@ -877,10 +877,6 @@ function SetsManager(props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditingNodeName, setIsEditingNodeName] = useState(null);
 
-  const showClusterOutlines = useStore((state) => state.showClusterOutlines);
-  const showClusterTitles = useStore((state) => state.showClusterTitles);
-  const setShowClusterOutlines = useStore((state) => state.setShowClusterOutlines);
-  const setShowClusterTitles = useStore((state) => state.setShowClusterTitles);
 
 
   const processedSets = useMemo(() => processSets(
@@ -968,16 +964,7 @@ function SetsManager(props) {
 
   return (
     <div className={classes.setsManager}>
-      <div className={classes.setDisplayIcons}>
-        <BorderOuterIcon onClick={() => {
-          setShowClusterOutlines(!showClusterOutlines);
-        }} />
-        <TitleIcon onClick={() => {
-          setShowClusterTitles(!showClusterTitles);
-        }} />
-
-
-      </div>
+      
 
       <div className={classes.setsManagerTree}>
         <Tree
@@ -1039,6 +1026,10 @@ function SetsManager(props) {
       <div className={classes.setDiff}>
 
         <SetDiff cellSetSelection={cellSetSelection} />
+      </div>
+      <div className={classes.layerOverlays}>
+
+        <LayerOverlays  />
       </div>
     </div >
   );

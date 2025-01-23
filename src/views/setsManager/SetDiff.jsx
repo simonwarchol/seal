@@ -192,7 +192,12 @@ function SetDiff(props) {
                 style={{
                     pointerEvents: 'auto'
                 }}>
-                <SetIntersectionSVG onClick={() => { setChecked(!checked); }} />
+                <SetIntersectionSVG
+                    style={{
+                        width: '30px',
+                        height: '30px',
+                    }}
+                    onClick={() => { setChecked(!checked); }} />
             </div>
         </>
     );
