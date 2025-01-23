@@ -54,8 +54,8 @@ function LayerOverlays() {
                                             style={{ cursor: 'pointer' }}
                                         />
                                     </Grid>
-                                    <Grid item xs={9} style={{ padding:0, margin:0 }}>
-                                        <Typography variant="body2" align="left" style={{ padding:0, margin:0 }}>
+                                    <Grid item xs={9} style={{ padding: 0, margin: 0 }}>
+                                        <Typography variant="body2" align="left" style={{ padding: 0, margin: 0 }}>
                                             Outline Clusters
                                         </Typography>
                                     </Grid>
@@ -71,8 +71,8 @@ function LayerOverlays() {
                                             style={{ cursor: 'pointer' }}
                                         />
                                     </Grid>
-                                    <Grid item xs={9} style={{ padding:0, margin:0 }}>
-                                        <Typography variant="body2" align="left" style={{ padding:0, margin:0 }}>
+                                    <Grid item xs={9} style={{ padding: 0, margin: 0 }}>
+                                        <Typography variant="body2" align="left" style={{ padding: 0, margin: 0 }}>
                                             Show Titles
                                         </Typography>
                                     </Grid>
@@ -114,14 +114,16 @@ function LayerOverlays() {
                 </Grow>
             </Box>
 
-            <div 
+            <div
                 className={checked ? 'layerOverlayIcon selectedLayerOverlay' : 'layerOverlayIcon unselectedLayerOverlay'}
                 style={{
                     pointerEvents: 'auto'
                 }}
             >
-               <Icon style={{ width: '30px', height: '30px', cursor: 'pointer' }} onClick={() => { setChecked(!checked); }}>
-                    <img src={InfoLayer} alt="Info Layer" />
+                <Icon style={{ width: '30px', height: '30px', cursor: 'pointer', }} onClick={() => { setChecked(!checked); }}>
+                    <img style={{
+                        fill: checked ? 'blue' : 'grey'
+                    }} src={InfoLayer} alt="Info Layer" />
                 </Icon>
             </div>
         </>

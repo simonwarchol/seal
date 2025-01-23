@@ -1,10 +1,4 @@
-.selectedSetIntersect {
-    fill: blue;
-}
 
-.unselectedSetIntersect {
-    fill: grey;
-}
 
 /* position setIntersectIcon on the right */
 .setIntersectIcon {
@@ -14,6 +8,7 @@
     width: 20px;
     height: 20px;
     cursor: pointer;
+    fill: black;
 }
 
 
