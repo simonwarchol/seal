@@ -32,6 +32,8 @@ const useStore = create((set) => ({
     setSelectedBackground: (background) => set({ selectedBackground: background }),
     selectedSelection: 'spotlight',
     setSelectedSelection: (selection) => set({ selectedSelection: selection }),
+    featureCount: 3,
+    setFeatureCount: (count) => set({ featureCount: count }),
 }))
 
 export default useStore;

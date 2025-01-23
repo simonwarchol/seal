@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SetIntersectionSVG } from '@vitessce/icons';
-import { Icon, Grid, Typography, ToggleButton } from '@mui/material';
+import { Icon, Grid, Typography, ToggleButton, Select, MenuItem } from '@mui/material';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grow from '@mui/material/Grow';
@@ -17,10 +17,11 @@ function LayerOverlays() {
     const showClusterTitles = useStore((state) => state.showClusterTitles);
     const setShowClusterOutlines = useStore((state) => state.setShowClusterOutlines);
     const setShowClusterTitles = useStore((state) => state.setShowClusterTitles);
-    const [featureCount, setFeatureCount] = useState(3);
+    const featureCount = useStore((state) => state.featureCount);
+    const setFeatureCount = useStore((state) => state.setFeatureCount);
 
-    const handleFeatureCountChange = (count) => {
-        setFeatureCount(count);
+    const handleFeatureCountChange = (event) => {
+        setFeatureCount(event.target.value);
     };
 
     return (
@@ -40,8 +41,8 @@ function LayerOverlays() {
                             width: '200px',
                             height: 'auto',
                             position: 'absolute',
-                            right: '35px',
-                            top: '20px'
+                            right: '50px',
+                            top: '10px'
                         }}
                     >
                         <Grid container direction="column" spacing={1}>
@@ -81,31 +82,23 @@ function LayerOverlays() {
 
                             <Grid item>
                                 <Grid container alignItems="center">
-                                    <Grid item xs={3} container justifyContent="center">
-                                        <GroupWorkIcon
-                                            style={{ cursor: 'pointer' }}
-                                            color={featureCount > 0 ? 'primary' : 'inherit'}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={9}>
-                                        <Grid container spacing={1}>
-                                            {[1, 2, 3].map((num) => (
-                                                <Grid item key={num}>
-                                                    <ToggleButton
-                                                        value={num}
-                                                        selected={featureCount === num}
-                                                        onClick={() => handleFeatureCountChange(num)}
-                                                        size="small"
-                                                        sx={{
-                                                            padding: '2px 6px',
-                                                            minWidth: 0
-                                                        }}
-                                                    >
-                                                        {num}
-                                                    </ToggleButton>
-                                                </Grid>
+                                    <Grid item xs={2} />
+                                    <Grid item xs={8}>
+                                        <Select
+                                            value={featureCount}
+                                            onChange={handleFeatureCountChange}
+                                            size="small"
+                                            sx={{
+                                                minWidth: '100px',
+                                                height: '30px'
+                                            }}
+                                        >
+                                            {[0, 1, 2, 3, 4, 5].map((num) => (
+                                                <MenuItem key={num} value={num}>
+                                                    {num} Features
+                                                </MenuItem>
                                             ))}
-                                        </Grid>
+                                        </Select>
                                     </Grid>
                                 </Grid>
                             </Grid>

@@ -1162,6 +1162,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     const { obsCentroidsIndex, obsSegmentationsIndex, additionalCellSets, setFeatures,
       cellSetSelection, dataset, rasterLayers, lockedChannels, setRasterLayers, channels,
       hoverClusterOpacities, setHoveredCluster, showClusterOutlines, showClusterTitles,
+      featureCount,
       selectNeighborhood
     } = this.props;
 
@@ -1318,9 +1319,9 @@ class Spatial extends AbstractSpatialOrScatterplot {
         // sort features by value descending
         features.sort((a, b) => b[1] - a[1]);
 
-        // Take  top 3 features
+        // Take  top featureCount features
         // Make a string of the names 
-        const featureNames = features.slice(0, 3).map((f) => f[0]).join('/');
+        const featureNames = features.slice(0, featureCount).map((f) => f[0]).join('/');
 
         return title + '\n' + featureNames;
       },
@@ -1894,7 +1895,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       forceUpdate = true;
     }
 
-    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "selectedSelection"].some(shallowDiff)) {
+    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "selectedSelection", "featureCount"].some(shallowDiff)) {
       this.onUpdateCellsLayer()
       forceUpdate = true;
     }
@@ -2310,6 +2311,7 @@ export function SpotlightSubscriber(props) {
   const setHoveredCluster = useStore((state) => state.setHoveredCluster);
   const selectedBackground = useStore((state) => state.selectedBackground)
   const selectedSelection = useStore((state) => state.selectedSelection)
+  const featureCount = useStore((state) => state.featureCount);
 
 
 
@@ -2963,6 +2965,7 @@ export function SpotlightSubscriber(props) {
         setHoveredCluster={setHoveredCluster}
         showClusterOutlines={showClusterOutlines}
         showClusterTitles={showClusterTitles}
+        featureCount={featureCount}
         selectNeighborhood={selectNeighborhood}
         selectedBackground={selectedBackground}
         selectedSelection={selectedSelection}
