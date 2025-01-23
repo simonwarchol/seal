@@ -117,8 +117,9 @@ function RasterChannelController({
   ]);
   const rgbColor = toRgbUIString(colormapOn, color, theme);
   const [thisChannelIsLocked, setThisChannelIsLocked] = useState(
-    lockedChannels?.channelId || false
+    lockedChannels?.[channelId] || false
   );
+
 
 
   useEffect(() => {

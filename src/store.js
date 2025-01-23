@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 
 const useStore = create((set) => ({
-    lockedChannels: [],
+    lockedChannels: [true],
     setLockedChannels: (channels) => set({ lockedChannels: channels }),
     showSpatialSignatures: false,
     setShowSpatialSignatures: (show) => set({ showSpatialSignatures: show }),

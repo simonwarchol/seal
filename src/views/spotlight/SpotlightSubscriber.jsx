@@ -1261,28 +1261,37 @@ class Spatial extends AbstractSpatialOrScatterplot {
       },
       onClick: async (info, event, d) => {
         if (!this?.state?.tool) {
-
           const featureImportance = info.object.features;
           let changeI = 0;
+          
           if (rasterLayers?.[0]?.channels?.length > 0) {
-            rasterLayers[0].channels = rasterLayers?.[0]?.channels?.map((d, i, e) => {
-              const c = channels.indexOf(featureImportance?.[changeI]?.[0])
-              console.log('featureImportance', c, featureImportance?.[0])
-              if (c === -1) {
-                changeI++;
-                return { ...d }
-              }
-              else if (lockedChannels?.[i]) {
-                return { ...d }
-              }
-              else {
-                changeI++;
-                return { ...d, selection: { c, z: 0, t: 0 } }
-              }
-            })
+            const newRasterLayers = rasterLayers.map(layer => ({
+              ...layer,
+              channels: layer.channels.map((channel, i) => {
+                const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
+                if (c === -1) {
+                  changeI++;
+                  return channel;
+                } else if (lockedChannels?.[i]) {
+                  return channel;
+                } else {
+                  changeI++;
+                  return {
+                    ...channel,
+                    selection: { c, z: 0, t: 0 }
+                  };
+                }
+              })
+            }));
+            
+            // Update both the layers and channel selections
+            setRasterLayers(newRasterLayers);
+            
+            // Force a re-render of channel controllers by updating channel state
+            this.setState({
+              channels: newRasterLayers[0].channels
+            });
           }
-          console.log('rasterLayers', rasterLayers)
-          setRasterLayers(rasterLayers);
         } else {
           // Selecting a neighborhood
           selectNeighborhood(info)

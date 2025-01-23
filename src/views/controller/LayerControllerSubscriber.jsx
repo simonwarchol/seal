@@ -200,7 +200,8 @@ const LayerControllerMemoized = React.memo(
             })}
           {/* Image layers: */}
           {rasterLayers &&
-            rasterLayers.map((layer, i) => {
+            rasterLayers.map((layer, i, arr) => {
+
               const { index } = layer;
               const loader = imageLayerLoaders?.[index];
               const layerMeta = imageLayerMeta?.[index];
