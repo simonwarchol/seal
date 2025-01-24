@@ -1202,21 +1202,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       getExpressionValue,
       geneExpressionColormap,
     } = this.props;
-    const getPolygon = hasExplicitPolygons
-      ? (object, { index, data }) => data.src.obsSegmentations.data[index]
-      : (object, { index, data }) => {
-        const x = data.src.obsCentroids.data[0][index];
-        const y = data.src.obsCentroids.data[1][index];
-        const r = radius;
-        return [
-          [x, y + r],
-          [x + r, y],
-          [x, y - r],
-          [x - r, y],
-        ];
-      };
-
-    return [new deck.PolygonLayer({
+      return [new deck.PolygonLayer({
       id: CELLS_LAYER_ID,
       data: showClusterOutlines ? (concaveData || []) : [],
       coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
@@ -1264,7 +1250,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         if (!this?.state?.tool) {
           const featureImportance = info.object.features;
           let changeI = 0;
-          
+
           if (rasterLayers?.[0]?.channels?.length > 0) {
             const newRasterLayers = rasterLayers.map(layer => ({
               ...layer,
@@ -1284,10 +1270,10 @@ class Spatial extends AbstractSpatialOrScatterplot {
                 }
               })
             }));
-            
+
             // Update both the layers and channel selections
             setRasterLayers(newRasterLayers);
-            
+
             // Force a re-render of channel controllers by updating channel state
             this.setState({
               channels: newRasterLayers[0].channels
@@ -1308,6 +1294,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       data: showClusterTitles ? (concaveData || []) : [],
       coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
       pickable: false,
+      useDevicePixels: 2,
       getPosition: (d) => {
         if (d.centroid) return d.centroid;
         return d.hull[0];
@@ -1327,7 +1314,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
       },
       getAlignmentBaseline: 'center',
       getColor: [255, 255, 255],
+      fontFamily: "sans-serif",
       getSize: 13,
+      fontSettings: {
+        sdf: true,
+      },
       getTextAnchor: 'middle',
     })
 
@@ -1602,7 +1593,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       zSlice: layerProps.zSlice,
       onViewportLoad: layerProps.callback,
       excludeBackground: layerProps.excludeBackground,
-      
+
       extensions,
       ...rgbInterleavedProps,
     });
@@ -2492,12 +2483,13 @@ export function SpotlightSubscriber(props) {
         body: JSON.stringify({ ...setSelection, path }),
       });
       const neighborhoodData = await neighborhoodPost.json();
-      console.log('neighborhoodData', neighborhoodData)
+      console.log('neighborhoodData', neighborhoodData,info)
+      // join path, which is list of strings, into a single string
       setObsSelection(
         neighborhoodData?.neighbors || [], additionalCellSets, cellSetColor,
         setCellSetSelection, setAdditionalCellSets, setCellSetColor,
         setCellColorEncoding,
-        'Neighborhood ',
+        `Neighborhood ${path?.join('-') || ''}`,
       );
 
     }
