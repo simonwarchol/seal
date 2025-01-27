@@ -77,7 +77,7 @@ def load(dataset="exemplar-001", df=None):
 
     if csv_df is not None:
         return
-    if False:
+    if True:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (
@@ -202,7 +202,7 @@ async def handle_selection(selection_data: SelectionSet):
                 "message": "Complete",
                 "data": {"feat_imp": feat_imp, "hulls": results_dict["hulls"]},
             }
-    return {"message": "Complete", "data": {"path": path, "dataset": dataset_name}}
+    # return {"message": "Complete", "data": {"path": path, "dataset": dataset_name}}
 
     # Proceed with computations if no existing data or changes
     all_features = [

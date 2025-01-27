@@ -127,11 +127,11 @@ function SetDiff(props) {
                     group.selectAll('text')
                         .data(d => [d])
                         .join('text')
-                        .attr('x', (dd, ii) => ((-1 + (i * 2)) * 80 + desiredSize))
+                        .attr('x', (dd, ii) => ((-1 + (i * 2)) * 80 + 60))
                         .attr('y', 0)
                         .attr('text-anchor', 'middle')
                         .text(d => JSON.stringify(d.path))
-                        .attr('font-size', 12)
+                        .attr('font-size', 10)
                         .attr('fill', 'black');
                 });
             setPolygons(_polygons);

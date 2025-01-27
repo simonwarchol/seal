@@ -33,16 +33,16 @@ function LayerOverlays() {
             }}>
                 <Grow in={checked}>
                     <Paper
-                        className={'vennPaper'}
+                        className={'layerOverlayPaper'}
                         elevation={4}
                         sx={{
+                            position: 'absolute',
                             margin: 0,
                             padding: '10px',
                             width: '200px',
                             height: 'auto',
-                            position: 'absolute',
-                            right: '50px',
-                            top: '10px'
+                            right: '30px',
+                            top: '20px'
                         }}
                     >
                         <Grid container direction="column" spacing={1}>

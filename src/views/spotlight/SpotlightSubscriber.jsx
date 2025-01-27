@@ -95,6 +95,8 @@ import { CenterFocusStrong, ErrorSharp } from "@material-ui/icons";
 import { SpotlightBitmaskLayer } from "./SpotlightBitmaskLayer";
 import useStore from "../../store";
 import housePointer from "../../public/housePointer.svg";
+import { OrthographicView, COORDINATE_SYSTEM, Layer, project32, picking, CompositeLayer } from '@deck.gl/core';
+
 
 const getCursorWithTool = () => "crosshair";
 const getCursor = (interactionState) =>
@@ -1178,150 +1180,228 @@ class Spatial extends AbstractSpatialOrScatterplot {
         return { hull: setFeature?.hulls?.spatial?.concave_hull, density: setFeature?.hulls?.spatial?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
       }
       return null;
-    }).filter(d => d && d.density > 0.001);
+    }).filter(d => d && d.density > 0.001)
 
-    const obsIndex = hasExplicitPolygons
-      ? obsSegmentationsIndex
-      : obsCentroidsIndex;
-    const {
-      theme,
-      // cellFilter,
-      cellSelection,
-      setCellHighlight,
-      setComponentHover,
-      getCellIsSelected = makeDefaultGetCellIsSelected(
-        obsIndex?.length === cellSelection?.length ? null : cellSelection
-      ),
-      cellColors,
-      getCellColor = makeDefaultGetCellColors(cellColors, obsIndex, theme),
-      onCellClick,
-      lineWidthScale = 10,
-      lineWidthMaxPixels = 2,
-      geneExpressionColormapRange,
-      cellColorEncoding,
-      getExpressionValue,
-      geneExpressionColormap,
-    } = this.props;
-      return [new deck.PolygonLayer({
-      id: CELLS_LAYER_ID,
-      data: showClusterOutlines ? (concaveData || []) : [],
-      coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
-      pickable: true,
-      autoHighlight: true,
-      // autoHighlight: true,
-      filled: true,
-      stroked: true,
-      // backgroundColor: [0, 0, 0],
-      getPolygon: d => d.hull,
-      // isSelected: getCellIsSelected,
-      // getPolygon,
-      // updateTriggers: {
-      //   getLineWidth: [stroked],
-      //   isSelected: cellSelection,
-      //   getExpressionValue,
-      //   getFillColor: [opacity, cellColorEncoding, cellSelection, cellColors],
-      //   getLineColor: [cellColorEncoding, cellSelection, cellColors],
-      //   getPolygon: [radius],
-      // },
-      getFillColor: [255, 255, 255, 0],
-      highlightColor: [255, 255, 255, 50],
-      getLineWidth: 15,
-      // getFillColor: (object, { index }) => {
-      //   // const color = getCellColor(object, { index });
-      //   // color[3] = opacity * 255;
-      //   // return color;
-      // },
-      // getLineColor: (object, { index }) => {
-      //   const color = getCellColor(object, { index });
-      //   color[3] = 255;
-      //   return color;
-      // },
-      getLineColor: (d) => {
-        const pathString = JSON.stringify(d.path)
-        const opacity = hoverClusterOpacities?.get(pathString)
-        // check if opacity is undefined
-        if (opacity === undefined) {
-          return [255, 255, 255, 255]
-        } else {
-          return [255, 255, 255, opacity * 255]
-        }
-      },
-      onClick: async (info, event, d) => {
-        if (!this?.state?.tool) {
-          const featureImportance = info.object.features;
-          let changeI = 0;
 
-          if (rasterLayers?.[0]?.channels?.length > 0) {
-            const newRasterLayers = rasterLayers.map(layer => ({
-              ...layer,
-              channels: layer.channels.map((channel, i) => {
-                const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
-                if (c === -1) {
-                  changeI++;
-                  return channel;
-                } else if (lockedChannels?.[i]) {
-                  return channel;
-                } else {
-                  changeI++;
-                  return {
-                    ...channel,
-                    selection: { c, z: 0, t: 0 }
-                  };
-                }
-              })
-            }));
 
-            // Update both the layers and channel selections
-            setRasterLayers(newRasterLayers);
 
-            // Force a re-render of channel controllers by updating channel state
-            this.setState({
-              channels: newRasterLayers[0].channels
-            });
+
+    return [
+
+      new deck.PolygonLayer({
+        id: CELLS_LAYER_ID,
+        data: showClusterOutlines ? (concaveData || []) : [],
+        coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
+        pickable: true,
+        autoHighlight: true,
+        // autoHighlight: true,
+        filled: true,
+        stroked: true,
+        // backgroundColor: [0, 0, 0],
+        getPolygon: d => d.hull,
+
+        getFillColor: [255, 255, 255, 0],
+        highlightColor: [255, 255, 255, 50],
+        getLineWidth: 15,
+        getLineColor: (d) => {
+          const pathString = JSON.stringify(d.path)
+          const opacity = hoverClusterOpacities?.get(pathString)
+          // check if opacity is undefined
+          if (opacity === undefined) {
+            return [255, 255, 255, 255]
+          } else {
+            return [255, 255, 255, opacity * 255]
           }
-        } else {
-          // Selecting a neighborhood
-          selectNeighborhood(info)
+        },
+        onClick: async (info, event, d) => {
+          if (!this?.state?.tool) {
+            const featureImportance = info.object.features;
+            let changeI = 0;
+
+            if (rasterLayers?.[0]?.channels?.length > 0) {
+              const newRasterLayers = rasterLayers.map(layer => ({
+                ...layer,
+                channels: layer.channels.map((channel, i) => {
+                  const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
+                  if (c === -1) {
+                    changeI++;
+                    return channel;
+                  } else if (lockedChannels?.[i]) {
+                    return channel;
+                  } else {
+                    changeI++;
+                    return {
+                      ...channel,
+                      selection: { c, z: 0, t: 0 }
+                    };
+                  }
+                })
+              }));
+
+              // Update both the layers and channel selections
+              setRasterLayers(newRasterLayers);
+
+              // Force a re-render of channel controllers by updating channel state
+              this.setState({
+                channels: newRasterLayers[0].channels
+              });
+            }
+          } else {
+            // Selecting a neighborhood
+            selectNeighborhood(info)
+          }
+        },
+        onHover: (info) => {
+          setHoveredCluster(info.object)
         }
-      },
-      onHover: (info) => {
-        setHoveredCluster(info.object)
-      }
 
-    }),
-    new deck.TextLayer({
-      id: TITLES_LAYER_ID,
-      data: showClusterTitles ? (concaveData || []) : [],
-      coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
-      pickable: false,
-      useDevicePixels: 2,
-      getPosition: (d) => {
-        if (d.centroid) return d.centroid;
-        return d.hull[0];
-      },
-      getText: (d) => {
-        const title = d.path.join('-');
-        const features = d.features;
-        // Sort array of 
-        // sort features by value descending
-        features.sort((a, b) => b[1] - a[1]);
+      }),
+      new deck.TextLayer({
+        id: TITLES_LAYER_ID,
+        data: showClusterTitles ? (concaveData || []) : [],
+        coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
+        pickable: false,
+        useDevicePixels: 2,
+        getPosition: (d) => {
+          if (d.centroid) return d.centroid;
+          return d.hull[0];
+        },
+        getText: (d) => {
+          const title = d.path.join('-');
+          const features = d.features;
+          // Sort array of 
+          // sort features by value descending
+          features.sort((a, b) => b[1] - a[1]);
 
-        // Take  top featureCount features
-        // Make a string of the names 
-        const featureNames = features.slice(0, featureCount).map((f) => f[0]).join('/');
+          // Take  top featureCount features
+          // Make a string of the names 
+          const featureNames = features.slice(0, featureCount).map((f) => f[0]).join('/');
 
-        return title + '\n' + featureNames;
-      },
-      getAlignmentBaseline: 'center',
-      getColor: [255, 255, 255],
-      fontFamily: "sans-serif",
-      getSize: 13,
-      fontSettings: {
-        sdf: true,
-      },
-      getTextAnchor: 'middle',
-    })
+          return title + '\n' + featureNames;
+        },
+        getAlignmentBaseline: 'center',
+        getColor: [255, 255, 255],
+        fontFamily: "sans-serif",
+        getSize: 13,
+        fontSettings: {
+          sdf: true,
+        },
+        getTextAnchor: 'middle',
+      })
 
+    ];
+  }
+
+  createFeatureLabelLayer() {
+    const { obsCentroidsIndex, obsSegmentationsIndex, setFeatures,
+      cellSetSelection, dataset, featureCount,
+      rasterLayers, channels, lockedChannels, setRasterLayers,
+      setHoveredCluster, selectNeighborhood
+    } = this.props;
+
+
+    const concaveData = (cellSetSelection || []).map((cellSet) => {
+      const setFeature = setFeatures?.[cellSet[0]]?.[cellSet[1]] || {};
+      if (dataset == 'A') {
+        if (!setFeature?.hulls?.embedding?.concave_hull) return;
+        return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
+      } else return null;
+    }).filter(d => d && d.density <= 0.001)
+    if (concaveData.length == 0) return null;
+
+
+    function makeBoundingBox(viewport) {
+      if (!viewport) return null;
+
+      return [
+        viewport.unproject([0, 0]),
+        viewport.unproject([viewport.width, 0]),
+        viewport.unproject([viewport.width, viewport.height]),
+        viewport.unproject([0, viewport.height])
+      ];
+    }
+    const { viewport } = this;
+    const boundingBox = makeBoundingBox(viewport);
+    if (!boundingBox) return null;
+
+    const bottomLeft = boundingBox[3];  // [x, y]
+
+    return [
+      new deck.TextLayer({
+        id: `non-concave-clusters-layer`,
+        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        data: concaveData,
+        getText: (d) => {
+          const title = d.path.join('-');
+          const features = d.features;
+          // Sort array of 
+          // sort features by value descending
+          features.sort((a, b) => b[1] - a[1]);
+
+          // Take  top featureCount features
+          // Make a string of the names 
+          const featureNames = features.slice(0, featureCount).map((f) => f[0]).join('/');
+
+          return title + '\n' + featureNames;
+        },
+        getAlignmentBaseline: 'center',
+        // 
+        getColor: [255, 255, 255],
+        fontFamily: "sans-serif",
+        getSize: 13,
+        fontSettings: {
+          sdf: true,
+        },
+        pickable: true,
+        getTextAnchor: 'start',
+        getPosition: (d, i, a) => {
+          console.log('d', d, i)
+          // Space text 10 pixels from the bottom left, with a 10 pixel gap between each text
+          const test = [bottomLeft[0] + 100, bottomLeft[1] - (i.index * 300) - 300];
+          console.log('test', test, bottomLeft)
+          return test;
+        },
+        onClick: async (info, event, d) => {
+          console.log('info', info, event, d)
+          if (!this?.state?.tool) {
+            const featureImportance = info.object.features;
+            let changeI = 0;
+
+            if (rasterLayers?.[0]?.channels?.length > 0) {
+              const newRasterLayers = rasterLayers.map(layer => ({
+                ...layer,
+                channels: layer.channels.map((channel, i) => {
+                  const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
+                  if (c === -1) {
+                    changeI++;
+                    return channel;
+                  } else if (lockedChannels?.[i]) {
+                    return channel;
+                  } else {
+                    changeI++;
+                    return {
+                      ...channel,
+                      selection: { c, z: 0, t: 0 }
+                    };
+                  }
+                })
+              }));
+
+              // Update both the layers and channel selections
+              setRasterLayers(newRasterLayers);
+
+              // Force a re-render of channel controllers by updating channel state
+              this.setState({
+                channels: newRasterLayers[0].channels
+              });
+            }
+          } else {
+            // Selecting a neighborhood
+            selectNeighborhood(info)
+          }
+        },
+
+      }),
     ];
   }
 
@@ -1668,6 +1748,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       ...obsSegmentationsPolygonLayer,
       neighborhoodsLayer,
       obsLocationsLayer,
+      this.createFeatureLabelLayer(),
       this.createScaleBarLayer(),
       this.createSelectionLayer(),
     ];
@@ -2483,7 +2564,7 @@ export function SpotlightSubscriber(props) {
         body: JSON.stringify({ ...setSelection, path }),
       });
       const neighborhoodData = await neighborhoodPost.json();
-      console.log('neighborhoodData', neighborhoodData,info)
+      console.log('neighborhoodData', neighborhoodData, info)
       // join path, which is list of strings, into a single string
       setObsSelection(
         neighborhoodData?.neighbors || [], additionalCellSets, cellSetColor,
