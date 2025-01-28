@@ -129,7 +129,6 @@ function Viewer({ value, setValue, height, config }) {
 
   };
   let dataset = config || exemplarDataset;
-  console.log('XxX', dataset)
 
 
   const vc = new VitessceConfig({
