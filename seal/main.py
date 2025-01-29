@@ -77,7 +77,7 @@ def load(dataset="exemplar-001", df=None):
 
     if csv_df is not None:
         return
-    if True:
+    if False:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (
@@ -121,7 +121,7 @@ def load(dataset="exemplar-001", df=None):
     tile_size = 1024
 
     selection_pkl = pickle.load(
-        open("/Users/swarchol/Research/seal/data/results.pkl", "rb")
+        open("/Users/swarchol/Research/seal/data/results.pickle", "rb")
     )
 
 
@@ -164,6 +164,7 @@ async def handle_selection(selection_data: SelectionSet):
     global selection_pkl, dataset_name
     changes = False
     path = selection_data.path
+    print('path', path)
     selection_ids = [parse_id(_) for _ in selection_data.set]
 
     if dataset_name not in selection_pkl:
@@ -333,7 +334,7 @@ async def handle_selection(selection_data: SelectionSet):
     selection_pkl[dataset_name][path[0]][path[1]] = these_results
     if changes:
         # You should write the updated selection_pkl to the pickle file at this point.
-        with open("/Users/swarchol/Research/seal/data/results.pkl", "wb") as f:
+        with open("/Users/swarchol/Research/seal/data/results.pickle", "wb") as f:
             pickle.dump(selection_pkl, f)
 
     return {"message": "Complete", "data": {"feat_imp": feat_imp, "hulls": results}}

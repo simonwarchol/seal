@@ -19,9 +19,15 @@ function LayerOverlays() {
     const setShowClusterTitles = useStore((state) => state.setShowClusterTitles);
     const featureCount = useStore((state) => state.featureCount);
     const setFeatureCount = useStore((state) => state.setFeatureCount);
+    const titleFontSize = useStore((state) => state.titleFontSize);
+    const setTitleFontSize = useStore((state) => state.setTitleFontSize);
 
     const handleFeatureCountChange = (event) => {
         setFeatureCount(event.target.value);
+    };
+
+    const handleTitleFontSizeChange = (event) => {
+        setTitleFontSize(event.target.value);
     };
 
     return (
@@ -81,21 +87,43 @@ function LayerOverlays() {
                             </Grid>
 
                             <Grid item>
-                                <Grid container alignItems="center">
-                                    <Grid item xs={2} />
-                                    <Grid item xs={8}>
+                                <Grid container alignItems="center" spacing={1}>
+                                    <Grid item xs={6}>
+                                        <Typography variant="body2" align="left">
+                                            Features
+                                        </Typography>
                                         <Select
                                             value={featureCount}
                                             onChange={handleFeatureCountChange}
                                             size="small"
+                                            fullWidth
                                             sx={{
-                                                minWidth: '100px',
                                                 height: '30px'
                                             }}
                                         >
                                             {[0, 1, 2, 3, 4, 5].map((num) => (
                                                 <MenuItem key={num} value={num}>
-                                                    {num} Features
+                                                    {num}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                        <Typography variant="body2" align="left">
+                                            Font Size
+                                        </Typography>
+                                        <Select
+                                            value={titleFontSize}
+                                            onChange={handleTitleFontSizeChange}
+                                            size="small"
+                                            fullWidth
+                                            sx={{
+                                                height: '30px'
+                                            }}
+                                        >
+                                            {[8, 10, 12, 14, 16, 18, 20].map((size) => (
+                                                <MenuItem key={size} value={size}>
+                                                    {size}
                                                 </MenuItem>
                                             ))}
                                         </Select>

@@ -1164,7 +1164,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     const { obsCentroidsIndex, obsSegmentationsIndex, additionalCellSets, setFeatures,
       cellSetSelection, dataset, rasterLayers, lockedChannels, setRasterLayers, channels,
       hoverClusterOpacities, setHoveredCluster, showClusterOutlines, showClusterTitles,
-      featureCount,
+      featureCount, titleFontSize,
       selectNeighborhood
     } = this.props;
 
@@ -1180,7 +1180,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         return { hull: setFeature?.hulls?.spatial?.concave_hull, density: setFeature?.hulls?.spatial?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
       }
       return null;
-    }).filter(d => d && d.density > 0.001)
+    }).filter(d => d && d.density > 0.0005)
 
 
 
@@ -1202,7 +1202,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
         getFillColor: [255, 255, 255, 0],
         highlightColor: [255, 255, 255, 50],
-        getLineWidth: 15,
+        getLineWidth: 50,
         getLineColor: (d) => {
           const pathString = JSON.stringify(d.path)
           const opacity = hoverClusterOpacities?.get(pathString)
@@ -1222,6 +1222,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
               const newRasterLayers = rasterLayers.map(layer => ({
                 ...layer,
                 channels: layer.channels.map((channel, i) => {
+                  // Only update up to featureCount channels
+                  if (changeI >= featureCount) {
+                    return channel;
+                  }
+
                   const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
                   if (c === -1) {
                     changeI++;
@@ -1279,10 +1284,12 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
           return title + '\n' + featureNames;
         },
+        outlineWidth: 1,
+        outlineColor: [0, 0, 0, 255],
         getAlignmentBaseline: 'center',
-        getColor: [255, 255, 255],
+        getColor: [255, 147, 1],
         fontFamily: "sans-serif",
-        getSize: 13,
+        getSize: titleFontSize,
         fontSettings: {
           sdf: true,
         },
@@ -1294,7 +1301,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
   createFeatureLabelLayer() {
     const { obsCentroidsIndex, obsSegmentationsIndex, setFeatures,
-      cellSetSelection, dataset, featureCount,
+      cellSetSelection, dataset, featureCount, titleFontSize,
       rasterLayers, channels, lockedChannels, setRasterLayers,
       setHoveredCluster, selectNeighborhood
     } = this.props;
@@ -1306,7 +1313,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         if (!setFeature?.hulls?.embedding?.concave_hull) return;
         return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
       } else return null;
-    }).filter(d => d && d.density <= 0.001)
+    }).filter(d => d && d.density <= 0.0005)
     if (concaveData.length == 0) return null;
 
 
@@ -1346,9 +1353,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
         },
         getAlignmentBaseline: 'center',
         // 
-        getColor: [255, 255, 255],
+        getColor: [255, 147, 1],
         fontFamily: "sans-serif",
-        getSize: 13,
+        outlineWidth: 1,
+        outlineColor: [0, 0, 0, 255],
+        getSize: titleFontSize,
         fontSettings: {
           sdf: true,
         },
@@ -1357,7 +1366,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         getPosition: (d, i, a) => {
           console.log('d', d, i)
           // Space text 10 pixels from the bottom left, with a 10 pixel gap between each text
-          const test = [bottomLeft[0] + 100, bottomLeft[1] - (i.index * 300) - 300];
+          const test = [bottomLeft[0] + 100, bottomLeft[1] - (i.index * 500) - 1500];
           console.log('test', test, bottomLeft)
           return test;
         },
@@ -1371,6 +1380,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
               const newRasterLayers = rasterLayers.map(layer => ({
                 ...layer,
                 channels: layer.channels.map((channel, i) => {
+                  // Only update up to featureCount channels
+                  if (changeI >= featureCount) {
+                    return channel;
+                  }
+                  
                   const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
                   if (c === -1) {
                     changeI++;
@@ -1967,7 +1981,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       forceUpdate = true;
     }
 
-    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "selectedSelection", "featureCount"].some(shallowDiff)) {
+    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "selectedSelection", "featureCount", "titleFontSize"].some(shallowDiff)) {
       this.onUpdateCellsLayer()
       forceUpdate = true;
     }
@@ -2384,7 +2398,7 @@ export function SpotlightSubscriber(props) {
   const selectedBackground = useStore((state) => state.selectedBackground)
   const selectedSelection = useStore((state) => state.selectedSelection)
   const featureCount = useStore((state) => state.featureCount);
-
+  const titleFontSize = useStore((state) => state.titleFontSize);
 
 
   const reverseLocationsIndex = useMemo(() => {
@@ -3039,6 +3053,7 @@ export function SpotlightSubscriber(props) {
         showClusterOutlines={showClusterOutlines}
         showClusterTitles={showClusterTitles}
         featureCount={featureCount}
+        titleFontSize={titleFontSize}
         selectNeighborhood={selectNeighborhood}
         selectedBackground={selectedBackground}
         selectedSelection={selectedSelection}

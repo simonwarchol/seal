@@ -34,6 +34,8 @@ const useStore = create((set) => ({
     setSelectedSelection: (selection) => set({ selectedSelection: selection }),
     featureCount: 3,
     setFeatureCount: (count) => set({ featureCount: count }),
+    titleFontSize: 14,
+    setTitleFontSize: (size) => set({ titleFontSize: size }),
 }))
 
 export default useStore;
