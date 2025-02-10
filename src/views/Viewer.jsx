@@ -19,6 +19,7 @@ import {
 
 import { ObsSetsManagerSubscriber } from "./setsManager/ObsSetsManagerSubscriber";
 import { LayerControllerSubscriber } from "./controller/LayerControllerSubscriber";
+import {SelectionsSummarySubscriber} from "./selectionSummary/SelectionSummarySubscriber"
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
 function Viewer({ value, setValue, height, config }) {
@@ -72,6 +73,20 @@ function Viewer({ value, setValue, height, config }) {
       ct.TOOLTIPS_VISIBLE,
     ]),
     new PluginViewType("setDiff", ObsSetsManagerSubscriber, [
+      ct.DATASET,
+      ct.DATASET,
+      ct.OBS_TYPE,
+      ct.OBS_SET_SELECTION,
+      ct.OBS_SET_EXPANSION,
+      ct.OBS_SET_HIGHLIGHT,
+      ct.OBS_SET_COLOR,
+      ct.SPATIAL_IMAGE_LAYER,
+
+      ct.OBS_COLOR_ENCODING,
+      ct.ADDITIONAL_OBS_SETS,
+      ct.FEATURE_SELECTION,
+    ]),
+    new PluginViewType("selectionSummary", SelectionsSummarySubscriber, [
       ct.DATASET,
       ct.DATASET,
       ct.OBS_TYPE,
@@ -254,6 +269,7 @@ function Viewer({ value, setValue, height, config }) {
   const v2 = vc.addView(ds0, "controller");
   const v3 = vc.addView(ds1, "spotlight");
   const v4 = vc.addView(ds1, "setDiff");
+  const v5 = vc.addView(ds1, "selectionSummary");
   // const v4 = vc.addView(ds1, "scatterplot", { mapping: 'UMAP' });
   const [zoomScope, xScope, yScope, pointLayer] = vc.addCoordination(
     ct.SPATIAL_ZOOM,
@@ -264,7 +280,7 @@ function Viewer({ value, setValue, height, config }) {
   v1.useCoordination(zoomScope, xScope, yScope, pointLayer);
   // const v4 = vc.addView(ds0, "setDiff");
   // const v4 = vc.addView(ds1, "myCustomZoomController");
-  vc.layout(hconcat(vconcat(v2, v4), v1, v3));
+  vc.layout(hconcat(vconcat(v2, v4), v1, v3, v5));
   // vc.layout(hconcat(v1, v2));
 
 
