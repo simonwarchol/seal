@@ -1181,7 +1181,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       }
       return null;
     }).filter(d => d && d.density > 0.0005)
-
+    
 
 
 

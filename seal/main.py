@@ -283,20 +283,20 @@ def get_potential_features(csv_df):
 
 def process_selection(selection_ids):
     global shap_store
+    selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
+    selected_indices = selected_rows.index.tolist()
     absolute_shap_sums = np.sum(
-        np.mean(np.abs(shap_store[selection_ids]), axis=(0)), axis=1
+        np.mean(np.abs(shap_store[selected_indices]), axis=(0)), axis=1
     )
     potential_features = get_potential_features(csv_df)
     feat_imp = list(zip(potential_features, absolute_shap_sums.tolist()))
 
-    # Compute hull
-    embedding_coordinates = csv_df.loc[csv_df["CellID"].isin(selection_ids)][
-        ["UMAP_X", "UMAP_Y"]
-    ].values
+    #
 
-    spatial_coordinates = csv_df.loc[csv_df["CellID"].isin(selection_ids)][
-        ["X_centroid", "Y_centroid"]
-    ].values
+    # Compute hull
+    embedding_coordinates = selected_rows[["UMAP_X", "UMAP_Y"]].values
+
+    spatial_coordinates = selected_rows[["X_centroid", "Y_centroid"]].values
     hull_results = process_coordinates(spatial_coordinates, embedding_coordinates)
     return {"feat_imp": feat_imp, "hulls": hull_results}
 
@@ -306,9 +306,8 @@ async def selection(selection_data: SelectionSet):
     global dataset_name, csv_df
 
     selection_ids = [parse_id(_) for _ in selection_data.set]
-    selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
-    selected_indices = selected_rows.index.tolist()
-    response_data = process_selection(selected_indices)
+
+    response_data = process_selection(selection_ids)
     return {"message": "Complete", "data": response_data}
 
 
