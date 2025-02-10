@@ -281,14 +281,15 @@ function Viewer({ value, setValue, height, config }) {
   // const v4 = vc.addView(ds0, "setDiff");
   // const v4 = vc.addView(ds1, "myCustomZoomController");
   vc.layout(hconcat(vconcat(v2, v4), v1, v3, v5));
-  // vc.layout(hconcat(v1, v2));
+  // vc.layout(hconcat(v1));
 
 
   return (
-    <div id={"main-container"}>
+    <div id={"main-container"} style={{ width: '100%', height: '100%' }}>
       <Vitessce
         config={vc.toJSON()}
         height={height || windowHeight}
+        width="100%"
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />

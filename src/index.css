@@ -10,10 +10,12 @@ body {
 	margin: 0;
 	padding: 0;
 }
-.vit-makeStyles-titleInfo{
-	width:0 !important;
-	height:0 !important;
+
+.vit-makeStyles-titleInfo {
+	width: 0 !important;
+	height: 0 !important;
 }
+
 .Seal {
 	display: flex;
 	height: 100%;
@@ -30,17 +32,24 @@ body {
 
 
 
-.vit-makeStyles-title{
+.vit-makeStyles-title {
 	color: #ededed !important;
 	flex-direction: row-reverse !important;
 }
-.vit-makeStyles-titleLeft{
+
+.vit-makeStyles-titleLeft {
 	color: ededed !important;
 	/* center text */
 	text-align: center !important;
 }
+
 .vit-MuiSvgIcon-root {
 	/* hide icon */
 	display: none !important;
 	/* color: #ededed !important; */
 }
+
+.react-grid-layout.layout {
+	width: 100vw !important;
+}
+
