@@ -62,6 +62,7 @@ cut_seg_cells = None
 cut_cells = None
 shap_store = None
 dataset_name = None
+summary = None
 
 
 def get_shapes(path):
@@ -136,7 +137,7 @@ def get_potential_features(df):
 def load(dataset="exemplar-001", df=None):
     global shapes, csv_df, tree, tile_size, image_io, image_zarr, seg_io, seg_zarr, set_csv_path
     global segmentation_path, csv_path, image_path, cut_seg_cells, cut_cells, embedding_image_path, embedding_segmentation_path
-    global shap_store, dataset_name
+    global shap_store, dataset_name, summary
 
     if csv_df is not None:
         return
@@ -172,6 +173,7 @@ def load(dataset="exemplar-001", df=None):
     # shapes = get_shapes(image_path)
     # if path ends with .csv, read csv, if ends with .parquet, read parquet
     print("Reading csv", csv_path)
+
     if df is not None:
         csv_df = df
     elif parquet_path is not None:
@@ -180,6 +182,14 @@ def load(dataset="exemplar-001", df=None):
         csv_df = pd.read_csv(csv_path)
     else:
         raise ValueError("Invalid file format")
+
+    # Ranges is dict of {embedding: [min, max], spatial: [min, max], "embedding_subsample": a 10000x2 numpy array of the embedding coordinates}
+    summary = {
+        "embedding_ranges": [[csv_df["UMAP_X"].min(), csv_df["UMAP_X"].max()], [csv_df["UMAP_Y"].min(), csv_df["UMAP_Y"].max()]],
+        "spatial_ranges": [[csv_df["X_centroid"].min(), csv_df["X_centroid"].max()], [csv_df["Y_centroid"].min(), csv_df["Y_centroid"].max()]],
+        "embedding_subsample": csv_df[["UMAP_X", "UMAP_Y"]].values[np.random.choice(csv_df.shape[0], 1000, replace=False)].tolist(),
+        "spatial_subsample": csv_df[["X_centroid", "Y_centroid"]].values[np.random.choice(csv_df.shape[0], 1000, replace=False)].tolist(),
+    }
     #
     tile_size = 1024
     shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
@@ -282,7 +292,7 @@ def get_potential_features(csv_df):
 
 
 def process_selection(selection_ids):
-    global shap_store
+    global shap_store, summary
     selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
     selected_indices = selected_rows.index.tolist()
     absolute_shap_sums = np.sum(
@@ -298,7 +308,21 @@ def process_selection(selection_ids):
 
     spatial_coordinates = selected_rows[["X_centroid", "Y_centroid"]].values
     hull_results = process_coordinates(spatial_coordinates, embedding_coordinates)
-    return {"feat_imp": feat_imp, "hulls": hull_results}
+    # If embedding_coordinates has more than 1000 points, downsample to 1000 random
+    if embedding_coordinates.shape[0] > 500:
+        embedding_coordinates = embedding_coordinates[
+            np.random.choice(embedding_coordinates.shape[0], 500, replace=False)
+        ]
+        spatial_coordinates = spatial_coordinates[
+            np.random.choice(spatial_coordinates.shape[0], 500, replace=False)
+        ]
+    return {
+        "feat_imp": feat_imp,
+        "hulls": hull_results,
+        "spatial_coordinates": spatial_coordinates.tolist(),
+        "embedding_coordinates": embedding_coordinates.tolist(),
+        "summary": summary,
+    }
 
 
 @app.post("/selection")

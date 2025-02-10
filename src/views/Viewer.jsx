@@ -291,7 +291,7 @@ function Viewer({ value, setValue, height, config }) {
         height={height || windowHeight}
         width="100%"
         pluginViewTypes={pluginViewTypes}
-        theme="light"
+        theme="dark"
       />
     </div>
   );
