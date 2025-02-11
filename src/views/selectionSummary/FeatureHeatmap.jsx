@@ -20,37 +20,43 @@ function FeatureHeatmap({ featureData, height, width }) {
       return (summary - global) / global;
     };
 
-    // Create color scales
+    // Create color scale for importance
     const importanceColorScale = d3.scaleSequential()
       .domain([0, d3.max(featureData.feat_imp, d => d[1])])
       .interpolator(d3.interpolateViridis);
 
-    const diffColorScale = d3.scaleSequential()
-      .domain([1, -1])
-      .interpolator(d3.interpolateRdBu);
-
     // Create a group for the rectangles
     const g = svg.append("g");
 
-    // Add feature importance rectangles (top half)
+    // Add feature importance rectangles (full height)
     g.selectAll(".importance-rect")
       .data(featureData.feat_imp)
       .join("rect")
       .attr("x", (d, i) => i * rectWidth)
       .attr("y", 0)
-      .attr("width", Math.max(1, rectWidth - 1))
-      .attr("height", halfHeight)
+      .attr("width", rectWidth)
+      .attr("height", height)
       .attr("fill", d => importanceColorScale(d[1]));
 
-    // Add difference rectangles (bottom half)
-    g.selectAll(".diff-rect")
+    // Add difference lines - white with black stroke
+    g.selectAll(".diff-line")
       .data(featureData.feat_imp)
-      .join("rect")
-      .attr("x", (d, i) => i * rectWidth)
-      .attr("y", halfHeight)
-      .attr("width", Math.max(1, rectWidth - 1))
-      .attr("height", halfHeight)
-      .attr("fill", d => diffColorScale(getNormalizedDiff(d[0])));
+      .join("line")
+      .attr("x1", (d, i) => i * rectWidth + rectWidth / 2)
+      .attr("y1", height / 2)
+      .attr("x2", (d, i) => i * rectWidth + rectWidth / 2)
+      .attr("y2", (d) => {
+        const diff = getNormalizedDiff(d[0]);
+        // Scale the line length based on the normalized difference
+        // Use height/3 as max length to avoid overlapping
+        return height / 2 - (diff * height / 3);
+      })
+      .attr("stroke", "#000000")
+      .attr("stroke-width", 2)
+      .attr("stroke-linecap", "round")
+      .clone(true)
+      .attr("stroke", "#ffffff")
+      .attr("stroke-width", 1);
 
   }, [featureData, height, width]);
 
