@@ -18,6 +18,8 @@ function SelectionsDisplay({ selections }) {
   const headerRef = useRef();
   const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
   const heatmapContainerRef = useRef();
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDirection, setSortDirection] = useState('desc');
 
   // Update width measurement logic to run after DOM updates
   useEffect(() => {
@@ -88,7 +90,7 @@ function SelectionsDisplay({ selections }) {
     // Remove extra labels
     labels.exit().remove();
 
-    // Add new labels
+    // Add new labels with click handlers
     labels.enter()
       .append('text')
       .merge(labels)
@@ -98,11 +100,26 @@ function SelectionsDisplay({ selections }) {
       .attr('text-anchor', 'start')
       .attr('fill', '#ffffff')
       .style('font-size', '0.6rem')
-      .text(d => d[0]);
-
+      .style('cursor', 'pointer')
+      .text(d => d[0])
   }, [selections, setFeatures, rectWidth, heatmapContainerWidth]);
 
+  // Sort the selections array before mapping
+  const sortedSelections = useMemo(() => {
+    if (!sortBy || !selections) return selections;
 
+    return [...selections].sort((a, b) => {
+      const aData = setFeatures[a[0]]?.[a[1]]?.feat_imp;
+      const bData = setFeatures[b[0]]?.[b[1]]?.feat_imp;
+      
+      if (!aData || !bData) return 0;
+      
+      const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
+      const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
+      
+      return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
+    });
+  }, [selections, setFeatures, sortBy, sortDirection]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', position: 'relative' }}>
@@ -110,9 +127,14 @@ function SelectionsDisplay({ selections }) {
         viewMode={viewMode}
         handleViewChange={handleViewChange}
         headerRef={headerRef}
-        heatmapContainerWidth={heatmapContainerWidth}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortDirection={sortDirection}
+        setSortDirection={setSortDirection}
+        featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
+        rectWidth={rectWidth}
       />
-      {selections?.map((selection, i) => {
+      {sortedSelections?.map((selection, i) => {
         const featureData = setFeatures[selection[0]]?.[selection[1]];
         const PLOT_HEIGHT = 80;
         return (
