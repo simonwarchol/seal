@@ -183,12 +183,18 @@ def load(dataset="exemplar-001", df=None):
     else:
         raise ValueError("Invalid file format")
 
+    # calculate the mean value of all of the features
+    potential_features = get_potential_features(csv_df)
+    mean_features = csv_df[potential_features].mean()
+
+
     # Ranges is dict of {embedding: [min, max], spatial: [min, max], "embedding_subsample": a 10000x2 numpy array of the embedding coordinates}
     summary = {
         "embedding_ranges": [[csv_df["UMAP_X"].min(), csv_df["UMAP_X"].max()], [csv_df["UMAP_Y"].min(), csv_df["UMAP_Y"].max()]],
         "spatial_ranges": [[csv_df["X_centroid"].min(), csv_df["X_centroid"].max()], [csv_df["Y_centroid"].min(), csv_df["Y_centroid"].max()]],
         "embedding_subsample": csv_df[["UMAP_X", "UMAP_Y"]].values[np.random.choice(csv_df.shape[0], 1000, replace=False)].tolist(),
         "spatial_subsample": csv_df[["X_centroid", "Y_centroid"]].values[np.random.choice(csv_df.shape[0], 1000, replace=False)].tolist(),
+        "global_mean_features": mean_features.to_dict()
     }
     #
     tile_size = 1024
@@ -316,12 +322,15 @@ def process_selection(selection_ids):
         spatial_coordinates = spatial_coordinates[
             np.random.choice(spatial_coordinates.shape[0], 500, replace=False)
         ]
+
+    selection_mean_features = selected_rows[potential_features].mean()
     return {
         "feat_imp": feat_imp,
         "hulls": hull_results,
         "spatial_coordinates": spatial_coordinates.tolist(),
         "embedding_coordinates": embedding_coordinates.tolist(),
         "summary": summary,
+        "selection_mean_features": selection_mean_features.to_dict()
     }
 
 

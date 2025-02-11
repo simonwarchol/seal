@@ -6,6 +6,9 @@ function StickyHeader({ viewMode, handleViewChange, headerRef, sortBy, setSortBy
   useEffect(() => {
     if (!headerRef.current || !featureData?.feat_imp) return;
 
+    // Sort features alphabetically
+    const sortedFeatures = [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]));
+
     // Create SVG container if it doesn't exist
     let svg = d3.select(headerRef.current).select('svg');
     if (svg.empty()) {
@@ -17,7 +20,7 @@ function StickyHeader({ viewMode, handleViewChange, headerRef, sortBy, setSortBy
 
     // Update or create labels
     const labels = svg.selectAll('text')
-      .data(featureData.feat_imp);
+      .data(sortedFeatures);
 
     // Remove extra labels
     labels.exit().remove();
