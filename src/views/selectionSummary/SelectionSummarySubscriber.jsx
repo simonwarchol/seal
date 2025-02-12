@@ -89,14 +89,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
     if (!allSelections) return allSelections;
 
     return [...allSelections].sort((a, b) => {
-      // First sort by visibility
-      const aVisible = isSelectionVisible(a.path);
-      const bVisible = isSelectionVisible(b.path);
-      if (aVisible !== bVisible) {
-        return bVisible ? 1 : -1; // Changed to put visible items at the bottom
-      }
-
-      // Then sort by the existing sort criteria if present
+      // Sort by the feature importance if sortBy is present
       if (sortBy) {
         const aData = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp;
         const bData = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp;
@@ -110,7 +103,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       }
       return 0;
     });
-  }, [selections, allSelections, setFeatures, sortBy, sortDirection]);
+  }, [allSelections, setFeatures, sortBy, sortDirection]);
 
   // Handle visibility toggle
   const handleVisibilityToggle = (selectionPath) => {
