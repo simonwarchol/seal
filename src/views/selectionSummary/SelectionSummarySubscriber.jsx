@@ -194,10 +194,12 @@ function SelectionsDisplay({ selections }) {
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
-  const [{ obsType, obsSetSelection }] = useCoordination(
-    COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
+  const [{ obsType, obsSetSelection, spatialImageLayer: rasterLayers, dataset }] = useCoordination(
+    [...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS], ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL]],
     coordinationScopes
   );
+
+  console.log('TODO: rasterLayers', rasterLayers, dataset);
 
   const title = titleOverride || `${capitalize(obsType)} Selections`;
 

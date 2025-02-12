@@ -47,8 +47,6 @@ function FeatureHeatmap({ featureData, height, width }) {
       .attr("x2", (d, i) => i * rectWidth + rectWidth / 2)
       .attr("y2", (d) => {
         const diff = getNormalizedDiff(d[0]);
-        // Scale the line length based on the normalized difference
-        // Use height/3 as max length to avoid overlapping
         return height / 2 - (diff * height / 3);
       })
       .attr("stroke", "#000000")
@@ -56,6 +54,20 @@ function FeatureHeatmap({ featureData, height, width }) {
       .attr("stroke-linecap", "round")
       .clone(true)
       .attr("stroke", "#ffffff")
+      .attr("stroke-width", 1);
+
+    // Add circles to create lollipop effect
+    g.selectAll(".diff-circle")
+      .data(featureData.feat_imp)
+      .join("circle")
+      .attr("cx", (d, i) => i * rectWidth + rectWidth / 2)
+      .attr("cy", (d) => {
+        const diff = getNormalizedDiff(d[0]);
+        return height / 2 - (diff * height / 3);
+      })
+      .attr("r", rectWidth / 6)
+      .attr("fill", "#ffffff")
+      .attr("stroke", "#000000")
       .attr("stroke-width", 1);
 
   }, [featureData, height, width]);
