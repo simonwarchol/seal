@@ -1,10 +1,24 @@
 import React, { useEffect } from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import IconButton from '@mui/material/IconButton';
+import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
 import * as d3 from 'd3';
 
-function StickyHeader({ viewMode, handleViewChange, headerRef,
-  sortBy, setSortBy, sortDirection, setSortDirection, featureData,
-  rectWidth, displayedChannels, channelNames }) {
+function StickyHeader({ 
+  viewMode, 
+  handleViewChange, 
+  headerRef,
+  sortBy, 
+  setSortBy, 
+  sortDirection, 
+  setSortDirection, 
+  featureData,
+  rectWidth, 
+  displayedChannels, 
+  channelNames,
+  compareMode,
+  onCompareToggle
+}) {
   useEffect(() => {
     if (!headerRef.current || !featureData?.feat_imp) return;
 
@@ -24,10 +38,8 @@ function StickyHeader({ viewMode, handleViewChange, headerRef,
     const labels = svg.selectAll('text')
       .data(sortedFeatures);
 
-    // Remove extra labels
     labels.exit().remove();
 
-    // Add new labels with click handlers
     labels.enter()
       .append('text')
       .merge(labels)
@@ -37,10 +49,8 @@ function StickyHeader({ viewMode, handleViewChange, headerRef,
       .attr('text-anchor', 'start')
       .attr('fill', d => {
         const channelIndex = channelNames.findIndex(name => name === d[0]);
-        // check if a channel in displayed channel has selection.c === channelIndex
         const channel = displayedChannels.find(c => c.selection.c === channelIndex);
         const channelColor = channel?.color;
-        // This is [r, g, b in 255 range]
         const color = channelColor ? `rgb(${channelColor[0]}, ${channelColor[1]}, ${channelColor[2]})` : '#ffffff';
         return color;
       })
@@ -78,26 +88,38 @@ function StickyHeader({ viewMode, handleViewChange, headerRef,
       backgroundColor: 'rgba(30, 30, 30, 0.8)',
       margin: '5px'
     }}>
-      <div style={{ width: '80px' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'flex-start',
+        width: '80px',
+        gap: '4px'
+      }}>
+        <IconButton
+          onClick={onCompareToggle}
+          size="small"
+          style={{
+            color: compareMode ? '#ffffff' : '#ffffff',
+            backgroundColor: compareMode ? 'rgba(74, 144, 226, 0.8)' : 'transparent',
+            padding: '4px',
+            marginLeft: '4px'
+          }}
+        >
+          <CompareArrowsIcon fontSize="small" />
+        </IconButton>
         <ToggleButtonGroup
           value={viewMode}
           exclusive
           onChange={handleViewChange}
           size="small"
-          style={{
-            backgroundColor: 'rgba(30, 30, 30, 0.8)',
-            border: '1px solid #333333',
-            borderRadius: '4px',
-            width: '80px'
-          }}
+          style={{ width: '100%' }}
         >
           <ToggleButton
             value="embedding"
             style={{
-              color: viewMode === 'embedding' ? '#ffffff' : '#888888',
-              textTransform: 'none',
-              padding: '2px 8px',
-              fontSize: '0.75rem',
+              backgroundColor: viewMode === 'embedding' ? '#4a4a4a' : '#2a2a2a',
+              color: '#ffffff',
+              border: '1px solid #333333',
               flex: 1
             }}
           >
@@ -106,10 +128,9 @@ function StickyHeader({ viewMode, handleViewChange, headerRef,
           <ToggleButton
             value="spatial"
             style={{
-              color: viewMode === 'spatial' ? '#ffffff' : '#888888',
-              textTransform: 'none',
-              padding: '2px 8px',
-              fontSize: '0.75rem',
+              backgroundColor: viewMode === 'spatial' ? '#4a4a4a' : '#2a2a2a',
+              color: '#ffffff',
+              border: '1px solid #333333',
               flex: 1
             }}
           >

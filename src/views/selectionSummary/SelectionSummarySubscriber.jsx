@@ -10,7 +10,7 @@ import FeatureHeatmap from './FeatureHeatmap';
 import StickyHeader from './StickyHeader';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
+import { VisibilityOutlined, VisibilityOffOutlined} from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 
 
@@ -79,7 +79,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
 
   // Helper function to check if a selection is currently visible
   const isSelectionVisible = (selectionPath) => {
-    return selections?.some(sel => 
+    return selections?.some(sel =>
       sel[0] === selectionPath[0] && sel[1] === selectionPath[1]
     );
   };
@@ -110,7 +110,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
     const isVisible = isSelectionVisible(selectionPath);
     if (isVisible) {
       // Remove from selection
-      setCellSetSelection(selections.filter(sel => 
+      setCellSetSelection(selections.filter(sel =>
         !(sel[0] === selectionPath[0] && sel[1] === selectionPath[1])
       ));
     } else {
@@ -118,6 +118,49 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       setCellSetSelection([...selections, selectionPath]);
     }
   };
+
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSelections, setCompareSelections] = useState([]);
+
+  const handleCompareToggle = () => {
+    if (compareMode) {
+      // When exiting compare mode
+      setCompareMode(false);
+      setCompareSelections([]);
+      // Restore all previous selections
+      setCellSetSelection(selections);
+    } else {
+      // When entering compare mode
+      setCompareMode(true);
+      // Clear any existing selections
+      setCellSetSelection([]);
+    }
+  };
+
+  const handleRowClick = (selection) => {
+    if (!compareMode) return;
+
+    setCompareSelections(prev => {
+      if (prev.length === 2) {
+        // If already have 2 selections, don't add more
+        return prev;
+      } else if (prev.find(s => s.path[0] === selection.path[0] && s.path[1] === selection.path[1])) {
+        // If clicking an already selected row, remove it
+        return prev.filter(s => !(s.path[0] === selection.path[0] && s.path[1] === selection.path[1]));
+      } else {
+        // Add the new selection if less than 2 items are selected
+        return [...prev, selection];
+      }
+    });
+  };
+
+  // Effect to update visible selections when in compare mode
+  useEffect(() => {
+    if (compareMode) {
+      const selectionPaths = compareSelections.map(s => s.path);
+      setCellSetSelection(selectionPaths);
+    }
+  }, [compareSelections, compareMode]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', position: 'relative' }}>
@@ -133,7 +176,11 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         rectWidth={rectWidth}
         displayedChannels={displayedChannels}
         channelNames={channelNames}
+        compareMode={compareMode}
+        onCompareToggle={handleCompareToggle}
       />
+
+
       {sortedSelections?.map((selection, i) => {
         const cellSetIndex = cellSets?.tree?.findIndex(
           child => child.name === selection.path[0]
@@ -142,18 +189,31 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         const featureData = setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]];
         const PLOT_HEIGHT = 80;
 
+        const isSelected = compareSelections.some(
+          s => s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+        );
+
         return (
-          <Card 
-            key={i} 
-            variant="outlined" 
-            style={{ 
-              backgroundColor: isSelectionVisible(selection.path) ? '#3A3A3A' : '#1A1A1A',
-              borderColor: '#333333', 
+          <Card
+            key={i}
+            variant="outlined"
+            onClick={() => handleRowClick(selection)}
+            style={{
+              backgroundColor: isSelected ? '#2C3E50' : isSelectionVisible(selection.path) ? '#3A3A3A' : '#1A1A1A',
+              borderColor: '#333333',
               padding: 1,
               marginBottom: '2px',
+              cursor: compareMode ? 'pointer' : 'default',
+              transition: 'background-color 0.2s ease',
+              '&:hover': {
+                backgroundColor: compareMode ? '#34495E' : undefined,
+              }
             }}
           >
-            <CardContent style={{ padding: 0 }}>
+            <CardContent style={{
+              padding: 0,
+              opacity: compareMode && !isSelected && compareSelections.length === 2 ? 0.3 : 1
+            }}>
               <div style={{ display: 'flex', flexDirection: 'column', padding: '5px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
@@ -161,10 +221,17 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                     {'-'}
                     <span>{selection?.path?.[1]}</span>
                   </Typography>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => handleVisibilityToggle(selection.path)}
-                    style={{ padding: 4 }}
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click when clicking visibility toggle
+                      handleVisibilityToggle(selection.path);
+                    }}
+                    style={{
+                      padding: 4,
+                      position: 'relative',
+                      visibility: compareMode ? 'hidden' : 'visible'
+                    }}
                   >
                     {isSelectionVisible(selection.path) ? (
                       <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
@@ -292,12 +359,12 @@ export function SelectionsSummarySubscriber(props) {
       helpText={''}
       style={{ backgroundColor: '#121212', color: '#ffffff' }}
     >
-      <SelectionsDisplay 
-        selections={obsSetSelection} 
-        cellSets={cellSets} 
+      <SelectionsDisplay
+        selections={obsSetSelection}
+        cellSets={cellSets}
         setCellSetSelection={setObsSetSelection}
-        displayedChannels={displayedChannels} 
-        channelNames={channelNames} 
+        displayedChannels={displayedChannels}
+        channelNames={channelNames}
       />
     </TitleInfo>
   );
