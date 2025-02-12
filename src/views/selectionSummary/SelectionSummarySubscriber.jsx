@@ -229,7 +229,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
-  const [{ obsType, obsSetSelection, obsSetColor, spatialImageLayer, dataset }, { setSpatialImageLayer, setCellSetSelection, setCellSetColor }] = useCoordination(
+  const [{ obsType, obsSetSelection, obsSetColor, spatialImageLayer, dataset }, { setSpatialImageLayer, setObsSetSelection, setObsSetColor }] = useCoordination(
     [
       ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
       ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL],
@@ -241,7 +241,7 @@ export function SelectionsSummarySubscriber(props) {
   // Get data from loaders using the data hooks.
   const [{ obsSets: cellSets },] = useObsSetsData(
     loaders, dataset, false,
-    { setObsSetSelection: setCellSetSelection, setObsSetColor: setCellSetColor },
+    { setObsSetSelection: setObsSetSelection, setObsSetColor: setObsSetColor },
     { obsSetSelection: obsSetSelection, obsSetColor: obsSetColor },
     { obsType },
   );
@@ -299,7 +299,13 @@ export function SelectionsSummarySubscriber(props) {
       helpText={''}
       style={{ backgroundColor: '#121212', color: '#ffffff' }}
     >
-      <SelectionsDisplay selections={obsSetSelection} cellSets={cellSets} setCellSetSelection={setCellSetSelection} displayedChannels={displayedChannels} channelNames={channelNames} />
+      <SelectionsDisplay 
+        selections={obsSetSelection} 
+        cellSets={cellSets} 
+        setCellSetSelection={setObsSetSelection}
+        displayedChannels={displayedChannels} 
+        channelNames={channelNames} 
+      />
     </TitleInfo>
   );
 }

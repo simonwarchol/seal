@@ -21,7 +21,7 @@ function ScatterPlot({ data, width = 80, height = 80, ranges, backgroundData, ti
   
       const yScale = d3.scaleLinear()
         .domain(ranges[1])
-        .range([plotHeight, 0]);
+        .range([ 0,plotHeight,]);
   
       // Create SVG
       const svg = d3.select(svgRef.current)
