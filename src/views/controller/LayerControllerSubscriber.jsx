@@ -425,7 +425,9 @@ export function LayerControllerSubscriber(props) {
     { spatialImageLayer: rasterLayers },
     {} // TODO: which values to match on
   );
+
   const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
+  
   const isReady = useReady([
     obsLocationsStatus,
     obsSegmentationsStatus,

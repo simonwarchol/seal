@@ -2,7 +2,10 @@ import React, { useEffect } from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import * as d3 from 'd3';
 
-function StickyHeader({ viewMode, handleViewChange, headerRef, sortBy, setSortBy, sortDirection, setSortDirection, featureData, rectWidth }) {
+function StickyHeader({ viewMode, handleViewChange, headerRef,
+  sortBy, setSortBy, sortDirection, setSortDirection, featureData,
+  rectWidth, displayedChannels, channelNames }) {
+  console.log('todo displayedChannels', displayedChannels, channelNames);
   useEffect(() => {
     if (!headerRef.current || !featureData?.feat_imp) return;
 
@@ -33,10 +36,19 @@ function StickyHeader({ viewMode, handleViewChange, headerRef, sortBy, setSortBy
       .attr('y', 0)
       .attr('transform', (d, i) => `translate(${i * rectWidth + rectWidth / 2 + 1}, 60) rotate(-90)`)
       .attr('text-anchor', 'start')
-      .attr('fill', '#ffffff')
+      .attr('fill', d => {
+        const channelIndex = channelNames.findIndex(name => name === d[0]);
+        // check if a channel in displayed channel has selection.c === channelIndex
+        const channel = displayedChannels.find(c => c.selection.c === channelIndex);
+        console.log('todo, channel', channel);
+        const channelColor = channel?.color;
+        // This is [r, g, b in 255 range]
+        const color = channelColor ? `rgb(${channelColor[0]}, ${channelColor[1]}, ${channelColor[2]})` : '#ffffff';
+        return color;
+      })
       .style('font-size', '0.6rem')
       .style('cursor', 'pointer')
-      .each(function(d) {
+      .each(function (d) {
         const text = d3.select(this);
         if (d[0] === sortBy) {
           const arrow = sortDirection === 'desc' ? '◄' : '► ';
@@ -54,7 +66,7 @@ function StickyHeader({ viewMode, handleViewChange, headerRef, sortBy, setSortBy
         }
       });
 
-  }, [headerRef, featureData, rectWidth, sortBy, sortDirection]);
+  }, [headerRef, featureData, rectWidth, sortBy, sortDirection, displayedChannels, channelNames]);
 
   return (
     <div style={{
@@ -107,7 +119,7 @@ function StickyHeader({ viewMode, handleViewChange, headerRef, sortBy, setSortBy
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
-      <div ref={headerRef} style={{ flex: 1, height: '60px', marginLeft: '5px'}} />
+      <div ref={headerRef} style={{ flex: 1, height: '60px', marginLeft: '5px' }} />
     </div>
   );
 }

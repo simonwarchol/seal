@@ -134,6 +134,7 @@ export default function LayerController(props) {
     channelRef.current = channels;
     return undefined;
   }, [channels]);
+  console.log('todo, loader',channels);
 
   const lockedChannels = useStore((state) => state.lockedChannels)
   const setLockedChannels = useStore((state) => state.setLockedChannels)

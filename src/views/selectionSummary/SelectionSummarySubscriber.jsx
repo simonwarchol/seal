@@ -1,18 +1,19 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { useCoordination, TitleInfo } from '@vitessce/vit-s';
-import { COMPONENT_COORDINATION_TYPES, ViewType } from '@vitessce/constants-internal';
+import { useCoordination, TitleInfo, useLoaders, useImageData } from '@vitessce/vit-s';
+import { COMPONENT_COORDINATION_TYPES, ViewType, CoordinationType as ct } from '@vitessce/constants-internal';
 import { capitalize } from '@vitessce/utils';
 import { Card, CardContent, Typography } from '@material-ui/core';
 import useStore from "../../store";
 import ScatterPlot from './ScatterPlot';
 import FeatureHeatmap from './FeatureHeatmap';
+
 import StickyHeader from './StickyHeader';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 
 
-function SelectionsDisplay({ selections }) {
+function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
   const setFeatures = useStore((state) => state.setFeatures);
   const [viewMode, setViewMode] = useState('embedding');
   const headerRef = useRef();
@@ -20,6 +21,8 @@ function SelectionsDisplay({ selections }) {
   const heatmapContainerRef = useRef();
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('desc');
+  const loaders = useLoaders();
+
 
   // Update width measurement logic to run after DOM updates
   useEffect(() => {
@@ -111,12 +114,12 @@ function SelectionsDisplay({ selections }) {
     return [...selections].sort((a, b) => {
       const aData = setFeatures[a[0]]?.[a[1]]?.feat_imp;
       const bData = setFeatures[b[0]]?.[b[1]]?.feat_imp;
-      
+
       if (!aData || !bData) return 0;
-      
+
       const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
       const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
-      
+
       return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
     });
   }, [selections, setFeatures, sortBy, sortDirection]);
@@ -133,6 +136,8 @@ function SelectionsDisplay({ selections }) {
         setSortDirection={setSortDirection}
         featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
         rectWidth={rectWidth}
+        displayedChannels={displayedChannels}
+        channelNames={channelNames}
       />
       {sortedSelections?.map((selection, i) => {
         const featureData = setFeatures[selection[0]]?.[selection[1]];
@@ -178,7 +183,7 @@ function SelectionsDisplay({ selections }) {
                         height={PLOT_HEIGHT}
                         width={heatmapContainerWidth}
                       />
-                      
+
                     </div>
                   </div>
                 )}
@@ -194,12 +199,50 @@ function SelectionsDisplay({ selections }) {
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
-  const [{ obsType, obsSetSelection, spatialImageLayer: rasterLayers, dataset }] = useCoordination(
-    [...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS], ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL]],
+  const [{ obsType, obsSetSelection, spatialImageLayer, dataset }, { setSpatialImageLayer }] = useCoordination(
+    [
+      ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
+      ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL],
+      ct.SPATIAL_IMAGE_LAYER
+    ],
     coordinationScopes
   );
 
-  console.log('TODO: rasterLayers', rasterLayers, dataset);
+  const [{ image }, imageStatus] = useImageData(
+    loaders,
+    dataset,
+    false,
+    { setSpatialImageLayer },
+    { spatialImageLayer },
+    {} // TODO: which values to match on
+  );
+  // console.log('todo, loaders', imageStatus, image);
+
+  const [displayedChannels, setDisplayedChannels] = useState([]);
+  const [channelNames, setChannelNames] = useState([]);
+  const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
+  useEffect(() => {
+    if (!imageLayerLoaders) return;
+    // console.log('todo, imageLayerLoaders', imageLayerLoaders);
+    setChannelNames(imageLayerLoaders?.[0]?.channels);
+  }, [imageLayerLoaders]);
+  useEffect(() => {
+    if (spatialImageLayer && spatialImageLayer.length > 0) {
+      // Get the first image layer
+      const firstLayer = spatialImageLayer[0];
+
+      // Log channel information
+      const channels = firstLayer.channels.map((channel, index) => {
+        return {
+          color: channel.color, // RGB color array
+          contrastLimits: channel.slider, // [min, max] contrast limits
+          visible: channel.visible,
+          selection: channel.selection,
+        }
+      });
+      setDisplayedChannels(channels);
+    }
+  }, [spatialImageLayer, imageLayerLoaders, imageLayerMeta, image]);
 
   const title = titleOverride || `${capitalize(obsType)} Selections`;
 
@@ -216,7 +259,7 @@ export function SelectionsSummarySubscriber(props) {
       helpText={''}
       style={{ backgroundColor: '#121212', color: '#ffffff' }}
     >
-      <SelectionsDisplay selections={obsSetSelection} />
+      <SelectionsDisplay selections={obsSetSelection} displayedChannels={displayedChannels} channelNames={channelNames} />
     </TitleInfo>
   );
 }
