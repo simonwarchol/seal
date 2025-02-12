@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { useCoordination, TitleInfo, useLoaders, useImageData } from '@vitessce/vit-s';
+import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData } from '@vitessce/vit-s';
 import { COMPONENT_COORDINATION_TYPES, ViewType, CoordinationType as ct } from '@vitessce/constants-internal';
 import { capitalize } from '@vitessce/utils';
 import { Card, CardContent, Typography } from '@material-ui/core';
@@ -10,10 +10,12 @@ import FeatureHeatmap from './FeatureHeatmap';
 import StickyHeader from './StickyHeader';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
+import IconButton from '@mui/material/IconButton';
 
 
 
-function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
+function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSets, setCellSetSelection }) {
   const setFeatures = useStore((state) => state.setFeatures);
   const [viewMode, setViewMode] = useState('embedding');
   const headerRef = useRef();
@@ -21,8 +23,15 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
   const heatmapContainerRef = useRef();
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('desc');
-  const loaders = useLoaders();
-
+  const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const allSelections = useMemo(() => {
+    // Return everything in cellSets.tree 
+    return cellSets?.tree?.flatMap((cellSet, index) => {
+      const cellSetColor = colorScheme(index + 1);
+      return cellSet.children.map(child => ({ path: [cellSet.name, child.name], color: cellSetColor }));
+    });
+  }, [cellSets]);
+  console.log('todo, allSelections', allSelections, selections);
 
   // Update width measurement logic to run after DOM updates
   useEffect(() => {
@@ -56,73 +65,66 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
   const [rectWidth, setRectWidth] = useState(0);
 
   useEffect(() => {
-    if (!selections?.length || !setFeatures) {
+    if (!allSelections?.length || !setFeatures) {
       setRectWidth(0);
       return;
     }
-    const featureData = setFeatures[selections[0][0]]?.[selections[0][1]];
+    const featureData = setFeatures[allSelections[0]?.path?.[0]]?.[allSelections[0]?.path?.[1]];
     if (!featureData?.feat_imp?.length) {
       setRectWidth(0);
       return;
     }
     setRectWidth(heatmapContainerWidth / featureData.feat_imp.length);
-  }, [selections, setFeatures, heatmapContainerWidth]);
+  }, [selections, allSelections, setFeatures, heatmapContainerWidth]);
 
-  useEffect(() => {
-    if (!headerRef.current || !selections?.length) return;
+  // Helper function to check if a selection is currently visible
+  const isSelectionVisible = (selectionPath) => {
+    return selections?.some(sel => 
+      sel[0] === selectionPath[0] && sel[1] === selectionPath[1]
+    );
+  };
 
-    // Create SVG container if it doesn't exist
-    let svg = d3.select(headerRef.current).select('svg');
-    if (svg.empty()) {
-      svg = d3.select(headerRef.current)
-        .append('svg')
-        .attr('width', heatmapContainerWidth)
-        .attr('height', '60px');
-    } else {
-      svg.attr('width', heatmapContainerWidth);
-    }
-
-    // Get feature data
-    const featureData = setFeatures[selections[0][0]]?.[selections[0][1]];
-    if (!featureData?.feat_imp) return;
-
-    // Update or create labels
-    const labels = svg.selectAll('text')
-      .data(featureData.feat_imp);
-
-    // Remove extra labels
-    labels.exit().remove();
-
-    // Add new labels with click handlers
-    labels.enter()
-      .append('text')
-      .merge(labels)
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('transform', (d, i) => `translate(${i * rectWidth + rectWidth / 2 + 1}, 60) rotate(-90)`)
-      .attr('text-anchor', 'start')
-      .attr('fill', '#ffffff')
-      .style('font-size', '0.6rem')
-      .style('cursor', 'pointer')
-      .text(d => d[0])
-  }, [selections, setFeatures, rectWidth, heatmapContainerWidth]);
-
-  // Sort the selections array before mapping
+  // Update the sortedSelections useMemo to prioritize visible items
   const sortedSelections = useMemo(() => {
-    if (!sortBy || !selections) return selections;
+    if (!allSelections) return allSelections;
 
-    return [...selections].sort((a, b) => {
-      const aData = setFeatures[a[0]]?.[a[1]]?.feat_imp;
-      const bData = setFeatures[b[0]]?.[b[1]]?.feat_imp;
+    return [...allSelections].sort((a, b) => {
+      // First sort by visibility
+      const aVisible = isSelectionVisible(a.path);
+      const bVisible = isSelectionVisible(b.path);
+      if (aVisible !== bVisible) {
+        return bVisible ? 1 : -1; // Changed to put visible items at the bottom
+      }
 
-      if (!aData || !bData) return 0;
+      // Then sort by the existing sort criteria if present
+      if (sortBy) {
+        const aData = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp;
+        const bData = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp;
 
-      const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
-      const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
+        if (!aData || !bData) return 0;
 
-      return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
+        const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
+        const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
+
+        return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
+      }
+      return 0;
     });
-  }, [selections, setFeatures, sortBy, sortDirection]);
+  }, [selections, allSelections, setFeatures, sortBy, sortDirection]);
+
+  // Handle visibility toggle
+  const handleVisibilityToggle = (selectionPath) => {
+    const isVisible = isSelectionVisible(selectionPath);
+    if (isVisible) {
+      // Remove from selection
+      setCellSetSelection(selections.filter(sel => 
+        !(sel[0] === selectionPath[0] && sel[1] === selectionPath[1])
+      ));
+    } else {
+      // Add to selection
+      setCellSetSelection([...selections, selectionPath]);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', position: 'relative' }}>
@@ -140,15 +142,44 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
         channelNames={channelNames}
       />
       {sortedSelections?.map((selection, i) => {
-        const featureData = setFeatures[selection[0]]?.[selection[1]];
+        const cellSetIndex = cellSets?.tree?.findIndex(
+          child => child.name === selection.path[0]
+        );
+        const color = colorScheme(cellSetIndex + 1);
+        const featureData = setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]];
         const PLOT_HEIGHT = 80;
+
         return (
-          <Card key={i} variant="outlined" style={{ backgroundColor: '#1E1E1E', borderColor: '#333333', padding: 1 }}>
+          <Card 
+            key={i} 
+            variant="outlined" 
+            style={{ 
+              backgroundColor: isSelectionVisible(selection.path) ? '#3A3A3A' : '#1A1A1A',
+              borderColor: '#333333', 
+              padding: 1,
+              marginBottom: '2px',
+            }}
+          >
             <CardContent style={{ padding: 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', padding: '5px' }}>
-                <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
-                  {selection.join('-')}
-                </Typography>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
+                    <span style={{ color: color }}>{selection?.path?.[0]}</span>
+                    {'-'}
+                    <span>{selection?.path?.[1]}</span>
+                  </Typography>
+                  <IconButton 
+                    size="small" 
+                    onClick={() => handleVisibilityToggle(selection.path)}
+                    style={{ padding: 4 }}
+                  >
+                    {isSelectionVisible(selection.path) ? (
+                      <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
+                    ) : (
+                      <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
+                    )}
+                  </IconButton>
+                </div>
                 {featureData?.feat_imp && (
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_HEIGHT }}>
                     <div style={{ width: '80px', height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
@@ -183,7 +214,6 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
                         height={PLOT_HEIGHT}
                         width={heatmapContainerWidth}
                       />
-
                     </div>
                   </div>
                 )}
@@ -199,7 +229,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames }) {
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
-  const [{ obsType, obsSetSelection, spatialImageLayer, dataset }, { setSpatialImageLayer }] = useCoordination(
+  const [{ obsType, obsSetSelection, obsSetColor, spatialImageLayer, dataset }, { setSpatialImageLayer, setCellSetSelection, setCellSetColor }] = useCoordination(
     [
       ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
       ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL],
@@ -208,7 +238,17 @@ export function SelectionsSummarySubscriber(props) {
     coordinationScopes
   );
 
-  const [{ image }, imageStatus] = useImageData(
+  // Get data from loaders using the data hooks.
+  const [{ obsSets: cellSets },] = useObsSetsData(
+    loaders, dataset, false,
+    { setObsSetSelection: setCellSetSelection, setObsSetColor: setCellSetColor },
+    { obsSetSelection: obsSetSelection, obsSetColor: obsSetColor },
+    { obsType },
+  );
+  console.log('todo, cellSets', cellSets);
+
+
+  const [{ image }, _] = useImageData(
     loaders,
     dataset,
     false,
@@ -259,7 +299,7 @@ export function SelectionsSummarySubscriber(props) {
       helpText={''}
       style={{ backgroundColor: '#121212', color: '#ffffff' }}
     >
-      <SelectionsDisplay selections={obsSetSelection} displayedChannels={displayedChannels} channelNames={channelNames} />
+      <SelectionsDisplay selections={obsSetSelection} cellSets={cellSets} setCellSetSelection={setCellSetSelection} displayedChannels={displayedChannels} channelNames={channelNames} />
     </TitleInfo>
   );
 }

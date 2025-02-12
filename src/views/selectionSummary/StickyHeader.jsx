@@ -5,7 +5,6 @@ import * as d3 from 'd3';
 function StickyHeader({ viewMode, handleViewChange, headerRef,
   sortBy, setSortBy, sortDirection, setSortDirection, featureData,
   rectWidth, displayedChannels, channelNames }) {
-  console.log('todo displayedChannels', displayedChannels, channelNames);
   useEffect(() => {
     if (!headerRef.current || !featureData?.feat_imp) return;
 
@@ -40,7 +39,6 @@ function StickyHeader({ viewMode, handleViewChange, headerRef,
         const channelIndex = channelNames.findIndex(name => name === d[0]);
         // check if a channel in displayed channel has selection.c === channelIndex
         const channel = displayedChannels.find(c => c.selection.c === channelIndex);
-        console.log('todo, channel', channel);
         const channelColor = channel?.color;
         // This is [r, g, b in 255 range]
         const color = channelColor ? `rgb(${channelColor[0]}, ${channelColor[1]}, ${channelColor[2]})` : '#ffffff';
