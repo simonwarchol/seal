@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
+
 function FeatureHeatmap({ featureData, height, width }) {
   const svgRef = useRef();
 
@@ -10,7 +11,10 @@ function FeatureHeatmap({ featureData, height, width }) {
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const rectWidth = width / featureData.feat_imp.length;
+    // Sort features alphabetically
+    const sortedFeatures = [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]));
+
+    const rectWidth = width / sortedFeatures.length;
     const halfHeight = height / 2;
 
     // Calculate normalized differences
@@ -22,7 +26,7 @@ function FeatureHeatmap({ featureData, height, width }) {
 
     // Create color scale for importance
     const importanceColorScale = d3.scaleSequential()
-      .domain([0, d3.max(featureData.feat_imp, d => d[1])])
+      .domain([0, d3.max(sortedFeatures, d => d[1])])
       .interpolator(d3.interpolateViridis);
 
     // Create a group for the rectangles
@@ -30,7 +34,7 @@ function FeatureHeatmap({ featureData, height, width }) {
 
     // Add feature importance rectangles (full height)
     g.selectAll(".importance-rect")
-      .data(featureData.feat_imp)
+      .data(sortedFeatures)
       .join("rect")
       .attr("x", (d, i) => i * rectWidth)
       .attr("y", 0)
@@ -40,7 +44,7 @@ function FeatureHeatmap({ featureData, height, width }) {
 
     // Add difference lines - white with black stroke
     g.selectAll(".diff-line")
-      .data(featureData.feat_imp)
+      .data(sortedFeatures)
       .join("line")
       .attr("x1", (d, i) => i * rectWidth + rectWidth / 2)
       .attr("y1", height / 2)
@@ -58,7 +62,7 @@ function FeatureHeatmap({ featureData, height, width }) {
 
     // Add circles to create lollipop effect
     g.selectAll(".diff-circle")
-      .data(featureData.feat_imp)
+      .data(sortedFeatures)
       .join("circle")
       .attr("cx", (d, i) => i * rectWidth + rectWidth / 2)
       .attr("cy", (d) => {
@@ -75,4 +79,5 @@ function FeatureHeatmap({ featureData, height, width }) {
   // Set initial dimensions
   return <svg ref={svgRef} width={width} height={height} />;
 }
+
 export default FeatureHeatmap;
