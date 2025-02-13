@@ -24,6 +24,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('desc');
   const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  const PLOT_SIZE = 50;
   const allSelections = useMemo(() => {
     // Return everything in cellSets.tree 
     return cellSets?.tree?.flatMap((cellSet, index) => {
@@ -163,7 +164,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
   }, [compareSelections, compareMode]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', position: 'relative' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', margin: 0 }}>
       <StickyHeader
         viewMode={viewMode}
         handleViewChange={handleViewChange}
@@ -178,6 +179,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         channelNames={channelNames}
         compareMode={compareMode}
         onCompareToggle={handleCompareToggle}
+        height={PLOT_SIZE}
       />
 
 
@@ -187,7 +189,6 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         );
         const color = colorScheme(cellSetIndex + 1);
         const featureData = setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]];
-        const PLOT_HEIGHT = 80;
 
         const isSelected = compareSelections.some(
           s => s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
@@ -241,8 +242,8 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                   </IconButton>
                 </div>
                 {featureData?.feat_imp && (
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_HEIGHT }}>
-                    <div style={{ width: '80px', height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
+                    <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
                       {viewMode === 'embedding' ? (
                         <ScatterPlot
                           data={featureData.embedding_coordinates}
@@ -251,6 +252,8 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                             [featureData.summary.embedding_ranges[0][0], featureData.summary.embedding_ranges[0][1]],
                             [featureData.summary.embedding_ranges[1][0], featureData.summary.embedding_ranges[1][1]]
                           ]}
+                          height={PLOT_SIZE}
+                          width={PLOT_SIZE}
                           title="Embedding"
                         />
                       ) : (
@@ -271,7 +274,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                     >
                       <FeatureHeatmap
                         featureData={featureData}
-                        height={PLOT_HEIGHT}
+                        height={PLOT_SIZE}
                         width={heatmapContainerWidth}
                       />
                     </div>

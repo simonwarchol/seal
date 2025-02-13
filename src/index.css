@@ -57,3 +57,6 @@ body {
 .react-grid-layout.layout {
 	width: 100vw !important;
 }
+.vit-makeStyles-scrollCard{
+	padding: 5px !important;
+}

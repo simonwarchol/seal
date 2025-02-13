@@ -17,7 +17,8 @@ function StickyHeader({
   displayedChannels, 
   channelNames,
   compareMode,
-  onCompareToggle
+  onCompareToggle,
+  height
 }) {
   useEffect(() => {
     if (!headerRef.current || !featureData?.feat_imp) return;
@@ -31,7 +32,7 @@ function StickyHeader({
       svg = d3.select(headerRef.current)
         .append('svg')
         .attr('width', '100%')
-        .attr('height', '60px');
+        .attr('height', `${height}px`);
     }
 
     // Update or create labels
@@ -80,20 +81,21 @@ function StickyHeader({
     <div style={{
       position: 'sticky',
       top: 0,
+      left: 0,
       width: '100%',
       zIndex: 1000,
-      marginBottom: '2px',
+      
       display: 'flex',
       alignItems: 'center',
       backgroundColor: 'rgba(30, 30, 30, 0.8)',
-      margin: '5px'
+      margin: '0px'
     }}>
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'flex-start',
-        width: '80px',
-        gap: '4px'
+        width: '60px',
+        gap: '0px'
       }}>
         <IconButton
           onClick={onCompareToggle}
@@ -134,11 +136,11 @@ function StickyHeader({
               flex: 1
             }}
           >
-            {viewMode === 'spatial' ? 'Spatial' : 'S'}
+            {viewMode === 'spatial' ? 'Img.' : 'I'}
           </ToggleButton>
         </ToggleButtonGroup>
       </div>
-      <div ref={headerRef} style={{ flex: 1, height: '60px', marginLeft: '5px' }} />
+      <div ref={headerRef} style={{ flex: 1, height: '60px' }} />
     </div>
   );
 }

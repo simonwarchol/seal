@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 
 import * as d3 from 'd3';
-function ScatterPlot({ data, width = 80, height = 80, ranges, backgroundData, title }) {
-    const svgRef = useRef();
+function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, title }) {
+    const svgRef = useRef();  
   
     useEffect(() => {
       if (!data || !ranges) return;
