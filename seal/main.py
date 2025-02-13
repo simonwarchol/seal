@@ -218,6 +218,9 @@ class SelectionSet(BaseModel):
     ]  # Assuming the inner lists can contain any type, including None
 
 
+class CompareSet(BaseModel):
+    sets: List[Dict[str, Any]]  # List of objects containing path and selection_ids
+
 class SelectionGroup(BaseModel):
     name: str
     children: List[SelectionSet]
@@ -228,11 +231,18 @@ class SelectionData(BaseModel):
 
 
 def parse_id(_id):
-    try:
-        id = int(_id[0])
-    except TypeError:
-        id = int(_id[0][0])
-    return id
+    # If _id is already an integer, return it directly
+    if isinstance(_id, int):
+        return _id
+    # If _id is a list/tuple, handle nested structure
+    if isinstance(_id, (list, tuple)):
+        # Handle first element being a list/tuple
+        if isinstance(_id[0], (list, tuple)):
+            return int(_id[0][0])
+        # Handle first element being an integer
+        return int(_id[0])
+    # If we get here, we have an unexpected input
+    raise ValueError(f"Unexpected ID format: {_id}")
 
 
 def get_potential_features(csv_df):
@@ -301,36 +311,40 @@ def process_selection(selection_ids):
     global shap_store, summary
     selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
     selected_indices = selected_rows.index.tolist()
+    
+    # Convert numpy values to Python native types
     absolute_shap_sums = np.sum(
         np.mean(np.abs(shap_store[selected_indices]), axis=(0)), axis=1
-    )
+    ).tolist()  # Convert to list
     potential_features = get_potential_features(csv_df)
-    feat_imp = list(zip(potential_features, absolute_shap_sums.tolist()))
+    feat_imp = list(zip(potential_features, absolute_shap_sums))
 
-    #
+    # Convert numpy arrays to Python lists
+    embedding_coordinates = selected_rows[["UMAP_X", "UMAP_Y"]].values.tolist()
+    spatial_coordinates = selected_rows[["X_centroid", "Y_centroid"]].values.tolist()
+    
+    # Process coordinates expects numpy arrays
+    hull_results = process_coordinates(
+        np.array(spatial_coordinates), 
+        np.array(embedding_coordinates)
+    )
+    
+    # Downsample if needed
+    if len(embedding_coordinates) > 500:
+        indices = np.random.choice(len(embedding_coordinates), 500, replace=False)
+        embedding_coordinates = [embedding_coordinates[i] for i in indices]
+        spatial_coordinates = [spatial_coordinates[i] for i in indices]
 
-    # Compute hull
-    embedding_coordinates = selected_rows[["UMAP_X", "UMAP_Y"]].values
-
-    spatial_coordinates = selected_rows[["X_centroid", "Y_centroid"]].values
-    hull_results = process_coordinates(spatial_coordinates, embedding_coordinates)
-    # If embedding_coordinates has more than 1000 points, downsample to 1000 random
-    if embedding_coordinates.shape[0] > 500:
-        embedding_coordinates = embedding_coordinates[
-            np.random.choice(embedding_coordinates.shape[0], 500, replace=False)
-        ]
-        spatial_coordinates = spatial_coordinates[
-            np.random.choice(spatial_coordinates.shape[0], 500, replace=False)
-        ]
-
-    selection_mean_features = selected_rows[potential_features].mean()
+    selection_mean_features = selected_rows[potential_features].mean().to_dict()
+    
     return {
         "feat_imp": feat_imp,
         "hulls": hull_results,
-        "spatial_coordinates": spatial_coordinates.tolist(),
-        "embedding_coordinates": embedding_coordinates.tolist(),
+        "spatial_coordinates": spatial_coordinates,
+        "embedding_coordinates": embedding_coordinates,
         "summary": summary,
-        "selection_mean_features": selection_mean_features.to_dict()
+        "selection_mean_features": selection_mean_features,
+        "selection_ids": [int(id) for id in selection_ids]  # Convert numpy.int64 to Python int
     }
 
 
@@ -342,6 +356,79 @@ async def selection(selection_data: SelectionSet):
 
     response_data = process_selection(selection_ids)
     return {"message": "Complete", "data": response_data}
+
+
+@app.post("/set-compare")
+async def set_compare(selection_data: CompareSet):
+    global dataset_name, csv_df
+    
+    # Extract the two sets of selection IDs
+    set1_ids = np.array([parse_id(_) for _ in selection_data.sets[0]["selection_ids"]])
+    set2_ids = np.array([parse_id(_) for _ in selection_data.sets[1]["selection_ids"]])
+    
+    # Calculate basic set operations
+    intersection_ids = np.intersect1d(set1_ids, set2_ids)
+    union_ids = np.union1d(set1_ids, set2_ids)
+    
+    # Calculate derived operations
+    a_minus_intersection = np.setdiff1d(set1_ids, intersection_ids)
+    b_minus_intersection = np.setdiff1d(set2_ids, intersection_ids)
+    symmetric_difference = np.setxor1d(set1_ids, set2_ids)  # (A∪B) - (A∩B)
+    
+    # Get universe (all cell IDs)
+    universe = np.array(csv_df["CellID"].values)
+    complement = np.setdiff1d(universe, union_ids)
+    
+    # Initialize results dictionary
+    results = {
+        'set1_count': len(set1_ids),
+        'set2_count': len(set2_ids),
+        'operations': {}
+    }
+    
+    # Only include non-empty and non-trivial results
+    if len(intersection_ids) > 0:
+        results['operations']['intersection'] = {
+            'count': len(intersection_ids),
+            'data': process_selection(intersection_ids.tolist())
+        }
+        # Only include union if there's an intersection
+        if len(union_ids) > 0:
+            results['operations']['a_plus_b'] = {
+                'count': len(union_ids),
+                'data': process_selection(union_ids.tolist())
+            }
+    
+    # Only include differences if they're not the same as original sets
+    if len(a_minus_intersection) > 0 and len(a_minus_intersection) != len(set1_ids):
+        results['operations']['a_minus_intersection'] = {
+            'count': len(a_minus_intersection),
+            'data': process_selection(a_minus_intersection.tolist())
+        }
+    
+    if len(b_minus_intersection) > 0 and len(b_minus_intersection) != len(set2_ids):
+        results['operations']['b_minus_intersection'] = {
+            'count': len(b_minus_intersection),
+            'data': process_selection(b_minus_intersection.tolist())
+        }
+    
+    # Only include symmetric difference if it exists and there's no intersection
+    if len(symmetric_difference) > 0 and len(intersection_ids) == 0:
+        results['operations']['a_plus_b_minus_intersection'] = {
+            'count': len(symmetric_difference),
+            'data': process_selection(symmetric_difference.tolist())
+        }
+    
+    if len(complement) > 0:
+        results['operations']['complement'] = {
+            'count': len(complement),
+            'data': process_selection(complement.tolist())
+        }
+    
+    return {
+        "message": "Complete",
+        "data": results
+    }
 
 
 @app.post("/neighborhood")

@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData } from '@vitessce/vit-s';
 import { COMPONENT_COORDINATION_TYPES, ViewType, CoordinationType as ct } from '@vitessce/constants-internal';
 import { capitalize } from '@vitessce/utils';
+import { treeFindNodeByNamePath } from '@vitessce/sets-utils';
 import { Card, CardContent, Typography } from '@material-ui/core';
 import useStore from "../../store";
 import ScatterPlot from './ScatterPlot';
@@ -10,10 +11,19 @@ import FeatureHeatmap from './FeatureHeatmap';
 import StickyHeader from './StickyHeader';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { VisibilityOutlined, VisibilityOffOutlined} from '@mui/icons-material';
+import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
+import SetOperationIcon from './SetOperationIcon';
+import { iconConfigs } from './SetOperationIcon';
 
-
+const OPERATION_NAMES = {
+  'a_minus_intersection': 'Only in first set',
+  'b_minus_intersection': 'Only in second set',
+  'intersection': 'Intersection',
+  'a_plus_b_minus_intersection': 'Symmetric difference',
+  'a_plus_b': 'Union',
+  'complement': 'Complement'
+};
 
 function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSets, setCellSetSelection }) {
   const setFeatures = useStore((state) => state.setFeatures);
@@ -32,7 +42,6 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       return cellSet.children.map(child => ({ path: [cellSet.name, child.name], color: cellSetColor }));
     });
   }, [cellSets]);
-  console.log('todo, allSelections', allSelections, selections);
 
   // Update width measurement logic to run after DOM updates
   useEffect(() => {
@@ -125,18 +134,77 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
 
   const handleCompareToggle = () => {
     if (compareMode) {
-      // When exiting compare mode
       setCompareMode(false);
       setCompareSelections([]);
-      // Restore all previous selections
       setCellSetSelection(selections);
     } else {
-      // When entering compare mode
       setCompareMode(true);
-      // Clear any existing selections
       setCellSetSelection([]);
     }
   };
+
+  const [comparisonResults, setComparisonResults] = useState(null);
+
+  // Fetch comparison results when selections change
+  useEffect(() => {
+    if (!compareSelections || compareSelections.length !== 2 || !cellSets) return;
+
+    const set1 = treeFindNodeByNamePath(cellSets, compareSelections[0].path);
+    const set2 = treeFindNodeByNamePath(cellSets, compareSelections[1].path);
+
+    if (!set1 || !set2) return;
+
+    let mounted = true;
+
+    const fetchComparisonResults = async () => {
+      try {
+        const response = await fetch("http://localhost:8181/set-compare", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sets: [
+              {
+                selection_ids: set1.set.map(cell => [cell[0]]),
+                path: compareSelections[0].path
+              },
+              {
+                selection_ids: set2.set.map(cell => [cell[0]]),
+                path: compareSelections[1].path
+              }
+            ]
+          }),
+        });
+        const data = await response.json();
+        if (mounted) {
+          setComparisonResults({
+            operations: data.operations,
+            set1,
+            set2,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching comparison results:", error);
+        if (mounted) {
+          setComparisonResults(null);
+        }
+      }
+    };
+
+    fetchComparisonResults();
+
+    return () => {
+      mounted = false;
+    };
+  }, [compareSelections, cellSets]);
+
+  // Clear comparison results when exiting compare mode
+  useEffect(() => {
+    if (!compareMode) {
+      setComparisonResults(null);
+    }
+  }, [compareMode]);
 
   const handleRowClick = (selection) => {
     if (!compareMode) return;
@@ -150,7 +218,11 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         return prev.filter(s => !(s.path[0] === selection.path[0] && s.path[1] === selection.path[1]));
       } else {
         // Add the new selection if less than 2 items are selected
-        return [...prev, selection];
+        if (prev.length === 0) {
+          return [selection];
+        } else {
+          return [...prev, selection];
+        }
       }
     });
   };
@@ -162,6 +234,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       setCellSetSelection(selectionPaths);
     }
   }, [compareSelections, compareMode]);
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', margin: 0 }}>
@@ -182,50 +255,36 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         height={PLOT_SIZE}
       />
 
-
-      {sortedSelections?.map((selection, i) => {
-        const cellSetIndex = cellSets?.tree?.findIndex(
-          child => child.name === selection.path[0]
-        );
-        const color = colorScheme(cellSetIndex + 1);
-        const featureData = setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]];
-
-        const isSelected = compareSelections.some(
-          s => s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-        );
-
-        return (
-          <Card
-            key={i}
-            variant="outlined"
-            onClick={() => handleRowClick(selection)}
-            style={{
-              backgroundColor: isSelected ? '#2C3E50' : isSelectionVisible(selection.path) ? '#3A3A3A' : '#1A1A1A',
-              borderColor: '#333333',
-              padding: 1,
-              marginBottom: '2px',
-              cursor: compareMode ? 'pointer' : 'default',
-              transition: 'background-color 0.2s ease',
-              '&:hover': {
-                backgroundColor: compareMode ? '#34495E' : undefined,
-              }
-            }}
-          >
-            <CardContent style={{
-              padding: 0,
-              opacity: compareMode && !isSelected && compareSelections.length === 2 ? 0.3 : 1
-            }}>
-              <div style={{ display: 'flex', flexDirection: 'column', padding: '5px' }}>
+      {/* Only show the comparison UI when in compare mode */}
+      {compareMode ? (
+        <>
+          {/* Selected sets */}
+          {sortedSelections?.filter(selection => 
+            compareSelections.some(s => 
+              s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+            )
+          ).map((selection, i) => (
+            <div
+              key={`selected-${i}`}
+              onClick={() => handleRowClick(selection)}
+              style={{
+                backgroundColor: '#2C3E50',
+                padding: '5px',
+                marginBottom: '2px',
+                cursor: compareMode ? 'pointer' : 'default',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
-                    <span style={{ color: color }}>{selection?.path?.[0]}</span>
+                    <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>{selection?.path?.[0]}</span>
                     {'-'}
                     <span>{selection?.path?.[1]}</span>
                   </Typography>
                   <IconButton
                     size="small"
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent row click when clicking visibility toggle
+                      e.stopPropagation();
                       handleVisibilityToggle(selection.path);
                     }}
                     style={{
@@ -241,16 +300,16 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                     )}
                   </IconButton>
                 </div>
-                {featureData?.feat_imp && (
+                {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
                     <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
                       {viewMode === 'embedding' ? (
                         <ScatterPlot
-                          data={featureData.embedding_coordinates}
-                          backgroundData={featureData.summary.embedding_subsample}
+                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
+                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
                           ranges={[
-                            [featureData.summary.embedding_ranges[0][0], featureData.summary.embedding_ranges[0][1]],
-                            [featureData.summary.embedding_ranges[1][0], featureData.summary.embedding_ranges[1][1]]
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
                           ]}
                           height={PLOT_SIZE}
                           width={PLOT_SIZE}
@@ -258,11 +317,11 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                         />
                       ) : (
                         <ScatterPlot
-                          data={featureData.spatial_coordinates}
-                          backgroundData={featureData.summary.spatial_subsample}
+                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
+                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
                           ranges={[
-                            [featureData.summary.spatial_ranges[0][0], featureData.summary.spatial_ranges[0][1]],
-                            [featureData.summary.spatial_ranges[1][0], featureData.summary.spatial_ranges[1][1]]
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
                           ]}
                           title="Spatial"
                         />
@@ -273,7 +332,234 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                       style={{ flex: 1, overflow: 'hidden' }}
                     >
                       <FeatureHeatmap
-                        featureData={featureData}
+                        featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                        height={PLOT_SIZE}
+                        width={heatmapContainerWidth}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Set operation icons */}
+          {compareMode && compareSelections.length === 2 && (
+            <div style={{ 
+              padding: '4px 0',
+              backgroundColor: 'rgba(30, 30, 30, 0.8)',
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '2px',
+              marginBottom: '2px'
+            }}>
+              {Object.keys(OPERATION_NAMES).map((operation) => (
+                <SetOperationIcon 
+                  key={operation}
+                  type={operation}
+                  size={30}
+                  disabled={!comparisonResults?.operations?.[operation]}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Derived sets from comparison */}
+          {compareMode && comparisonResults?.operations && (
+            Object.entries(comparisonResults.operations)
+              .filter(([_, value]) => value.count > 0)
+              .map(([operation, value], i) => (
+                <div
+                  key={`comparison-${i}`}
+                  style={{
+                    backgroundColor: iconConfigs[operation]?.color || '#2C3E50',
+                    padding: '5px',
+                    marginBottom: '2px',
+                    marginTop: i === 0 ? '8px' : '2px',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <Typography 
+                      variant="subtitle2" 
+                      style={{ 
+                        color: '#ffffff', 
+                        fontSize: '0.7rem',
+                        marginBottom: '4px'
+                      }}
+                    >
+                      {OPERATION_NAMES[operation]} ({value.count} cells)
+                    </Typography>
+                    <div style={{ height: PLOT_SIZE, display: 'flex', gap: '2px' }}>
+                      <div style={{ width: PLOT_SIZE, height: PLOT_SIZE }}>
+                        {viewMode === 'embedding' ? (
+                          <ScatterPlot
+                            data={value.data.spatial_coordinates}
+                            backgroundData={value.data.summary.spatial_subsample}
+                            ranges={[
+                              [value.data.summary.spatial_ranges[0][0], value.data.summary.spatial_ranges[0][1]],
+                              [value.data.summary.spatial_ranges[1][0], value.data.summary.spatial_ranges[1][1]]
+                            ]}
+                            height={PLOT_SIZE}
+                            width={PLOT_SIZE}
+                            title="Embedding"
+                          />
+                        ) : (
+                          <FeatureHeatmap
+                            featureData={value.data}
+                            height={PLOT_SIZE}
+                            width={heatmapContainerWidth - PLOT_SIZE - 2}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+          )}
+
+          {/* Unselected sets */}
+          {sortedSelections?.filter(selection => 
+            !compareSelections.some(s => 
+              s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+            )
+          ).map((selection, i) => (
+            <div
+              key={`unselected-${i}`}
+              onClick={() => handleRowClick(selection)}
+              style={{
+                backgroundColor: '#1A1A1A',
+                padding: '5px',
+                marginBottom: '2px',
+                cursor: compareMode ? 'pointer' : 'default',
+                opacity: 0.3
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
+                    <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>{selection?.path?.[0]}</span>
+                    {'-'}
+                    <span>{selection?.path?.[1]}</span>
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleVisibilityToggle(selection.path);
+                    }}
+                    style={{
+                      padding: 4,
+                      position: 'relative',
+                      visibility: compareMode ? 'hidden' : 'visible'
+                    }}
+                  >
+                    {isSelectionVisible(selection.path) ? (
+                      <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
+                    ) : (
+                      <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
+                    )}
+                  </IconButton>
+                </div>
+                {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
+                    <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
+                      {viewMode === 'embedding' ? (
+                        <ScatterPlot
+                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
+                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
+                          ranges={[
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
+                          ]}
+                          height={PLOT_SIZE}
+                          width={PLOT_SIZE}
+                          title="Embedding"
+                        />
+                      ) : (
+                        <ScatterPlot
+                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
+                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
+                          ranges={[
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
+                          ]}
+                          title="Spatial"
+                        />
+                      )}
+                    </div>
+                    <div
+                      ref={heatmapContainerRef}
+                      style={{ flex: 1, overflow: 'hidden' }}
+                    >
+                      <FeatureHeatmap
+                        featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                        height={PLOT_SIZE}
+                        width={heatmapContainerWidth}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </>
+      ) : (
+        // Regular view (not compare mode)
+        sortedSelections?.map((selection, i) => (
+          <Card
+            key={i}
+            variant="outlined"
+            onClick={() => handleRowClick(selection)}
+            style={{
+              backgroundColor: '#2C3E50',
+              borderColor: '#333333',
+              padding: 1,
+              marginBottom: '2px',
+              cursor: 'pointer',
+            }}
+          >
+            <CardContent style={{ padding: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', padding: '5px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
+                    <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>{selection?.path?.[0]}</span>
+                    {'-'}
+                    <span>{selection?.path?.[1]}</span>
+                  </Typography>
+                </div>
+                {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
+                    <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
+                      {viewMode === 'embedding' ? (
+                        <ScatterPlot
+                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
+                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
+                          ranges={[
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
+                          ]}
+                          height={PLOT_SIZE}
+                          width={PLOT_SIZE}
+                          title="Embedding"
+                        />
+                      ) : (
+                        <ScatterPlot
+                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
+                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
+                          ranges={[
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
+                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
+                          ]}
+                          title="Spatial"
+                        />
+                      )}
+                    </div>
+                    <div
+                      ref={heatmapContainerRef}
+                      style={{ flex: 1, overflow: 'hidden' }}
+                    >
+                      <FeatureHeatmap
+                        featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
                         height={PLOT_SIZE}
                         width={heatmapContainerWidth}
                       />
@@ -283,8 +569,8 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
               </div>
             </CardContent>
           </Card>
-        );
-      })}
+        ))
+      )}
     </div>
   );
 }
@@ -308,7 +594,6 @@ export function SelectionsSummarySubscriber(props) {
     { obsSetSelection: obsSetSelection, obsSetColor: obsSetColor },
     { obsType },
   );
-  console.log('todo, cellSets', cellSets);
 
 
   const [{ image }, _] = useImageData(
@@ -319,14 +604,12 @@ export function SelectionsSummarySubscriber(props) {
     { spatialImageLayer },
     {} // TODO: which values to match on
   );
-  // console.log('todo, loaders', imageStatus, image);
 
   const [displayedChannels, setDisplayedChannels] = useState([]);
   const [channelNames, setChannelNames] = useState([]);
   const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
   useEffect(() => {
     if (!imageLayerLoaders) return;
-    // console.log('todo, imageLayerLoaders', imageLayerLoaders);
     setChannelNames(imageLayerLoaders?.[0]?.channels);
   }, [imageLayerLoaders]);
   useEffect(() => {

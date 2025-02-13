@@ -44,7 +44,7 @@ function StickyHeader({
     labels.enter()
       .append('text')
       .merge(labels)
-      .attr('x', 0)
+      .attr('x', '10px')
       .attr('y', 0)
       .attr('transform', (d, i) => `translate(${i * rectWidth + rectWidth / 2 + 1}, 60) rotate(-90)`)
       .attr('text-anchor', 'start')
