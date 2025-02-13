@@ -261,8 +261,8 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       {compareMode ? (
         <>
           {/* Selected sets */}
-          {sortedSelections?.filter(selection => 
-            compareSelections.some(s => 
+          {sortedSelections?.filter(selection =>
+            compareSelections.some(s =>
               s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
             )
           ).map((selection, i) => (
@@ -347,7 +347,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
 
           {/* Set operation icons */}
           {compareMode && compareSelections.length === 2 && (
-            <div style={{ 
+            <div style={{
               padding: '4px 0',
               backgroundColor: 'rgba(30, 30, 30, 0.8)',
               display: 'flex',
@@ -356,7 +356,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
               marginBottom: '2px'
             }}>
               {Object.keys(OPERATION_NAMES).map((operation) => (
-                <SetOperationIcon 
+                <SetOperationIcon
                   key={operation}
                   type={operation}
                   size={30}
@@ -381,10 +381,10 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                   }}
                 >
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography 
-                      variant="subtitle2" 
-                      style={{ 
-                        color: '#ffffff', 
+                    <Typography
+                      variant="subtitle2"
+                      style={{
+                        color: '#ffffff',
                         fontSize: '0.7rem',
                         marginBottom: '4px'
                       }}
@@ -395,6 +395,18 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                       <div style={{ width: PLOT_SIZE, height: PLOT_SIZE }}>
                         {viewMode === 'embedding' ? (
                           <ScatterPlot
+                            data={value.data.embedding_coordinates}
+                            backgroundData={value.data.summary.embedding_subsample}
+                            ranges={[
+                              [value.data.summary.embedding_ranges[0][0], value.data.summary.embedding_ranges[0][1]],
+                              [value.data.summary.embedding_ranges[1][0], value.data.summary.embedding_ranges[1][1]]
+                            ]}
+                            height={PLOT_SIZE}
+                            width={PLOT_SIZE}
+                            title="Embedding"
+                          />
+                        ) : (
+                          <ScatterPlot
                             data={value.data.spatial_coordinates}
                             backgroundData={value.data.summary.spatial_subsample}
                             ranges={[
@@ -403,15 +415,19 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                             ]}
                             height={PLOT_SIZE}
                             width={PLOT_SIZE}
-                            title="Embedding"
-                          />
-                        ) : (
-                          <FeatureHeatmap
-                            featureData={value.data}
-                            height={PLOT_SIZE}
-                            width={heatmapContainerWidth - PLOT_SIZE - 2}
+                            title="Spatial"
                           />
                         )}
+                      </div>
+                      <div
+                        ref={heatmapContainerRef}
+                        style={{ flex: 1, overflow: 'hidden' }}
+                      >
+                        <FeatureHeatmap
+                          featureData={value.data}
+                          height={PLOT_SIZE}
+                          width={heatmapContainerWidth}
+                        />
                       </div>
                     </div>
                   </div>
@@ -420,8 +436,8 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
           )}
 
           {/* Unselected sets */}
-          {sortedSelections?.filter(selection => 
-            !compareSelections.some(s => 
+          {sortedSelections?.filter(selection =>
+            !compareSelections.some(s =>
               s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
             )
           ).map((selection, i) => (
@@ -528,6 +544,20 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                     {'-'}
                     <span>{selection?.path?.[1]}</span>
                   </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleVisibilityToggle(selection.path);
+                    }}
+                    style={{ padding: 4 }}
+                  >
+                    {isSelectionVisible(selection.path) ? (
+                      <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
+                    ) : (
+                      <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
+                    )}
+                  </IconButton>
                 </div>
                 {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
                   <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
