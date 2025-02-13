@@ -73,6 +73,8 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
   };
 
   const [rectWidth, setRectWidth] = useState(0);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSelections, setCompareSelections] = useState([]);
 
   useEffect(() => {
     if (!allSelections?.length || !setFeatures) {
@@ -99,6 +101,15 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
     if (!allSelections) return allSelections;
 
     return [...allSelections].sort((a, b) => {
+      // When not in compare mode, prioritize visible selections
+      if (!compareMode) {
+        const aVisible = isSelectionVisible(a.path);
+        const bVisible = isSelectionVisible(b.path);
+        if (aVisible !== bVisible) {
+          return bVisible ? 1 : -1;
+        }
+      }
+
       // Sort by the feature importance if sortBy is present
       if (sortBy) {
         const aData = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp;
@@ -113,7 +124,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       }
       return 0;
     });
-  }, [allSelections, setFeatures, sortBy, sortDirection]);
+  }, [allSelections, setFeatures, sortBy, sortDirection, compareMode, selections]);
 
   // Handle visibility toggle
   const handleVisibilityToggle = (selectionPath) => {
@@ -126,20 +137,6 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
     } else {
       // Add to selection
       setCellSetSelection([...selections, selectionPath]);
-    }
-  };
-
-  const [compareMode, setCompareMode] = useState(false);
-  const [compareSelections, setCompareSelections] = useState([]);
-
-  const handleCompareToggle = () => {
-    if (compareMode) {
-      setCompareMode(false);
-      setCompareSelections([]);
-      setCellSetSelection(selections);
-    } else {
-      setCompareMode(true);
-      setCellSetSelection([]);
     }
   };
 
@@ -253,7 +250,11 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
         displayedChannels={displayedChannels}
         channelNames={channelNames}
         compareMode={compareMode}
-        onCompareToggle={handleCompareToggle}
+        onCompareToggle={() => {
+          setCompareMode(prev => !prev);
+          setCompareSelections([]);
+          setCellSetSelection(selections);
+        }}
         height={PLOT_SIZE}
       />
 
@@ -529,11 +530,12 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
             variant="outlined"
             onClick={() => handleRowClick(selection)}
             style={{
-              backgroundColor: '#2C3E50',
+              backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
               borderColor: '#333333',
               padding: 1,
               marginBottom: '2px',
               cursor: 'pointer',
+              opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
             }}
           >
             <CardContent style={{ padding: 0 }}>
