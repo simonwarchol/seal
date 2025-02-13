@@ -10,13 +10,13 @@ const basePaths = {
 };
 
 export const iconConfigs = {
-  'a_minus_intersection': { paths: ['leftOnly'], color: '#9467bd' },
-  'intersection': { paths: ['intersection'], color: '#17becf' },
-  'b_minus_intersection': { paths: ['rightOnly'], color: '#d62728' },
-  'a_plus_b_minus_intersection': { paths: ['leftOnly', 'rightOnly'], color: '#ff7f0e' },
-  'a_plus_b': { paths: ['leftOnly', 'rightOnly', 'intersection'], color: '#67a61f' },
-  'complement': { background: '#e6ab03', fills: ['leftOnly', 'rightOnly', 'intersection'], color: '#1F1F1F' }
-};
+    'a_minus_intersection': { paths: ['leftOnly'], color: '#9467bd' },
+    'intersection': { paths: ['intersection'], color: '#17becf' },
+    'b_minus_intersection': { paths: ['rightOnly'], color: '#d62728' },
+    'a_plus_b_minus_intersection': { paths: ['leftOnly', 'rightOnly'], color: '#ff7f0e' },
+    'a_plus_b': { paths: ['leftOnly', 'rightOnly', 'intersection'], color: '#67a61f' },
+    'complement': { paths: ['leftOnly', 'rightOnly', 'intersection'], color: '#e6ab03' } // Changed this line
+  };
 
 const SetOperationIcon = ({ type, size = 30, disabled = false }) => {
   const baseStyle = {

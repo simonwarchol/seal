@@ -176,12 +176,14 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
             ]
           }),
         });
-        const data = await response.json();
+        const responseData = await response.json();
         if (mounted) {
           setComparisonResults({
-            operations: data.operations,
+            operations: responseData.data.operations,
             set1,
             set2,
+            set1_count: responseData.data.set1_count,
+            set2_count: responseData.data.set2_count
           });
         }
       } catch (error) {
@@ -372,7 +374,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                 <div
                   key={`comparison-${i}`}
                   style={{
-                    backgroundColor: iconConfigs[operation]?.color || '#2C3E50',
+                    backgroundColor: `${iconConfigs[operation]?.color}99`, // Added 99 for ~60% opacity
                     padding: '5px',
                     marginBottom: '2px',
                     marginTop: i === 0 ? '8px' : '2px',
