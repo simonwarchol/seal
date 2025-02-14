@@ -1,0 +1,35 @@
+#toolbar {
+    position: absolute;
+    top: 0;
+    left: 10;
+    height: 40px;
+    /* border-bottom: 1px solid #e0e0e0; */
+ 
+    z-index: 10000;
+}
+
+#toolbar img {
+    height: 40px;
+    width: auto;
+    z-index: 1000;
+}
+
+
+
+.seal-text {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.2rem;
+}
+
+.seal-text.tools {
+    color: #FFA500;
+    font-size: 0.8em;
+}
+
+
+
+.settings-icon {
+    z-index: 1200;
+    color: #FFA500;
+
+}

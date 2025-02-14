@@ -36,6 +36,8 @@ const useStore = create((set) => ({
     setFeatureCount: (count) => set({ featureCount: count }),
     titleFontSize: 14,
     setTitleFontSize: (size) => set({ titleFontSize: size }),
+    compareMode: false,
+    setCompareMode: (mode) => set({ compareMode: mode }),
 }))
 
 export default useStore;

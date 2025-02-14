@@ -73,7 +73,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
   };
 
   const [rectWidth, setRectWidth] = useState(0);
-  const [compareMode, setCompareMode] = useState(false);
+  const compareMode = useStore((state) => state.compareMode);
   const [compareSelections, setCompareSelections] = useState([]);
 
   useEffect(() => {
@@ -360,7 +360,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                 <SetOperationIcon
                   key={operation}
                   type={operation}
-                  size={30}
+                  size={40}
                   disabled={!comparisonResults?.operations?.[operation]}
                 />
               ))}

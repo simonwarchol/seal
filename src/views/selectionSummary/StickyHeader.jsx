@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
-import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
 import * as d3 from 'd3';
 
 function StickyHeader({ 
@@ -97,18 +96,7 @@ function StickyHeader({
         width: '60px',
         gap: '0px'
       }}>
-        <IconButton
-          onClick={onCompareToggle}
-          size="small"
-          style={{
-            color: compareMode ? '#ffffff' : '#ffffff',
-            backgroundColor: compareMode ? 'rgba(74, 144, 226, 0.8)' : 'transparent',
-            padding: '4px',
-            marginLeft: '4px'
-          }}
-        >
-          <CompareArrowsIcon fontSize="small" />
-        </IconButton>
+       
         <ToggleButtonGroup
           value={viewMode}
           exclusive
