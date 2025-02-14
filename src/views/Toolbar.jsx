@@ -35,7 +35,7 @@ const Toolbar = () => {
             <Grid
                 container
                 direction="row"
-                alignItems="flex-end"
+                alignItems="center"
                 justifyContent="flex-start"
                 spacing={1}
                 style={{ width: '400px' }}
@@ -43,108 +43,103 @@ const Toolbar = () => {
                 <Grid item xs={'auto'}>
                     <img src={sealLogo} />
                 </Grid>
-                <Grid item container xs={'auto'} direction="column">
-                    <Grid item>
-                        <span className="seal-text">SEAL</span>
-                    </Grid>
-                    <Grid item container direction="row" onMouseEnter={(e) => setAnchorEl(e.currentTarget)}
-                    >
-                        <Grid item>
-                            <ConstructionIcon className="settings-icon" />
-                        </Grid>
-                        <Grid item>
-                            <span className="seal-text tools">TOOLS</span>
-                        </Grid>
-                        <Menu
-                        anchorEl={anchorEl}
-                        open={Boolean(anchorEl)}
-                        onClose={() => setAnchorEl(null)}
-                        onClick={(e) => e.stopPropagation()}
-                        MenuListProps={{
-                            onMouseLeave: () => setAnchorEl(null)
-                        }}
-                        anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'left',
-                        }}
-                        PaperProps={{
-                            style: {
-                                width: '250px',
-                            },
-                        }}
-                    >
-                        <MenuItem onClick={() => setCompareMode(!compareMode)}>
-                            <Grid container alignItems="center" spacing={2}>
-                                <Grid item>
-                                    <CompareArrowsIcon color={compareMode ? 'primary' : 'inherit'} />
-                                </Grid>
-                                <Grid item>
-                                    <span>Compare Mode</span>
-                                </Grid>
-                            </Grid>
-                        </MenuItem>
-                        <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
-                            <Grid container alignItems="center" spacing={2}>
-                                <Grid item>
-                                    <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
-                                </Grid>
-                                <Grid item>
-                                    <span>Outline Clusters</span>
-                                </Grid>
-                            </Grid>
-                        </MenuItem>
-                        <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
-                            <Grid container alignItems="center" spacing={2}>
-                                <Grid item>
-                                    <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
-                                </Grid>
-                                <Grid item>
-                                    <span>Show Titles</span>
-                                </Grid>
-                            </Grid>
-                        </MenuItem>
-                        <MenuItem>
-                            <Grid container alignItems="center" spacing={2}>
-                                <Grid item xs={6}>
-                                    <span>Features</span>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Select
-                                        value={featureCount}
-                                        onChange={handleFeatureCountChange}
-                                        size="small"
-                                        sx={{ height: '30px' }}
-                                    >
-                                        {[0, 1, 2, 3, 4, 5].map((num) => (
-                                            <MenuItem key={num} value={num}>{num}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </Grid>
-                            </Grid>
-                        </MenuItem>
-                        <MenuItem>
-                            <Grid container alignItems="center" spacing={2}>
-                                <Grid item xs={6}>
-                                    <span>Font Size</span>
-                                </Grid>
-                                <Grid item xs={6}>
-                                    <Select
-                                        value={titleFontSize}
-                                        onChange={handleTitleFontSizeChange}
-                                        size="small"
-                                        sx={{ height: '30px' }}
-                                    >
-                                        {[8, 10, 12, 14, 16, 18, 20].map((size) => (
-                                            <MenuItem key={size} value={size}>{size}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </Grid>
-                            </Grid>
-                        </MenuItem>
-                    </Menu>
-                    </Grid>
+                <Grid item style={{ display: 'flex', alignItems: 'center' }}>
+                    <span className="seal-text">SEAL</span>
+                    <Box ml={1}>
+                        <ConstructionIcon 
+                            className="settings-icon" 
+                            sx={{ fontSize: '1.2em' }} 
+                            onMouseEnter={(e) => setAnchorEl(e.currentTarget)}
+                        />
+                    </Box>
                 </Grid>
-             
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={() => setAnchorEl(null)}
+                    onClick={(e) => e.stopPropagation()}
+                    MenuListProps={{
+                        onMouseLeave: () => setAnchorEl(null)
+                    }}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    PaperProps={{
+                        style: {
+                            width: '250px',
+                        },
+                    }}
+                >
+                    <MenuItem onClick={() => setCompareMode(!compareMode)}>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item>
+                                <CompareArrowsIcon color={compareMode ? 'primary' : 'inherit'} />
+                            </Grid>
+                            <Grid item>
+                                <span>Compare Mode</span>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
+                    <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item>
+                                <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
+                            </Grid>
+                            <Grid item>
+                                <span>Outline Clusters</span>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
+                    <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item>
+                                <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
+                            </Grid>
+                            <Grid item>
+                                <span>Show Titles</span>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
+                    <MenuItem>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item xs={6}>
+                                <span>Features</span>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Select
+                                    value={featureCount}
+                                    onChange={handleFeatureCountChange}
+                                    size="small"
+                                    sx={{ height: '30px' }}
+                                >
+                                    {[0, 1, 2, 3, 4, 5].map((num) => (
+                                        <MenuItem key={num} value={num}>{num}</MenuItem>
+                                    ))}
+                                </Select>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
+                    <MenuItem>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item xs={6}>
+                                <span>Font Size</span>
+                            </Grid>
+                            <Grid item xs={6}>
+                                <Select
+                                    value={titleFontSize}
+                                    onChange={handleTitleFontSizeChange}
+                                    size="small"
+                                    sx={{ height: '30px' }}
+                                >
+                                    {[8, 10, 12, 14, 16, 18, 20].map((size) => (
+                                        <MenuItem key={size} value={size}>{size}</MenuItem>
+                                    ))}
+                                </Select>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
+                </Menu>
             </Grid>
         </div>
     );
