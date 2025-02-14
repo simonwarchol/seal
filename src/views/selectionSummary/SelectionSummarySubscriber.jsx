@@ -360,7 +360,7 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
                 <SetOperationIcon
                   key={operation}
                   type={operation}
-                  size={40}
+                  size={30}
                   disabled={!comparisonResults?.operations?.[operation]}
                 />
               ))}

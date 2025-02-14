@@ -40,24 +40,22 @@ const Toolbar = () => {
                 spacing={1}
                 style={{ width: '400px' }}
             >
-                <Grid item>
+                <Grid item xs={'auto'}>
                     <img src={sealLogo} />
                 </Grid>
-                <Grid item>
-                    <span className="seal-text">SEAL</span>
-                </Grid>
-                <Box
-                    onMouseEnter={(e) => setAnchorEl(e.currentTarget)}
-                >
-                    <Grid container alignItems="center" sx={{ cursor: 'pointer' }}>
-                        <Grid item m={0.5}>
+                <Grid item container xs={'auto'} direction="column">
+                    <Grid item>
+                        <span className="seal-text">SEAL</span>
+                    </Grid>
+                    <Grid item container direction="row" onMouseEnter={(e) => setAnchorEl(e.currentTarget)}
+                    >
+                        <Grid item>
                             <ConstructionIcon className="settings-icon" />
                         </Grid>
-                        <Grid item m={0.5}>
+                        <Grid item>
                             <span className="seal-text tools">TOOLS</span>
                         </Grid>
-                    </Grid>
-                    <Menu
+                        <Menu
                         anchorEl={anchorEl}
                         open={Boolean(anchorEl)}
                         onClose={() => setAnchorEl(null)}
@@ -78,9 +76,7 @@ const Toolbar = () => {
                         <MenuItem onClick={() => setCompareMode(!compareMode)}>
                             <Grid container alignItems="center" spacing={2}>
                                 <Grid item>
-                                    <CompareArrowsIcon
-                                        color={compareMode ? 'primary' : 'inherit'}
-                                    />
+                                    <CompareArrowsIcon color={compareMode ? 'primary' : 'inherit'} />
                                 </Grid>
                                 <Grid item>
                                     <span>Compare Mode</span>
@@ -90,9 +86,7 @@ const Toolbar = () => {
                         <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
                             <Grid container alignItems="center" spacing={2}>
                                 <Grid item>
-                                    <BorderOuterIcon
-                                        color={showClusterOutlines ? 'primary' : 'inherit'}
-                                    />
+                                    <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
                                 </Grid>
                                 <Grid item>
                                     <span>Outline Clusters</span>
@@ -102,64 +96,55 @@ const Toolbar = () => {
                         <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
                             <Grid container alignItems="center" spacing={2}>
                                 <Grid item>
-                                    <TitleIcon
-                                        color={showClusterTitles ? 'primary' : 'inherit'}
-                                    />
+                                    <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
                                 </Grid>
                                 <Grid item>
                                     <span>Show Titles</span>
                                 </Grid>
                             </Grid>
                         </MenuItem>
-                        <MenuItem sx={{ 
-                            pointerEvents: 'none',
-                            '&:hover': {
-                                backgroundColor: 'transparent'
-                            }
-                        }}>
-                            <Grid container alignItems="center" spacing={1} sx={{ width: '100%', p: 1 }}>
+                        <MenuItem>
+                            <Grid container alignItems="center" spacing={2}>
                                 <Grid item xs={6}>
                                     <span>Features</span>
+                                </Grid>
+                                <Grid item xs={6}>
                                     <Select
                                         value={featureCount}
                                         onChange={handleFeatureCountChange}
                                         size="small"
-                                        fullWidth
-                                        sx={{
-                                            height: '30px',
-                                            pointerEvents: 'auto'
-                                        }}
+                                        sx={{ height: '30px' }}
                                     >
                                         {[0, 1, 2, 3, 4, 5].map((num) => (
-                                            <MenuItem key={num} value={num}>
-                                                {num}
-                                            </MenuItem>
+                                            <MenuItem key={num} value={num}>{num}</MenuItem>
                                         ))}
                                     </Select>
                                 </Grid>
+                            </Grid>
+                        </MenuItem>
+                        <MenuItem>
+                            <Grid container alignItems="center" spacing={2}>
                                 <Grid item xs={6}>
                                     <span>Font Size</span>
+                                </Grid>
+                                <Grid item xs={6}>
                                     <Select
                                         value={titleFontSize}
                                         onChange={handleTitleFontSizeChange}
                                         size="small"
-                                        fullWidth
-                                        sx={{
-                                            height: '30px',
-                                            pointerEvents: 'auto'
-                                        }}
+                                        sx={{ height: '30px' }}
                                     >
                                         {[8, 10, 12, 14, 16, 18, 20].map((size) => (
-                                            <MenuItem key={size} value={size}>
-                                                {size}
-                                            </MenuItem>
+                                            <MenuItem key={size} value={size}>{size}</MenuItem>
                                         ))}
                                     </Select>
                                 </Grid>
                             </Grid>
                         </MenuItem>
                     </Menu>
-                </Box>
+                    </Grid>
+                </Grid>
+             
             </Grid>
         </div>
     );
