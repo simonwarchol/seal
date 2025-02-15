@@ -268,7 +268,7 @@ function Viewer({ value, setValue, height, config }) {
   const v1 = vc.addView(ds0, "spotlight");
   const v2 = vc.addView(ds0, "controller");
   const v3 = vc.addView(ds1, "spotlight");
-  const v4 = vc.addView(ds1, "setDiff");
+  // const v4 = vc.addView(ds1, "setDiff");
   const v5 = vc.addView(ds1, "selectionSummary");
   // const v4 = vc.addView(ds1, "scatterplot", { mapping: 'UMAP' });
   const [zoomScope, xScope, yScope, pointLayer] = vc.addCoordination(
@@ -280,7 +280,7 @@ function Viewer({ value, setValue, height, config }) {
   v1.useCoordination(zoomScope, xScope, yScope, pointLayer);
   // const v4 = vc.addView(ds0, "setDiff");
   // const v4 = vc.addView(ds1, "myCustomZoomController");
-  vc.layout(hconcat(vconcat(v2, v4), v1, v3, v5));
+  vc.layout(hconcat(vconcat(v2, v5), v1, v3));
   // vc.layout(hconcat(v1));
 
 

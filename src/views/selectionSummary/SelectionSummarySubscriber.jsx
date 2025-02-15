@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData } from '@vitessce/vit-s';
 import { COMPONENT_COORDINATION_TYPES, ViewType, CoordinationType as ct } from '@vitessce/constants-internal';
 import { capitalize } from '@vitessce/utils';
-import { treeFindNodeByNamePath } from '@vitessce/sets-utils';
+import { treeFindNodeByNamePath, mergeObsSets } from '@vitessce/sets-utils';
 import { Card, CardContent, Typography } from '@material-ui/core';
 import useStore from "../../store";
 import ScatterPlot from './ScatterPlot';
@@ -36,10 +36,12 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
   const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const PLOT_SIZE = 50;
   const allSelections = useMemo(() => {
-    // Return everything in cellSets.tree 
+    // Return everything in cellSets.tree that has members
     return cellSets?.tree?.flatMap((cellSet, index) => {
       const cellSetColor = colorScheme(index + 1);
-      return cellSet.children.map(child => ({ path: [cellSet.name, child.name], color: cellSetColor }));
+      return cellSet.children
+        .filter(child => child.set && child.set.length > 0) // Only include sets with members
+        .map(child => ({ path: [cellSet.name, child.name], color: cellSetColor }));
     });
   }, [cellSets]);
 
@@ -96,34 +98,40 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
     );
   };
 
-  // Update the sortedSelections useMemo to prioritize visible items
+  // Update the sortedSelections useMemo to ensure we're not including empty sets
   const sortedSelections = useMemo(() => {
-    if (!allSelections) return allSelections;
+    if (!allSelections || !setFeatures) return allSelections;
 
-    return [...allSelections].sort((a, b) => {
-      // When not in compare mode, prioritize visible selections
-      if (!compareMode) {
-        const aVisible = isSelectionVisible(a.path);
-        const bVisible = isSelectionVisible(b.path);
-        if (aVisible !== bVisible) {
-          return bVisible ? 1 : -1;
+    return [...allSelections]
+      .filter(selection => {
+        // Check if the set has features data and members
+        const featureData = setFeatures[selection.path[0]]?.[selection.path[1]];
+        return featureData && featureData.feat_imp?.length > 0;
+      })
+      .sort((a, b) => {
+        // When not in compare mode, prioritize visible selections
+        if (!compareMode) {
+          const aVisible = isSelectionVisible(a.path);
+          const bVisible = isSelectionVisible(b.path);
+          if (aVisible !== bVisible) {
+            return bVisible ? 1 : -1;
+          }
         }
-      }
 
-      // Sort by the feature importance if sortBy is present
-      if (sortBy) {
-        const aData = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp;
-        const bData = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp;
+        // Sort by the feature importance if sortBy is present
+        if (sortBy) {
+          const aData = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp;
+          const bData = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp;
 
-        if (!aData || !bData) return 0;
+          if (!aData || !bData) return 0;
 
-        const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
-        const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
+          const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
+          const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
 
-        return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
-      }
-      return 0;
-    });
+          return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
+        }
+        return 0;
+      });
   }, [allSelections, setFeatures, sortBy, sortDirection, compareMode, selections]);
 
   // Handle visibility toggle
@@ -612,7 +620,18 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
-  const [{ obsType, obsSetSelection, obsSetColor, spatialImageLayer, dataset }, { setSpatialImageLayer, setObsSetSelection, setObsSetColor }] = useCoordination(
+  const [{ 
+    obsType, 
+    obsSetSelection, 
+    obsSetColor, 
+    spatialImageLayer, 
+    dataset,
+    additionalObsSets
+  }, { 
+    setSpatialImageLayer, 
+    setObsSetSelection, 
+    setObsSetColor 
+  }] = useCoordination(
     [
       ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
       ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL],
@@ -621,14 +640,19 @@ export function SelectionsSummarySubscriber(props) {
     coordinationScopes
   );
 
-  // Get data from loaders using the data hooks.
-  const [{ obsSets: cellSets },] = useObsSetsData(
+  // Get data from loaders using the data hooks
+  const [{ obsIndex, obsSets: cellSets }, obsSetsStatus, obsSetsUrls] = useObsSetsData(
     loaders, dataset, false,
-    { setObsSetSelection: setObsSetSelection, setObsSetColor: setObsSetColor },
-    { obsSetSelection: obsSetSelection, obsSetColor: obsSetColor },
+    { setObsSetSelection, setObsSetColor },
+    { obsSetSelection, obsSetColor },
     { obsType },
   );
 
+  // Merge the cell sets with additional sets
+  const mergedCellSets = useMemo(
+    () => mergeObsSets(cellSets, additionalObsSets),
+    [cellSets, additionalObsSets],
+  );
 
   const [{ image }, _] = useImageData(
     loaders,
@@ -681,7 +705,7 @@ export function SelectionsSummarySubscriber(props) {
     >
       <SelectionsDisplay
         selections={obsSetSelection}
-        cellSets={cellSets}
+        cellSets={mergedCellSets}
         setCellSetSelection={setObsSetSelection}
         displayedChannels={displayedChannels}
         channelNames={channelNames}

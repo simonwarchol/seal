@@ -38,6 +38,8 @@ const useStore = create((set) => ({
     setTitleFontSize: (size) => set({ titleFontSize: size }),
     compareMode: false,
     setCompareMode: (mode) => set({ compareMode: mode }),
+    neighborhoodPointerMode: false,
+    setNeighborhoodPointerMode: (mode) => set({ neighborhoodPointerMode: mode }),
 }))
 
 export default useStore;

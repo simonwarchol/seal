@@ -1,6 +1,8 @@
 import "./Toolbar.css";
 import React, { useState } from "react";
 import sealLogo from "../public/SealLogo.svg";
+import { Icon } from '@material-ui/core';
+
 import SettingsIcon from '@mui/icons-material/Settings';
 import ConstructionIcon from '@mui/icons-material/Construction';
 import { Menu, MenuItem, Grid, Box, Select } from '@mui/material';
@@ -8,6 +10,7 @@ import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
 import { Title as TitleIcon } from '@material-ui/icons';
 import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
 import useStore from '../store';
+import housePointer from "../public/housePointer.svg";
 
 const Toolbar = () => {
     const [anchorEl, setAnchorEl] = useState(null);
@@ -21,6 +24,8 @@ const Toolbar = () => {
     const setTitleFontSize = useStore((state) => state.setTitleFontSize);
     const compareMode = useStore((state) => state.compareMode);
     const setCompareMode = useStore((state) => state.setCompareMode);
+    const neighborhoodPointerMode = useStore((state) => state.neighborhoodPointerMode);
+    const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
 
     const handleFeatureCountChange = (event) => {
         setFeatureCount(event.target.value);
@@ -98,6 +103,22 @@ const Toolbar = () => {
                             </Grid>
                             <Grid item>
                                 <span>Show Titles</span>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
+                    <MenuItem onClick={() => setNeighborhoodPointerMode(!neighborhoodPointerMode)}>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item>
+                                <Icon style={{ textAlign: 'center' }}>
+                                    <img 
+                                        src={housePointer} 
+                                        style={{ height: 24, width: 24 }}
+                                        alt="Neighborhood pointer"
+                                    />
+                                </Icon>
+                            </Grid>
+                            <Grid item>
+                                <span>Neighborhood Pointer</span>
                             </Grid>
                         </Grid>
                     </MenuItem>
