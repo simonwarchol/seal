@@ -14,8 +14,8 @@ function FeatureHeatmap({ featureData, height, width }) {
     // Sort features alphabetically
     const sortedFeatures = [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]));
 
-    const rectWidth = width / sortedFeatures.length;
-    const halfHeight = height / 2;
+    const rectHeight = height / sortedFeatures.length;
+    const halfWidth = width / 2;
 
     // Calculate normalized differences
     const getNormalizedDiff = (featureName) => {
@@ -32,27 +32,27 @@ function FeatureHeatmap({ featureData, height, width }) {
     // Create a group for the rectangles
     const g = svg.append("g");
 
-    // Add feature importance rectangles (full height)
+    // Add feature importance rectangles (full width)
     g.selectAll(".importance-rect")
       .data(sortedFeatures)
       .join("rect")
-      .attr("x", (d, i) => i * rectWidth)
-      .attr("y", 0)
-      .attr("width", rectWidth)
-      .attr("height", height)
+      .attr("x", 0)
+      .attr("y", (d, i) => i * rectHeight)
+      .attr("width", width)
+      .attr("height", rectHeight)
       .attr("fill", d => importanceColorScale(d[1]));
 
     // Add difference lines - white with black stroke
     g.selectAll(".diff-line")
       .data(sortedFeatures)
       .join("line")
-      .attr("x1", (d, i) => i * rectWidth + rectWidth / 2)
-      .attr("y1", height / 2)
-      .attr("x2", (d, i) => i * rectWidth + rectWidth / 2)
-      .attr("y2", (d) => {
+      .attr("x1", width / 2)
+      .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
+      .attr("x2", (d) => {
         const diff = getNormalizedDiff(d[0]);
-        return height / 2 - (diff * height / 3);
+        return width / 2 + (diff * width / 3);
       })
+      .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
       .attr("stroke", "#000000")
       .attr("stroke-width", 2)
       .attr("stroke-linecap", "round")
@@ -64,12 +64,12 @@ function FeatureHeatmap({ featureData, height, width }) {
     g.selectAll(".diff-circle")
       .data(sortedFeatures)
       .join("circle")
-      .attr("cx", (d, i) => i * rectWidth + rectWidth / 2)
-      .attr("cy", (d) => {
+      .attr("cx", (d) => {
         const diff = getNormalizedDiff(d[0]);
-        return height / 2 - (diff * height / 3);
+        return width / 2 + (diff * width / 3);
       })
-      .attr("r", rectWidth / 6)
+      .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
+      .attr("r", rectHeight / 6)
       .attr("fill", "#ffffff")
       .attr("stroke", "#000000")
       .attr("stroke-width", 1);

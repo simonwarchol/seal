@@ -25,7 +25,7 @@ const OPERATION_NAMES = {
   'complement': 'Complement'
 };
 
-function SelectionRow({ 
+function SelectionColumn({ 
   selection, 
   setFeatures, 
   viewMode, 
@@ -45,8 +45,11 @@ function SelectionRow({
       onClick={onClick}
       style={{
         padding: '5px',
-        marginBottom: '2px',
+        marginRight: '2px',
         cursor: compareMode ? 'pointer' : 'default',
+        display: 'inline-block',
+        verticalAlign: 'top',
+        width: `${PLOT_SIZE}px`,
         ...style
       }}
     >
@@ -79,8 +82,8 @@ function SelectionRow({
           </IconButton>
         </div>
         {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
-            <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ width: '100%', height: `${PLOT_SIZE}px`, padding: 0, margin: 0, lineHeight: 0 }}>
               {viewMode === 'embedding' ? (
                 <ScatterPlot
                   data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
@@ -107,12 +110,12 @@ function SelectionRow({
             </div>
             <div
               ref={heatmapContainerRef}
-              style={{ flex: 1, overflow: 'hidden' }}
+              style={{ width: '100%' }}
             >
               <FeatureHeatmap
                 featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                height={PLOT_SIZE}
-                width={heatmapContainerWidth}
+                height={200}
+                width={PLOT_SIZE}
               />
             </div>
           </div>
@@ -340,7 +343,15 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', position: 'relative', margin: 0 }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'row', 
+      flexWrap: 'wrap',
+      gap: '0px', 
+      position: 'relative', 
+      margin: 0,
+      overflowX: 'auto'
+    }}>
       <StickyHeader
         viewMode={viewMode}
         handleViewChange={handleViewChange}
@@ -365,28 +376,30 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
       {compareMode ? (
         <>
           {/* Selected sets */}
-          {sortedSelections?.filter(selection =>
-            compareSelections.some(s =>
-              s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-            )
-          ).map((selection, i) => (
-            <SelectionRow
-              key={`selected-${i}`}
-              selection={selection}
-              setFeatures={setFeatures}
-              viewMode={viewMode}
-              PLOT_SIZE={PLOT_SIZE}
-              heatmapContainerWidth={heatmapContainerWidth}
-              heatmapContainerRef={heatmapContainerRef}
-              isVisible={isSelectionVisible(selection.path)}
-              onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-              onClick={() => handleRowClick(selection)}
-              style={{ backgroundColor: '#2C3E50' }}
-              colorScheme={colorScheme}
-              cellSets={cellSets}
-              compareMode={compareMode}
-            />
-          ))}
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
+            {sortedSelections?.filter(selection =>
+              compareSelections.some(s =>
+                s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+              )
+            ).map((selection, i) => (
+              <SelectionColumn
+                key={`selected-${i}`}
+                selection={selection}
+                setFeatures={setFeatures}
+                viewMode={viewMode}
+                PLOT_SIZE={PLOT_SIZE}
+                heatmapContainerWidth={heatmapContainerWidth}
+                heatmapContainerRef={heatmapContainerRef}
+                isVisible={isSelectionVisible(selection.path)}
+                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                onClick={() => handleRowClick(selection)}
+                style={{ backgroundColor: '#2C3E50' }}
+                colorScheme={colorScheme}
+                cellSets={cellSets}
+                compareMode={compareMode}
+              />
+            ))}
+          </div>
 
           {/* Set operation icons */}
           {compareMode && compareSelections.length === 2 && (
@@ -479,28 +492,30 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
           )}
 
           {/* Unselected sets */}
-          {sortedSelections?.filter(selection =>
-            !compareSelections.some(s =>
-              s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-            )
-          ).map((selection, i) => (
-            <SelectionRow
-              key={`unselected-${i}`}
-              selection={selection}
-              setFeatures={setFeatures}
-              viewMode={viewMode}
-              PLOT_SIZE={PLOT_SIZE}
-              heatmapContainerWidth={heatmapContainerWidth}
-              heatmapContainerRef={heatmapContainerRef}
-              isVisible={isSelectionVisible(selection.path)}
-              onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-              onClick={() => handleRowClick(selection)}
-              style={{ backgroundColor: '#1A1A1A', opacity: 0.3 }}
-              colorScheme={colorScheme}
-              cellSets={cellSets}
-              compareMode={compareMode}
-            />
-          ))}
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
+            {sortedSelections?.filter(selection =>
+              !compareSelections.some(s =>
+                s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+              )
+            ).map((selection, i) => (
+              <SelectionColumn
+                key={`unselected-${i}`}
+                selection={selection}
+                setFeatures={setFeatures}
+                viewMode={viewMode}
+                PLOT_SIZE={PLOT_SIZE}
+                heatmapContainerWidth={heatmapContainerWidth}
+                heatmapContainerRef={heatmapContainerRef}
+                isVisible={isSelectionVisible(selection.path)}
+                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                onClick={() => handleRowClick(selection)}
+                style={{ backgroundColor: '#1A1A1A', opacity: 0.3 }}
+                colorScheme={colorScheme}
+                cellSets={cellSets}
+                compareMode={compareMode}
+              />
+            ))}
+          </div>
         </>
       ) : (
         // Regular view (not compare mode)
@@ -512,12 +527,13 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
               backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
               borderColor: '#333333',
               padding: 1,
-              marginBottom: '2px',
+              marginRight: '2px',
               opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
+              display: 'inline-block'
             }}
           >
             <CardContent style={{ padding: 0 }}>
-              <SelectionRow
+              <SelectionColumn
                 selection={selection}
                 setFeatures={setFeatures}
                 viewMode={viewMode}
