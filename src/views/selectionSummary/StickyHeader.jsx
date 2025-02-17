@@ -53,7 +53,7 @@ function StickyHeader({
               border: '1px solid #333333',
             }}
           >
-            Emb.          </ToggleButton>
+            Emb.</ToggleButton>
           <ToggleButton
             value="spatial"
             style={{
