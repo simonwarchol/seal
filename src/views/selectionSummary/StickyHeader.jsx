@@ -13,6 +13,13 @@ function StickyHeader({
   plotSize,
   ...props 
 }) {
+  // Sort features alphabetically to match FeatureHeatmap
+  const sortedFeatures = featureData?.feat_imp 
+    ? [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]))
+    : [];
+
+
+
   return (
     <div style={{
       height: height,
@@ -20,7 +27,7 @@ function StickyHeader({
       flexDirection: 'column',
     }}>
       {/* Empty space to align with scatter plot */}
-      <div style={{ height: plotSize + 33 }} />
+      <div style={{ height: plotSize + 25 }} />
       
       {/* Feature labels section */}
       <div style={{
@@ -28,10 +35,9 @@ function StickyHeader({
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        height: height - plotSize, // Subtract plotSize to get heatmap height
       }}>
-        {featureData?.feat_imp?.map(([feature], i) => {
-          const rowHeight = (height - plotSize) / featureData.feat_imp.length;
+        {sortedFeatures.map(([feature], i) => {
+          const rowHeight = (height - plotSize - 30) / sortedFeatures.length;
           return (
             <div
               key={i}

@@ -86,7 +86,7 @@ function SelectionColumn({
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '20px' }}>
           <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
             <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>
               {selection?.path?.[0]}
@@ -165,6 +165,7 @@ function SelectionColumn({
 
 function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection }) {
   const setFeatures = useStore((state) => state.setFeatures);
+  const scrollContainerRef = useRef(null);
   const [viewMode, setViewMode] = useState('embedding');
   const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
   const heatmapContainerRef = useRef();
@@ -422,18 +423,22 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
         </ToggleButtonGroup>
       </div>
 
-      {/* Main content area - updated styles */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'row',
-        flexWrap: 'nowrap',
-        gap: '2px',
-        overflowX: 'auto',
-        overflowY: 'hidden',
-        whiteSpace: 'nowrap',
-        paddingBottom: '12px',
-      }}>
+      {/* Main content area - added ref */}
+      <div 
+        ref={scrollContainerRef}
+        id='simonTEst' 
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          gap: '2px',
+          overflowX: 'auto',
+          overflowY: 'hidden',
+          whiteSpace: 'nowrap',
+          paddingBottom: '0',
+        }}
+      >
         <StickyHeader
           viewMode={viewMode}
           handleViewChange={handleViewChange}
@@ -451,7 +456,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
             setCompareSelections([]);
             setCellSetSelection(selections);
           }}
-          height={PLOT_SIZE + 200}
+          height={scrollContainerRef.current?.clientHeight}
           plotSize={PLOT_SIZE}
           style={{
             display: 'flex',
@@ -534,8 +539,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                     heatmapContainerWidth={heatmapContainerWidth}
                     heatmapContainerRef={heatmapContainerRef}
                     isVisible={true}
-                    onVisibilityToggle={() => {}}
-                    onClick={() => {}}
+                    onVisibilityToggle={() => { }}
+                    onClick={() => { }}
                     style={{
                       backgroundColor: `${iconConfigs[operation]?.color}99`,
                       marginBottom: '2px',
@@ -593,9 +598,9 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                 minWidth: `${PLOT_SIZE * 2}px`,
               }}
             >
-              <CardContent style={{ 
-                padding: 0, 
-                height: '100%', 
+              <CardContent style={{
+                padding: 0,
+                height: '100%',
                 width: '100%',
               }}>
                 <SelectionColumn
