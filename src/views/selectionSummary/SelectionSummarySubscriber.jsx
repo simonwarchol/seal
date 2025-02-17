@@ -25,10 +25,10 @@ const OPERATION_NAMES = {
   'complement': 'Complement'
 };
 
-function SelectionColumn({ 
-  selection, 
-  setFeatures, 
-  viewMode, 
+function SelectionColumn({
+  selection,
+  setFeatures,
+  viewMode,
   PLOT_SIZE,
   heatmapContainerWidth,
   heatmapContainerRef,
@@ -38,13 +38,45 @@ function SelectionColumn({
   style,
   colorScheme,
   cellSets,
-  compareMode 
+  compareMode
 }) {
+  // Add ref and state for column width
+  const columnRef = useRef(null);
+  const [columnWidth, setColumnWidth] = useState(PLOT_SIZE * 2);
+
+  // Add effect to track column width
+  useEffect(() => {
+    const updateWidth = () => {
+      if (columnRef.current) {
+        const width = columnRef.current.getBoundingClientRect().width;
+        setColumnWidth(width);
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(updateWidth);
+    if (columnRef.current) {
+      resizeObserver.observe(columnRef.current);
+    }
+
+    // Initial measurement
+    updateWidth();
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  // Calculate the actual width for plots (subtracting padding)
+  const plotWidth = columnWidth - 4;
+
   return (
     <div
+      ref={columnRef}
       onClick={onClick}
       style={{
         padding: '2px',
+        width: '100%',
+        height: '100%',
         cursor: compareMode ? 'pointer' : 'default',
         display: 'flex',
         flexDirection: 'column',
@@ -53,7 +85,7 @@ function SelectionColumn({
         ...style
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
             <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>
@@ -83,7 +115,7 @@ function SelectionColumn({
         </div>
         {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <div style={{ width: '100%', height: `${PLOT_SIZE}px`, padding: 0, margin: 0, lineHeight: 0 }}>
+            <div style={{ height: `${PLOT_SIZE}px`, padding: 0, margin: 0, lineHeight: 0 }}>
               {viewMode === 'embedding' ? (
                 <ScatterPlot
                   data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
@@ -93,7 +125,7 @@ function SelectionColumn({
                     [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
                   ]}
                   height={PLOT_SIZE}
-                  width={PLOT_SIZE}
+                  width={plotWidth}
                   title="Embedding"
                 />
               ) : (
@@ -104,21 +136,24 @@ function SelectionColumn({
                     [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
                     [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
                   ]}
+                  height={PLOT_SIZE}
+                  width={plotWidth}
                   title="Spatial"
                 />
               )}
             </div>
             <div
               ref={heatmapContainerRef}
-              style={{ 
+              style={{
                 flex: 1,
-                marginTop: '2px'
+                marginTop: '2px',
+                width: '100%'
               }}
             >
               <FeatureHeatmap
                 featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
                 height={200}
-                width={PLOT_SIZE}
+                width={plotWidth}
               />
             </div>
           </div>
@@ -136,7 +171,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('desc');
   const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  const PLOT_SIZE = 60;
+  const PLOT_SIZE = 75;
   const allSelections = useMemo(() => {
     // Return everything in cellSets.tree that has members
     return cellSets?.tree?.flatMap((cellSet, index) => {
@@ -346,14 +381,16 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 
 
   return (
-    <div style={{ 
+    <div style={{
       display: 'flex',
       height: '100%',
+      overflow: 'hidden',
     }}>
       {/* View mode toggle on the left */}
-      <div style={{ 
+      <div style={{
         padding: '5px',
         backgroundColor: 'rgba(30, 30, 30, 0.8)',
+        flexShrink: 0,
       }}>
         <ToggleButtonGroup
           value={viewMode}
@@ -386,7 +423,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
       </div>
 
       {/* Main content area - updated styles */}
-      <div style={{ 
+      <div style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'row',
@@ -394,7 +431,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
         gap: '2px',
         overflowX: 'auto',
         overflowY: 'hidden',
-        whiteSpace: 'nowrap'
+        whiteSpace: 'nowrap',
+        paddingBottom: '12px',
       }}>
         <StickyHeader
           viewMode={viewMode}
@@ -481,67 +519,32 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
               Object.entries(comparisonResults.operations)
                 .filter(([_, value]) => value.count > 0)
                 .map(([operation, value], i) => (
-                  <div
+                  <SelectionColumn
                     key={`comparison-${i}`}
+                    selection={{
+                      path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
+                    }}
+                    setFeatures={{
+                      [OPERATION_NAMES[operation]]: {
+                        [`${value.count} cells`]: value.data
+                      }
+                    }}
+                    viewMode={viewMode}
+                    PLOT_SIZE={PLOT_SIZE}
+                    heatmapContainerWidth={heatmapContainerWidth}
+                    heatmapContainerRef={heatmapContainerRef}
+                    isVisible={true}
+                    onVisibilityToggle={() => {}}
+                    onClick={() => {}}
                     style={{
-                      backgroundColor: `${iconConfigs[operation]?.color}99`, // Added 99 for ~60% opacity
-                      padding: '5px',
+                      backgroundColor: `${iconConfigs[operation]?.color}99`,
                       marginBottom: '2px',
                       marginTop: i === 0 ? '8px' : '2px',
                     }}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography
-                        variant="subtitle2"
-                        style={{
-                          color: '#ffffff',
-                          fontSize: '0.7rem',
-                          marginBottom: '4px'
-                        }}
-                      >
-                        {OPERATION_NAMES[operation]} ({value.count} cells)
-                      </Typography>
-                      <div style={{ height: PLOT_SIZE, display: 'flex', gap: '2px' }}>
-                        <div style={{ width: PLOT_SIZE, height: PLOT_SIZE }}>
-                          {viewMode === 'embedding' ? (
-                            <ScatterPlot
-                              data={value.data.embedding_coordinates}
-                              backgroundData={value.data.summary.embedding_subsample}
-                              ranges={[
-                                [value.data.summary.embedding_ranges[0][0], value.data.summary.embedding_ranges[0][1]],
-                                [value.data.summary.embedding_ranges[1][0], value.data.summary.embedding_ranges[1][1]]
-                              ]}
-                              height={PLOT_SIZE}
-                              width={PLOT_SIZE}
-                              title="Embedding"
-                            />
-                          ) : (
-                            <ScatterPlot
-                              data={value.data.spatial_coordinates}
-                              backgroundData={value.data.summary.spatial_subsample}
-                              ranges={[
-                                [value.data.summary.spatial_ranges[0][0], value.data.summary.spatial_ranges[0][1]],
-                                [value.data.summary.spatial_ranges[1][0], value.data.summary.spatial_ranges[1][1]]
-                              ]}
-                              height={PLOT_SIZE}
-                              width={PLOT_SIZE}
-                              title="Spatial"
-                            />
-                          )}
-                        </div>
-                        <div
-                          ref={heatmapContainerRef}
-                          style={{ flex: 1, overflow: 'hidden' }}
-                        >
-                          <FeatureHeatmap
-                            featureData={value.data}
-                            height={PLOT_SIZE}
-                            width={heatmapContainerWidth}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    colorScheme={colorScheme}
+                    cellSets={cellSets}
+                    compareMode={compareMode}
+                  />
                 ))
             )}
 
@@ -583,10 +586,18 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                 padding: 1,
                 marginRight: '2px',
                 opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
-                display: 'inline-block'
+                display: 'inline-block',
+                height: '100%',
+                width: 'auto',
+                flex: '1 0 auto',
+                minWidth: `${PLOT_SIZE * 2}px`,
               }}
             >
-              <CardContent style={{ padding: 0 }}>
+              <CardContent style={{ 
+                padding: 0, 
+                height: '100%', 
+                width: '100%',
+              }}>
                 <SelectionColumn
                   selection={selection}
                   setFeatures={setFeatures}
@@ -613,17 +624,17 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
-  const [{ 
-    obsType, 
-    obsSetSelection, 
-    obsSetColor, 
-    spatialImageLayer, 
+  const [{
+    obsType,
+    obsSetSelection,
+    obsSetColor,
+    spatialImageLayer,
     dataset,
     additionalObsSets
-  }, { 
-    setSpatialImageLayer, 
-    setObsSetSelection, 
-    setObsSetColor 
+  }, {
+    setSpatialImageLayer,
+    setObsSetSelection,
+    setObsSetColor
   }] = useCoordination(
     [
       ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
@@ -684,18 +695,12 @@ export function SelectionsSummarySubscriber(props) {
   const title = titleOverride || `${capitalize(obsType)} Selections`;
 
   return (
-    <TitleInfo
-      title={title}
-      isScroll
-      closeButtonVisible={false}
-      downloadButtonVisible={false}
-      removeGridComponent={false}
-      urls={[]}
-      theme={theme}
-      isReady={true}
-      helpText={''}
-      style={{ backgroundColor: '#121212', color: '#ffffff' }}
-    >
+
+    <div style={{
+      backgroundColor: '#121212',
+      color: '#ffffff',
+      height: '100%'
+    }}>
       <SelectionsDisplay
         selections={obsSetSelection}
         cellSets={mergedCellSets}
@@ -703,7 +708,7 @@ export function SelectionsSummarySubscriber(props) {
         displayedChannels={displayedChannels}
         channelNames={channelNames}
       />
-    </TitleInfo>
+    </div>
   );
 }
 

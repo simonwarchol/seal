@@ -280,7 +280,7 @@ function Viewer({ value, setValue, height, config }) {
   v1.useCoordination(zoomScope, xScope, yScope, pointLayer);
   // const v4 = vc.addView(ds0, "setDiff");
   // const v4 = vc.addView(ds1, "myCustomZoomController");
-  vc.layout(vconcat(v5, hconcat(vconcat(v2), v1, v3)));
+  vc.layout(vconcat( hconcat(vconcat(v2), v1, v3),v5));
   // vc.layout(hconcat(v1));
 
 

@@ -1,14 +1,18 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
-function FeatureHeatmap({ featureData, height, width }) {
+function FeatureHeatmap({ featureData, width }) {
   const svgRef = useRef();
 
   useEffect(() => {
-    if (!featureData?.feat_imp || !width || !height) return;
+    if (!featureData?.feat_imp || !width) return;
 
     // Clear previous content
     const svg = d3.select(svgRef.current);
+    const height = svg.node().getBoundingClientRect().height;
+    
+    if (!height) return;
+    
     svg.selectAll("*").remove();
 
     // Sort features alphabetically
@@ -74,10 +78,10 @@ function FeatureHeatmap({ featureData, height, width }) {
       .attr("stroke", "#000000")
       .attr("stroke-width", 1);
 
-  }, [featureData, height, width]);
+  }, [featureData, width]);
 
   // Set initial dimensions
-  return <svg ref={svgRef} width={width} height={height} />;
+  return <svg ref={svgRef} width={width} height={'100%'} />;
 }
 
 export default FeatureHeatmap;
