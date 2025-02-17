@@ -25,10 +25,9 @@ const OPERATION_NAMES = {
   'complement': 'Complement'
 };
 
-function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSets, setCellSetSelection }) {
+function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection }) {
   const setFeatures = useStore((state) => state.setFeatures);
   const [viewMode, setViewMode] = useState('embedding');
-  const headerRef = useRef();
   const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
   const heatmapContainerRef = useRef();
   const [sortBy, setSortBy] = useState(null);
@@ -248,7 +247,6 @@ function SelectionsDisplay({ selections, displayedChannels, channelNames, cellSe
       <StickyHeader
         viewMode={viewMode}
         handleViewChange={handleViewChange}
-        headerRef={headerRef}
         sortBy={sortBy}
         setSortBy={setSortBy}
         sortDirection={sortDirection}

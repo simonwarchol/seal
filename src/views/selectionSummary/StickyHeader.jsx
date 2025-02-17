@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import * as d3 from 'd3';
@@ -6,7 +6,6 @@ import * as d3 from 'd3';
 function StickyHeader({ 
   viewMode, 
   handleViewChange, 
-  headerRef,
   sortBy, 
   setSortBy, 
   sortDirection, 
@@ -19,6 +18,8 @@ function StickyHeader({
   onCompareToggle,
   height
 }) {
+  const headerRef = useRef();
+
   useEffect(() => {
     if (!headerRef.current || !featureData?.feat_imp) return;
 
@@ -74,7 +75,7 @@ function StickyHeader({
         }
       });
 
-  }, [headerRef, featureData, rectWidth, sortBy, sortDirection, displayedChannels, channelNames]);
+  }, [featureData, rectWidth, sortBy, sortDirection, displayedChannels, channelNames, height]);
 
   return (
     <div style={{
@@ -83,7 +84,6 @@ function StickyHeader({
       left: 0,
       width: '100%',
       zIndex: 1000,
-      
       display: 'flex',
       alignItems: 'center',
       backgroundColor: 'rgba(30, 30, 30, 0.8)',
