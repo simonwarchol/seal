@@ -44,16 +44,16 @@ function SelectionColumn({
     <div
       onClick={onClick}
       style={{
-        padding: '5px',
-        marginRight: '2px',
+        padding: '2px',
         cursor: compareMode ? 'pointer' : 'default',
-        display: 'inline-block',
-        verticalAlign: 'top',
-        width: `${PLOT_SIZE}px`,
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minWidth: `${PLOT_SIZE * 2}px`,
         ...style
       }}
     >
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
             <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>
@@ -82,7 +82,7 @@ function SelectionColumn({
           </IconButton>
         </div>
         {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div style={{ width: '100%', height: `${PLOT_SIZE}px`, padding: 0, margin: 0, lineHeight: 0 }}>
               {viewMode === 'embedding' ? (
                 <ScatterPlot
@@ -110,7 +110,10 @@ function SelectionColumn({
             </div>
             <div
               ref={heatmapContainerRef}
-              style={{ width: '100%' }}
+              style={{ 
+                flex: 1,
+                marginTop: '2px'
+              }}
             >
               <FeatureHeatmap
                 featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
@@ -133,7 +136,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('desc');
   const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-  const PLOT_SIZE = 50;
+  const PLOT_SIZE = 60;
   const allSelections = useMemo(() => {
     // Return everything in cellSets.tree that has members
     return cellSets?.tree?.flatMap((cellSet, index) => {
@@ -344,213 +347,265 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 
   return (
     <div style={{ 
-      display: 'flex', 
-      flexDirection: 'row', 
-      flexWrap: 'wrap',
-      gap: '0px', 
-      position: 'relative', 
-      margin: 0,
-      overflowX: 'auto'
+      display: 'flex',
+      height: '100%',
     }}>
-      <StickyHeader
-        viewMode={viewMode}
-        handleViewChange={handleViewChange}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        sortDirection={sortDirection}
-        setSortDirection={setSortDirection}
-        featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
-        rectWidth={rectWidth}
-        displayedChannels={displayedChannels}
-        channelNames={channelNames}
-        compareMode={compareMode}
-        onCompareToggle={() => {
-          setCompareMode(prev => !prev);
-          setCompareSelections([]);
-          setCellSetSelection(selections);
-        }}
-        height={PLOT_SIZE}
-      />
+      {/* View mode toggle on the left */}
+      <div style={{ 
+        padding: '5px',
+        backgroundColor: 'rgba(30, 30, 30, 0.8)',
+      }}>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={handleViewChange}
+          orientation="vertical"
+          size="small"
+        >
+          <ToggleButton
+            value="embedding"
+            style={{
+              backgroundColor: viewMode === 'embedding' ? '#4a4a4a' : '#2a2a2a',
+              color: '#ffffff',
+              border: '1px solid #333333',
+            }}
+          >
+            {viewMode === 'embedding' ? 'Emb.' : 'E'}
+          </ToggleButton>
+          <ToggleButton
+            value="spatial"
+            style={{
+              backgroundColor: viewMode === 'spatial' ? '#4a4a4a' : '#2a2a2a',
+              color: '#ffffff',
+              border: '1px solid #333333',
+            }}
+          >
+            {viewMode === 'spatial' ? 'Img.' : 'I'}
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </div>
 
-      {/* Only show the comparison UI when in compare mode */}
-      {compareMode ? (
-        <>
-          {/* Selected sets */}
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
-            {sortedSelections?.filter(selection =>
-              compareSelections.some(s =>
-                s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-              )
-            ).map((selection, i) => (
-              <SelectionColumn
-                key={`selected-${i}`}
-                selection={selection}
-                setFeatures={setFeatures}
-                viewMode={viewMode}
-                PLOT_SIZE={PLOT_SIZE}
-                heatmapContainerWidth={heatmapContainerWidth}
-                heatmapContainerRef={heatmapContainerRef}
-                isVisible={isSelectionVisible(selection.path)}
-                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                onClick={() => handleRowClick(selection)}
-                style={{ backgroundColor: '#2C3E50' }}
-                colorScheme={colorScheme}
-                cellSets={cellSets}
-                compareMode={compareMode}
-              />
-            ))}
-          </div>
+      {/* Main content area - updated styles */}
+      <div style={{ 
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'nowrap',
+        gap: '2px',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        whiteSpace: 'nowrap'
+      }}>
+        <StickyHeader
+          viewMode={viewMode}
+          handleViewChange={handleViewChange}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+          featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
+          rectWidth={rectWidth}
+          displayedChannels={displayedChannels}
+          channelNames={channelNames}
+          compareMode={compareMode}
+          onCompareToggle={() => {
+            setCompareMode(prev => !prev);
+            setCompareSelections([]);
+            setCellSetSelection(selections);
+          }}
+          height={PLOT_SIZE + 200}
+          plotSize={PLOT_SIZE}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: 'rgba(30, 30, 30, 0.8)',
+            padding: '5px',
+            position: 'sticky',
+            left: 0,
+            zIndex: 1,
+          }}
+        />
 
-          {/* Set operation icons */}
-          {compareMode && compareSelections.length === 2 && (
-            <div style={{
-              padding: '4px 0',
-              backgroundColor: 'rgba(30, 30, 30, 0.8)',
-              display: 'flex',
-              justifyContent: 'center',
-              marginTop: '2px',
-              marginBottom: '2px'
-            }}>
-              {Object.keys(OPERATION_NAMES).map((operation) => (
-                <SetOperationIcon
-                  key={operation}
-                  type={operation}
-                  size={30}
-                  disabled={!comparisonResults?.operations?.[operation]}
+        {/* Only show the comparison UI when in compare mode */}
+        {compareMode ? (
+          <>
+            {/* Selected sets */}
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
+              {sortedSelections?.filter(selection =>
+                compareSelections.some(s =>
+                  s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+                )
+              ).map((selection, i) => (
+                <SelectionColumn
+                  key={`selected-${i}`}
+                  selection={selection}
+                  setFeatures={setFeatures}
+                  viewMode={viewMode}
+                  PLOT_SIZE={PLOT_SIZE}
+                  heatmapContainerWidth={heatmapContainerWidth}
+                  heatmapContainerRef={heatmapContainerRef}
+                  isVisible={isSelectionVisible(selection.path)}
+                  onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                  onClick={() => handleRowClick(selection)}
+                  style={{ backgroundColor: '#2C3E50' }}
+                  colorScheme={colorScheme}
+                  cellSets={cellSets}
+                  compareMode={compareMode}
                 />
               ))}
             </div>
-          )}
 
-          {/* Derived sets from comparison */}
-          {compareMode && comparisonResults?.operations && (
-            Object.entries(comparisonResults.operations)
-              .filter(([_, value]) => value.count > 0)
-              .map(([operation, value], i) => (
-                <div
-                  key={`comparison-${i}`}
-                  style={{
-                    backgroundColor: `${iconConfigs[operation]?.color}99`, // Added 99 for ~60% opacity
-                    padding: '5px',
-                    marginBottom: '2px',
-                    marginTop: i === 0 ? '8px' : '2px',
-                  }}
-                >
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography
-                      variant="subtitle2"
-                      style={{
-                        color: '#ffffff',
-                        fontSize: '0.7rem',
-                        marginBottom: '4px'
-                      }}
-                    >
-                      {OPERATION_NAMES[operation]} ({value.count} cells)
-                    </Typography>
-                    <div style={{ height: PLOT_SIZE, display: 'flex', gap: '2px' }}>
-                      <div style={{ width: PLOT_SIZE, height: PLOT_SIZE }}>
-                        {viewMode === 'embedding' ? (
-                          <ScatterPlot
-                            data={value.data.embedding_coordinates}
-                            backgroundData={value.data.summary.embedding_subsample}
-                            ranges={[
-                              [value.data.summary.embedding_ranges[0][0], value.data.summary.embedding_ranges[0][1]],
-                              [value.data.summary.embedding_ranges[1][0], value.data.summary.embedding_ranges[1][1]]
-                            ]}
-                            height={PLOT_SIZE}
-                            width={PLOT_SIZE}
-                            title="Embedding"
-                          />
-                        ) : (
-                          <ScatterPlot
-                            data={value.data.spatial_coordinates}
-                            backgroundData={value.data.summary.spatial_subsample}
-                            ranges={[
-                              [value.data.summary.spatial_ranges[0][0], value.data.summary.spatial_ranges[0][1]],
-                              [value.data.summary.spatial_ranges[1][0], value.data.summary.spatial_ranges[1][1]]
-                            ]}
-                            height={PLOT_SIZE}
-                            width={PLOT_SIZE}
-                            title="Spatial"
-                          />
-                        )}
-                      </div>
-                      <div
-                        ref={heatmapContainerRef}
-                        style={{ flex: 1, overflow: 'hidden' }}
+            {/* Set operation icons */}
+            {compareMode && compareSelections.length === 2 && (
+              <div style={{
+                padding: '4px 0',
+                backgroundColor: 'rgba(30, 30, 30, 0.8)',
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: '2px',
+                marginBottom: '2px'
+              }}>
+                {Object.keys(OPERATION_NAMES).map((operation) => (
+                  <SetOperationIcon
+                    key={operation}
+                    type={operation}
+                    size={30}
+                    disabled={!comparisonResults?.operations?.[operation]}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Derived sets from comparison */}
+            {compareMode && comparisonResults?.operations && (
+              Object.entries(comparisonResults.operations)
+                .filter(([_, value]) => value.count > 0)
+                .map(([operation, value], i) => (
+                  <div
+                    key={`comparison-${i}`}
+                    style={{
+                      backgroundColor: `${iconConfigs[operation]?.color}99`, // Added 99 for ~60% opacity
+                      padding: '5px',
+                      marginBottom: '2px',
+                      marginTop: i === 0 ? '8px' : '2px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <Typography
+                        variant="subtitle2"
+                        style={{
+                          color: '#ffffff',
+                          fontSize: '0.7rem',
+                          marginBottom: '4px'
+                        }}
                       >
-                        <FeatureHeatmap
-                          featureData={value.data}
-                          height={PLOT_SIZE}
-                          width={heatmapContainerWidth}
-                        />
+                        {OPERATION_NAMES[operation]} ({value.count} cells)
+                      </Typography>
+                      <div style={{ height: PLOT_SIZE, display: 'flex', gap: '2px' }}>
+                        <div style={{ width: PLOT_SIZE, height: PLOT_SIZE }}>
+                          {viewMode === 'embedding' ? (
+                            <ScatterPlot
+                              data={value.data.embedding_coordinates}
+                              backgroundData={value.data.summary.embedding_subsample}
+                              ranges={[
+                                [value.data.summary.embedding_ranges[0][0], value.data.summary.embedding_ranges[0][1]],
+                                [value.data.summary.embedding_ranges[1][0], value.data.summary.embedding_ranges[1][1]]
+                              ]}
+                              height={PLOT_SIZE}
+                              width={PLOT_SIZE}
+                              title="Embedding"
+                            />
+                          ) : (
+                            <ScatterPlot
+                              data={value.data.spatial_coordinates}
+                              backgroundData={value.data.summary.spatial_subsample}
+                              ranges={[
+                                [value.data.summary.spatial_ranges[0][0], value.data.summary.spatial_ranges[0][1]],
+                                [value.data.summary.spatial_ranges[1][0], value.data.summary.spatial_ranges[1][1]]
+                              ]}
+                              height={PLOT_SIZE}
+                              width={PLOT_SIZE}
+                              title="Spatial"
+                            />
+                          )}
+                        </div>
+                        <div
+                          ref={heatmapContainerRef}
+                          style={{ flex: 1, overflow: 'hidden' }}
+                        >
+                          <FeatureHeatmap
+                            featureData={value.data}
+                            height={PLOT_SIZE}
+                            width={heatmapContainerWidth}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))
-          )}
+                ))
+            )}
 
-          {/* Unselected sets */}
-          <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
-            {sortedSelections?.filter(selection =>
-              !compareSelections.some(s =>
-                s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-              )
-            ).map((selection, i) => (
-              <SelectionColumn
-                key={`unselected-${i}`}
-                selection={selection}
-                setFeatures={setFeatures}
-                viewMode={viewMode}
-                PLOT_SIZE={PLOT_SIZE}
-                heatmapContainerWidth={heatmapContainerWidth}
-                heatmapContainerRef={heatmapContainerRef}
-                isVisible={isSelectionVisible(selection.path)}
-                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                onClick={() => handleRowClick(selection)}
-                style={{ backgroundColor: '#1A1A1A', opacity: 0.3 }}
-                colorScheme={colorScheme}
-                cellSets={cellSets}
-                compareMode={compareMode}
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        // Regular view (not compare mode)
-        sortedSelections?.map((selection, i) => (
-          <Card
-            key={i}
-            variant="outlined"
-            style={{
-              backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
-              borderColor: '#333333',
-              padding: 1,
-              marginRight: '2px',
-              opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
-              display: 'inline-block'
-            }}
-          >
-            <CardContent style={{ padding: 0 }}>
-              <SelectionColumn
-                selection={selection}
-                setFeatures={setFeatures}
-                viewMode={viewMode}
-                PLOT_SIZE={PLOT_SIZE}
-                heatmapContainerWidth={heatmapContainerWidth}
-                heatmapContainerRef={heatmapContainerRef}
-                isVisible={isSelectionVisible(selection.path)}
-                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                onClick={() => handleRowClick(selection)}
-                colorScheme={colorScheme}
-                cellSets={cellSets}
-                compareMode={compareMode}
-              />
-            </CardContent>
-          </Card>
-        ))
-      )}
+            {/* Unselected sets */}
+            <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
+              {sortedSelections?.filter(selection =>
+                !compareSelections.some(s =>
+                  s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+                )
+              ).map((selection, i) => (
+                <SelectionColumn
+                  key={`unselected-${i}`}
+                  selection={selection}
+                  setFeatures={setFeatures}
+                  viewMode={viewMode}
+                  PLOT_SIZE={PLOT_SIZE}
+                  heatmapContainerWidth={heatmapContainerWidth}
+                  heatmapContainerRef={heatmapContainerRef}
+                  isVisible={isSelectionVisible(selection.path)}
+                  onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                  onClick={() => handleRowClick(selection)}
+                  style={{ backgroundColor: '#1A1A1A', opacity: 0.3 }}
+                  colorScheme={colorScheme}
+                  cellSets={cellSets}
+                  compareMode={compareMode}
+                />
+              ))}
+            </div>
+          </>
+        ) : (
+          // Regular view (not compare mode)
+          sortedSelections?.map((selection, i) => (
+            <Card
+              key={i}
+              variant="outlined"
+              style={{
+                backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
+                borderColor: '#333333',
+                padding: 1,
+                marginRight: '2px',
+                opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
+                display: 'inline-block'
+              }}
+            >
+              <CardContent style={{ padding: 0 }}>
+                <SelectionColumn
+                  selection={selection}
+                  setFeatures={setFeatures}
+                  viewMode={viewMode}
+                  PLOT_SIZE={PLOT_SIZE}
+                  heatmapContainerWidth={heatmapContainerWidth}
+                  heatmapContainerRef={heatmapContainerRef}
+                  isVisible={isSelectionVisible(selection.path)}
+                  onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                  onClick={() => handleRowClick(selection)}
+                  colorScheme={colorScheme}
+                  cellSets={cellSets}
+                  compareMode={compareMode}
+                />
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
     </div>
   );
 }
