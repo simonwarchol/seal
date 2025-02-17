@@ -20,7 +20,7 @@ const OPERATION_NAMES = {
   'a_minus_intersection': 'Only in first set',
   'b_minus_intersection': 'Only in second set',
   'intersection': 'Intersection',
-  'a_plus_b_minus_intersection': 'Symmetric difference',
+  'a_plus_b_minus_intersection': 'Symmetric diff.',
   'a_plus_b': 'Union',
   'complement': 'Complement'
 };
@@ -387,46 +387,11 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
       height: '100%',
       overflow: 'hidden',
     }}>
-      {/* View mode toggle on the left */}
-      <div style={{
-        padding: '5px',
-        backgroundColor: 'rgba(30, 30, 30, 0.8)',
-        flexShrink: 0,
-      }}>
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={handleViewChange}
-          orientation="vertical"
-          size="small"
-        >
-          <ToggleButton
-            value="embedding"
-            style={{
-              backgroundColor: viewMode === 'embedding' ? '#4a4a4a' : '#2a2a2a',
-              color: '#ffffff',
-              border: '1px solid #333333',
-            }}
-          >
-            {viewMode === 'embedding' ? 'Emb.' : 'E'}
-          </ToggleButton>
-          <ToggleButton
-            value="spatial"
-            style={{
-              backgroundColor: viewMode === 'spatial' ? '#4a4a4a' : '#2a2a2a',
-              color: '#ffffff',
-              border: '1px solid #333333',
-            }}
-          >
-            {viewMode === 'spatial' ? 'Img.' : 'I'}
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </div>
+    
 
       {/* Main content area - added ref */}
       <div 
         ref={scrollContainerRef}
-        id='simonTEst' 
         style={{
           flex: 1,
           display: 'flex',
@@ -501,12 +466,15 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
             {/* Set operation icons */}
             {compareMode && compareSelections.length === 2 && (
               <div style={{
-                padding: '4px 0',
+                padding: '4px',
                 backgroundColor: 'rgba(30, 30, 30, 0.8)',
                 display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
                 justifyContent: 'center',
-                marginTop: '2px',
-                marginBottom: '2px'
+                alignItems: 'center',
+                marginLeft: '2px',
+                marginRight: '2px'
               }}>
                 {Object.keys(OPERATION_NAMES).map((operation) => (
                   <SetOperationIcon

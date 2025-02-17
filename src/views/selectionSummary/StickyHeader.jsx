@@ -1,8 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import IconButton from '@mui/material/IconButton';
 import * as d3 from 'd3';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 
-function StickyHeader({ 
+function StickyHeader({
   featureData,
   rectWidth,
   sortBy,
@@ -11,24 +12,61 @@ function StickyHeader({
   setSortDirection,
   height,
   plotSize,
-  ...props 
+  viewMode,
+  handleViewChange,
+  ...props
 }) {
   // Sort features alphabetically to match FeatureHeatmap
-  const sortedFeatures = featureData?.feat_imp 
+  const sortedFeatures = featureData?.feat_imp
     ? [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]))
     : [];
-
-
 
   return (
     <div style={{
       height: height,
       display: 'flex',
       flexDirection: 'column',
+      position: 'sticky',
+      left: 0,
+      top: 0,
+      zIndex: 1000,
+      background: '#1a1a1a', // Dark background to match theme
     }}>
       {/* Empty space to align with scatter plot */}
-      <div style={{ height: plotSize + 25 }} />
-      
+      <div style={{
+        height: plotSize + 25,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '5px'
+      }}>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={handleViewChange}
+          size="small"
+        >
+          <ToggleButton
+            value="embedding"
+            style={{
+              backgroundColor: viewMode === 'embedding' ? '#4a4a4a' : '#2a2a2a',
+              color: '#ffffff',
+              border: '1px solid #333333',
+            }}
+          >
+            Emb.          </ToggleButton>
+          <ToggleButton
+            value="spatial"
+            style={{
+              backgroundColor: viewMode === 'spatial' ? '#4a4a4a' : '#2a2a2a',
+              color: '#ffffff',
+              border: '1px solid #333333',
+            }}
+          >
+            Img.
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </div>
+
       {/* Feature labels section */}
       <div style={{
         flex: 1,
@@ -65,10 +103,10 @@ function StickyHeader({
                 }
               }}
             >
-              {feature}
+              {feature.slice(0, 10) + '.'}
               {sortBy === feature && (
                 <span style={{ marginLeft: '2px' }}>
-                  {sortDirection === 'asc' ? '↑' : '↓'}
+                  {sortDirection === 'asc' ? '←' : '→'}
                 </span>
               )}
             </div>
