@@ -25,6 +25,103 @@ const OPERATION_NAMES = {
   'complement': 'Complement'
 };
 
+function SelectionRow({ 
+  selection, 
+  setFeatures, 
+  viewMode, 
+  PLOT_SIZE,
+  heatmapContainerWidth,
+  heatmapContainerRef,
+  isVisible,
+  onVisibilityToggle,
+  onClick,
+  style,
+  colorScheme,
+  cellSets,
+  compareMode 
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: '5px',
+        marginBottom: '2px',
+        cursor: compareMode ? 'pointer' : 'default',
+        ...style
+      }}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
+            <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>
+              {selection?.path?.[0]}
+            </span>
+            {'-'}
+            <span>{selection?.path?.[1]}</span>
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onVisibilityToggle();
+            }}
+            style={{
+              padding: 4,
+              position: 'relative',
+              visibility: compareMode ? 'hidden' : 'visible'
+            }}
+          >
+            {isVisible ? (
+              <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
+            ) : (
+              <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
+            )}
+          </IconButton>
+        </div>
+        {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
+            <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
+              {viewMode === 'embedding' ? (
+                <ScatterPlot
+                  data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
+                  backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
+                  ranges={[
+                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
+                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
+                  ]}
+                  height={PLOT_SIZE}
+                  width={PLOT_SIZE}
+                  title="Embedding"
+                />
+              ) : (
+                <ScatterPlot
+                  data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
+                  backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
+                  ranges={[
+                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
+                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
+                  ]}
+                  title="Spatial"
+                />
+              )}
+            </div>
+            <div
+              ref={heatmapContainerRef}
+              style={{ flex: 1, overflow: 'hidden' }}
+            >
+              <FeatureHeatmap
+                featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                height={PLOT_SIZE}
+                width={heatmapContainerWidth}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection }) {
   const setFeatures = useStore((state) => state.setFeatures);
   const [viewMode, setViewMode] = useState('embedding');
@@ -273,83 +370,22 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
               s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
             )
           ).map((selection, i) => (
-            <div
+            <SelectionRow
               key={`selected-${i}`}
+              selection={selection}
+              setFeatures={setFeatures}
+              viewMode={viewMode}
+              PLOT_SIZE={PLOT_SIZE}
+              heatmapContainerWidth={heatmapContainerWidth}
+              heatmapContainerRef={heatmapContainerRef}
+              isVisible={isSelectionVisible(selection.path)}
+              onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
               onClick={() => handleRowClick(selection)}
-              style={{
-                backgroundColor: '#2C3E50',
-                padding: '5px',
-                marginBottom: '2px',
-                cursor: compareMode ? 'pointer' : 'default',
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
-                    <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>{selection?.path?.[0]}</span>
-                    {'-'}
-                    <span>{selection?.path?.[1]}</span>
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVisibilityToggle(selection.path);
-                    }}
-                    style={{
-                      padding: 4,
-                      position: 'relative',
-                      visibility: compareMode ? 'hidden' : 'visible'
-                    }}
-                  >
-                    {isSelectionVisible(selection.path) ? (
-                      <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
-                    ) : (
-                      <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
-                    )}
-                  </IconButton>
-                </div>
-                {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
-                    <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
-                      {viewMode === 'embedding' ? (
-                        <ScatterPlot
-                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
-                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
-                          ranges={[
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
-                          ]}
-                          height={PLOT_SIZE}
-                          width={PLOT_SIZE}
-                          title="Embedding"
-                        />
-                      ) : (
-                        <ScatterPlot
-                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
-                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
-                          ranges={[
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
-                          ]}
-                          title="Spatial"
-                        />
-                      )}
-                    </div>
-                    <div
-                      ref={heatmapContainerRef}
-                      style={{ flex: 1, overflow: 'hidden' }}
-                    >
-                      <FeatureHeatmap
-                        featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                        height={PLOT_SIZE}
-                        width={heatmapContainerWidth}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+              style={{ backgroundColor: '#2C3E50' }}
+              colorScheme={colorScheme}
+              cellSets={cellSets}
+              compareMode={compareMode}
+            />
           ))}
 
           {/* Set operation icons */}
@@ -448,84 +484,22 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
               s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
             )
           ).map((selection, i) => (
-            <div
+            <SelectionRow
               key={`unselected-${i}`}
+              selection={selection}
+              setFeatures={setFeatures}
+              viewMode={viewMode}
+              PLOT_SIZE={PLOT_SIZE}
+              heatmapContainerWidth={heatmapContainerWidth}
+              heatmapContainerRef={heatmapContainerRef}
+              isVisible={isSelectionVisible(selection.path)}
+              onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
               onClick={() => handleRowClick(selection)}
-              style={{
-                backgroundColor: '#1A1A1A',
-                padding: '5px',
-                marginBottom: '2px',
-                cursor: compareMode ? 'pointer' : 'default',
-                opacity: 0.3
-              }}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
-                    <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>{selection?.path?.[0]}</span>
-                    {'-'}
-                    <span>{selection?.path?.[1]}</span>
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVisibilityToggle(selection.path);
-                    }}
-                    style={{
-                      padding: 4,
-                      position: 'relative',
-                      visibility: compareMode ? 'hidden' : 'visible'
-                    }}
-                  >
-                    {isSelectionVisible(selection.path) ? (
-                      <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
-                    ) : (
-                      <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
-                    )}
-                  </IconButton>
-                </div>
-                {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
-                    <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
-                      {viewMode === 'embedding' ? (
-                        <ScatterPlot
-                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
-                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
-                          ranges={[
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
-                          ]}
-                          height={PLOT_SIZE}
-                          width={PLOT_SIZE}
-                          title="Embedding"
-                        />
-                      ) : (
-                        <ScatterPlot
-                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
-                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
-                          ranges={[
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
-                          ]}
-                          title="Spatial"
-                        />
-                      )}
-                    </div>
-                    <div
-                      ref={heatmapContainerRef}
-                      style={{ flex: 1, overflow: 'hidden' }}
-                    >
-                      <FeatureHeatmap
-                        featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                        height={PLOT_SIZE}
-                        width={heatmapContainerWidth}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+              style={{ backgroundColor: '#1A1A1A', opacity: 0.3 }}
+              colorScheme={colorScheme}
+              cellSets={cellSets}
+              compareMode={compareMode}
+            />
           ))}
         </>
       ) : (
@@ -534,79 +508,29 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
           <Card
             key={i}
             variant="outlined"
-            onClick={() => handleRowClick(selection)}
             style={{
               backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
               borderColor: '#333333',
               padding: 1,
               marginBottom: '2px',
-              cursor: 'pointer',
               opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
             }}
           >
             <CardContent style={{ padding: 0 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', padding: '5px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.7rem' }}>
-                    <span style={{ color: colorScheme(cellSets?.tree?.findIndex(child => child.name === selection.path[0]) + 1) }}>{selection?.path?.[0]}</span>
-                    {'-'}
-                    <span>{selection?.path?.[1]}</span>
-                  </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleVisibilityToggle(selection.path);
-                    }}
-                    style={{ padding: 4 }}
-                  >
-                    {isSelectionVisible(selection.path) ? (
-                      <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
-                    ) : (
-                      <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
-                    )}
-                  </IconButton>
-                </div>
-                {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '2px', height: PLOT_SIZE }}>
-                    <div style={{ width: `${PLOT_SIZE}px`, height: '100%', padding: 0, margin: 0, lineHeight: 0 }}>
-                      {viewMode === 'embedding' ? (
-                        <ScatterPlot
-                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
-                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
-                          ranges={[
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
-                          ]}
-                          height={PLOT_SIZE}
-                          width={PLOT_SIZE}
-                          title="Embedding"
-                        />
-                      ) : (
-                        <ScatterPlot
-                          data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
-                          backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
-                          ranges={[
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
-                            [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
-                          ]}
-                          title="Spatial"
-                        />
-                      )}
-                    </div>
-                    <div
-                      ref={heatmapContainerRef}
-                      style={{ flex: 1, overflow: 'hidden' }}
-                    >
-                      <FeatureHeatmap
-                        featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                        height={PLOT_SIZE}
-                        width={heatmapContainerWidth}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              <SelectionRow
+                selection={selection}
+                setFeatures={setFeatures}
+                viewMode={viewMode}
+                PLOT_SIZE={PLOT_SIZE}
+                heatmapContainerWidth={heatmapContainerWidth}
+                heatmapContainerRef={heatmapContainerRef}
+                isVisible={isSelectionVisible(selection.path)}
+                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                onClick={() => handleRowClick(selection)}
+                colorScheme={colorScheme}
+                cellSets={cellSets}
+                compareMode={compareMode}
+              />
             </CardContent>
           </Card>
         ))
