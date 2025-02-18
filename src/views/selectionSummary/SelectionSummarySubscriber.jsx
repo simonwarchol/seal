@@ -172,7 +172,13 @@ function SelectionColumn({
 }
 
 function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection }) {
+  // Move all useStore calls to the top of the component
   const setFeatures = useStore((state) => state.setFeatures);
+  const compareMode = useStore((state) => state.compareMode);
+  const importanceInColor = useStore((state) => state.importanceInColor);
+  const setImportanceInColor = useStore((state) => state.setImportanceInColor);
+  const setCompareMode = useStore((state) => state.setCompareMode);
+
   const scrollContainerRef = useRef(null);
   const [viewMode, setViewMode] = useState('embedding');
   const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
@@ -221,7 +227,6 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
   };
 
   const [rectWidth, setRectWidth] = useState(0);
-  const compareMode = useStore((state) => state.compareMode);
   const [compareSelections, setCompareSelections] = useState([]);
 
   useEffect(() => {
@@ -266,13 +271,18 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 
         // Sort by the feature importance if sortBy is present
         if (sortBy) {
-          const aData = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp;
-          const bData = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp;
+          let aValue, bValue;
+          if (importanceInColor){
+            aValue = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp.find(d => d[0] === sortBy)?.[1] || 0;
+            bValue = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp.find(d => d[0] === sortBy)?.[1] || 0;
+          } else {
+            aValue = setFeatures[a.path[0]]?.[a.path[1]]?.normalized_occurrence[sortBy] || 0;
+            bValue = setFeatures[b.path[0]]?.[b.path[1]]?.normalized_occurrence[sortBy] || 0;
+          }
 
-          if (!aData || !bData) return 0;
+          if (!aValue || !bValue) return 0;
 
-          const aValue = aData.find(d => d[0] === sortBy)?.[1] || 0;
-          const bValue = bData.find(d => d[0] === sortBy)?.[1] || 0;
+         
 
           return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
         }
@@ -404,9 +414,6 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
       .range(['#00E5D3', '#0C074E', '#DD94C5'])
       .interpolate(d3.interpolateRgb)
   , []);
-
-  const importanceInColor = useStore((state) => state.importanceInColor);
-  const setImportanceInColor = useStore((state) => state.setImportanceInColor);
 
   return (
     <div style={{

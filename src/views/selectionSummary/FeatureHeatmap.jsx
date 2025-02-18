@@ -29,12 +29,7 @@ function FeatureHeatmap({
     const rectHeight = height / sortedFeatures.length;
     const halfWidth = width / 2;
 
-    // Calculate normalized differences
-    const getNormalizedDiff = (featureName) => {
-      const summary = featureData.selection_mean_features[featureName];
-      const global = featureData.summary.global_mean_features[featureName];
-      return (summary - global) / global;
-    };
+    // Create a group for the rectangles
 
     // Create a group for the rectangles
     const g = svg.append("g");
@@ -49,7 +44,7 @@ function FeatureHeatmap({
       .attr("height", rectHeight)
       .attr("fill", d => importanceInColor ? 
         importanceColorScale(d[1]) : 
-        occuranceColorScale(getNormalizedDiff(d[0]))
+        occuranceColorScale(featureData.normalized_occurrence[d[0]])
       );
 
     if (importanceInColor) {
@@ -59,7 +54,7 @@ function FeatureHeatmap({
         .join("line")
         .attr("x1", halfWidth)
         .attr("x2", d => {
-          const diff = getNormalizedDiff(d[0]);
+          const diff = featureData.normalized_occurrence[d[0]];
           return halfWidth + (diff * halfWidth * 0.4); // Use 40% of half width
         })
         .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
@@ -76,7 +71,7 @@ function FeatureHeatmap({
         .data(sortedFeatures)
         .join("circle")
         .attr("cx", d => {
-          const diff = getNormalizedDiff(d[0]);
+          const diff = featureData.normalized_occurrence[d[0]];
           return halfWidth + (diff * halfWidth * 0.4);
         })
         .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)

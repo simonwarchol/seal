@@ -187,7 +187,7 @@ def load(dataset="exemplar-001", df=None):
     potential_features = get_potential_features(csv_df)
     mean_features = csv_df[potential_features].mean()
 
-
+    
     # Ranges is dict of {embedding: [min, max], spatial: [min, max], "embedding_subsample": a 10000x2 numpy array of the embedding coordinates}
     summary = {
         "embedding_ranges": [[csv_df["UMAP_X"].min(), csv_df["UMAP_X"].max()], [csv_df["UMAP_Y"].min(), csv_df["UMAP_Y"].max()]],
@@ -336,7 +336,10 @@ def process_selection(selection_ids):
         spatial_coordinates = [spatial_coordinates[i] for i in indices]
 
     selection_mean_features = selected_rows[potential_features].mean().to_dict()
-    
+    normalized_occurrence = {}
+    for feature in potential_features:
+        normalized_occurrence[feature] = (selection_mean_features[feature] - summary["global_mean_features"][feature]) / summary["global_mean_features"][feature]
+
     return {
         "feat_imp": feat_imp,
         "hulls": hull_results,
@@ -344,7 +347,8 @@ def process_selection(selection_ids):
         "embedding_coordinates": embedding_coordinates,
         "summary": summary,
         "selection_mean_features": selection_mean_features,
-        "selection_ids": [int(id) for id in selection_ids]  # Convert numpy.int64 to Python int
+        "selection_ids": [int(id) for id in selection_ids],
+        "normalized_occurrence": normalized_occurrence
     }
 
 
