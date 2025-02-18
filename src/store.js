@@ -40,6 +40,8 @@ const useStore = create((set) => ({
     setCompareMode: (mode) => set({ compareMode: mode }),
     neighborhoodPointerMode: false,
     setNeighborhoodPointerMode: (mode) => set({ neighborhoodPointerMode: mode }),
+    importanceInColor: true,
+    setImportanceInColor: (value) => set({ importanceInColor: value }),
 }))
 
 export default useStore;

@@ -17,6 +17,8 @@ function StickyHeader({
   handleViewChange,
   importanceColorScale,
   occuranceColorScale,
+  importanceInColor = true,
+  setImportanceInColor,
   ...props
 }) {
   // Sort features alphabetically to match FeatureHeatmap
@@ -30,6 +32,28 @@ function StickyHeader({
     const domain = importanceColorScale.domain();
     return d3.range(domain[0], domain[1], (domain[1] - domain[0]) / 10);
   }, [importanceColorScale]);
+
+  const [hoveredLegend, setHoveredLegend] = React.useState(null);
+
+  // Add this component for the reverse icon
+  const ReverseIcon = () => (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(0, 0, 0, 0.7)',
+      cursor: 'pointer',
+    }}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
+        <path d="M9 3L5 7l4 4V9c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8V3z"/>
+      </svg>
+    </div>
+  );
 
   return (
     <div style={{
@@ -77,51 +101,204 @@ function StickyHeader({
         </ToggleButtonGroup>
 
         {/* Legend */}
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          gap: 1, 
-          mt: 1,
-          alignItems: 'flex-start',
-          paddingLeft: 2
-        }}>
-          {/* Importance Legend */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ color: '#ffffff', width: '70px' }}>
+        <Box 
+          p={0} 
+          m={0} 
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            position: 'relative',
+            cursor: 'pointer'
+          }}
+          onMouseEnter={() => setHoveredLegend('legend')}
+          onMouseLeave={() => setHoveredLegend(null)}
+          onClick={() => setImportanceInColor(!importanceInColor)}
+        >
+          {/* Importance Legend (Always on top) */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            m: 0, 
+            p: 0,
+          }}>
+            <Typography variant="caption" sx={{ color: '#ffffff', m: 0, p: 0 }}>
               Importance
             </Typography>
             <svg width="60" height="10">
-              <defs>
-                <linearGradient id="importanceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  {Array.from({ length: 10 }).map((_, i) => (
-                    <stop
-                      key={i}
-                      offset={`${i * 10}%`}
-                      stopColor={importanceColorScale ? importanceColorScale(importanceSteps[i]) : '#000000'}
-                    />
-                  ))}
-                </linearGradient>
-              </defs>
-              <rect width="60" height="10" fill="url(#importanceGradient)" />
+              {importanceInColor ? (
+                // Color gradient when importanceInColor is true
+                <>
+                  <defs>
+                    <linearGradient id="importanceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <stop
+                          key={i}
+                          offset={`${i * 10}%`}
+                          stopColor={importanceColorScale ? importanceColorScale(importanceSteps[i]) : '#000000'}
+                        />
+                      ))}
+                    </linearGradient>
+                  </defs>
+                  <rect width="60" height="10" fill="url(#importanceGradient)" />
+                </>
+              ) : (
+                // Positive-only lollipop when importanceInColor is false
+                <>
+                  <line
+                    x1="15"
+                    y1="5"
+                    x2="45"
+                    y2="5"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1="15"
+                    y1="5"
+                    x2="45"
+                    y2="5"
+                    stroke="#ffffff"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="45"
+                    cy="5"
+                    r="2"
+                    fill="#ffffff"
+                    stroke="#000000"
+                    strokeWidth="1"
+                  />
+                </>
+              )}
             </svg>
           </Box>
 
-          {/* Occurrence Legend */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography variant="caption" sx={{ color: '#ffffff', width: '70px' }}>
-              Occurrence
+          {/* Occurrence Legend (Always bottom) */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            m: 0, 
+            p: 0,
+          }}>
+            <Typography variant="caption" sx={{ color: '#ffffff', m: 0, p: 0 }}>
+              Occurence
             </Typography>
             <svg width="60" height="10">
-              <defs>
-                <linearGradient id="occuranceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor={occuranceColorScale(-1)} />
-                  <stop offset="50%" stopColor={occuranceColorScale(0)} />
-                  <stop offset="100%" stopColor={occuranceColorScale(1)} />
-                </linearGradient>
-              </defs>
-              <rect width="60" height="10" fill="url(#occuranceGradient)" />
+              {importanceInColor ? (
+                // Bidirectional lollipop when importanceInColor is true
+                <>
+                  <line
+                    x1="30"
+                    y1="5"
+                    x2="45"
+                    y2="5"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1="30"
+                    y1="5"
+                    x2="45"
+                    y2="5"
+                    stroke="#ffffff"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="45"
+                    cy="5"
+                    r="2"
+                    fill="#ffffff"
+                    stroke="#000000"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x="50"
+                    y="8"
+                    fontSize="8"
+                    fill="#ffffff"
+                  >
+                    +
+                  </text>
+                  <line
+                    x1="30"
+                    y1="5"
+                    x2="15"
+                    y2="5"
+                    stroke="#000000"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                  <line
+                    x1="30"
+                    y1="5"
+                    x2="15"
+                    y2="5"
+                    stroke="#ffffff"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                  />
+                  <circle
+                    cx="15"
+                    cy="5"
+                    r="2"
+                    fill="#ffffff"
+                    stroke="#000000"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x="5"
+                    y="8"
+                    fontSize="8"
+                    fill="#ffffff"
+                  >
+                    -
+                  </text>
+                </>
+              ) : (
+                // Occurrence color gradient when importanceInColor is false
+                <>
+                  <defs>
+                    <linearGradient id="occurrenceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <stop
+                          key={i}
+                          offset={`${i * 10}%`}
+                          stopColor={occuranceColorScale ? occuranceColorScale(-1 + (i * 0.2)) : '#000000'}
+                        />
+                      ))}
+                    </linearGradient>
+                  </defs>
+                  <rect width="60" height="10" fill="url(#occurrenceGradient)" />
+                </>
+              )}
             </svg>
           </Box>
+          {hoveredLegend === 'legend' && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(0, 0, 0, 0.7)',
+                cursor: 'pointer',
+                pointerEvents: 'none', // This ensures mouse events pass through to parent
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
+                <path d="M9 3L5 7l4 4V9c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8V3z"/>
+              </svg>
+            </div>
+          )}
         </Box>
       </div>
 
