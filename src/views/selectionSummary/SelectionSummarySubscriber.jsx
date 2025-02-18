@@ -38,7 +38,9 @@ function SelectionColumn({
   style,
   colorScheme,
   cellSets,
-  compareMode
+  compareMode,
+  importanceColorScale,
+  occuranceColorScale
 }) {
   // Add ref and state for column width
   const columnRef = useRef(null);
@@ -154,6 +156,8 @@ function SelectionColumn({
                 featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
                 height={200}
                 width={plotWidth}
+                importanceColorScale={importanceColorScale}
+                occuranceColorScale={occuranceColorScale}
               />
             </div>
           </div>
@@ -380,6 +384,21 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
     }
   }, [compareSelections, compareMode]);
 
+  // Create color scales for the legend and heatmap
+  const importanceColorScale = useMemo(() => {
+    if (!setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]?.feat_imp) return () => "#000000"; // Return a default function
+    const sortedFeatures = [...setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]?.feat_imp].sort((a, b) => a[0].localeCompare(b[0]));
+    return d3.scaleSequential()
+      .domain([0, d3.max(sortedFeatures, d => d[1])])
+      .interpolator(d3.interpolateViridis);
+  }, [setFeatures, selections]);
+
+
+  const occuranceColorScale = useMemo(() => 
+    d3.scaleSequential()
+      .domain([-1, 1])
+      .interpolator(d3.interpolateSpectral)
+  , []);
 
   return (
     <div style={{
@@ -432,6 +451,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
             left: 0,
             zIndex: 1,
           }}
+          importanceColorScale={importanceColorScale}
+          occuranceColorScale={occuranceColorScale}
         />
 
         {/* Only show the comparison UI when in compare mode */}
@@ -488,6 +509,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                       colorScheme={colorScheme}
                       cellSets={cellSets}
                       compareMode={compareMode}
+                      importanceColorScale={importanceColorScale}
+                      occuranceColorScale={occuranceColorScale}
                     />
                   </CardContent>
                 </Card>
@@ -568,6 +591,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                           colorScheme={colorScheme}
                           cellSets={cellSets}
                           compareMode={compareMode}
+                          importanceColorScale={importanceColorScale}
+                          occuranceColorScale={occuranceColorScale}
                         />
                       </CardContent>
                     </Card>
@@ -615,6 +640,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                       colorScheme={colorScheme}
                       cellSets={cellSets}
                       compareMode={compareMode}
+                      importanceColorScale={importanceColorScale}
+                      occuranceColorScale={occuranceColorScale}
                     />
                   </CardContent>
                 </Card>
@@ -658,6 +685,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                   colorScheme={colorScheme}
                   cellSets={cellSets}
                   compareMode={compareMode}
+                  importanceColorScale={importanceColorScale}
+                  occuranceColorScale={occuranceColorScale}
                 />
               </CardContent>
             </Card>

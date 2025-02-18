@@ -1,18 +1,23 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 
-function FeatureHeatmap({ featureData, width }) {
+function FeatureHeatmap({ 
+  featureData, 
+  width,
+  importanceColorScale,
+  occuranceColorScale 
+}) {
   const svgRef = useRef();
 
   useEffect(() => {
-    if (!featureData?.feat_imp || !width) return;
+    if (!featureData?.feat_imp || !width || !importanceColorScale || !occuranceColorScale) return;
 
     // Clear previous content
     const svg = d3.select(svgRef.current);
     const height = svg.node().getBoundingClientRect().height;
-    
+
     if (!height) return;
-    
+
     svg.selectAll("*").remove();
 
     // Sort features alphabetically
@@ -27,11 +32,6 @@ function FeatureHeatmap({ featureData, width }) {
       const global = featureData.summary.global_mean_features[featureName];
       return (summary - global) / global;
     };
-
-    // Create color scale for importance
-    const importanceColorScale = d3.scaleSequential()
-      .domain([0, d3.max(sortedFeatures, d => d[1])])
-      .interpolator(d3.interpolateViridis);
 
     // Create a group for the rectangles
     const g = svg.append("g");
@@ -78,7 +78,7 @@ function FeatureHeatmap({ featureData, width }) {
       .attr("stroke", "#000000")
       .attr("stroke-width", 1);
 
-  }, [featureData, width]);
+  }, [featureData, width, importanceColorScale, occuranceColorScale]);
 
   // Set initial dimensions
   return <svg ref={svgRef} width={width} height={'100%'} />;
