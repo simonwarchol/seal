@@ -79,7 +79,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
 
     return (
         <Grid container spacing={0} sx={{ width: '100%' }}>
-            
+
             <Grid item xs={12}>
                 <ToggleButtonGroup
                     value={'left'}
@@ -87,17 +87,17 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                     aria-label="text alignment"
                     sx={{ width: '100%' }}
                 >
-                    <Grid 
-                        container 
-                        spacing={0} 
+                    <Grid
+                        container
+                        spacing={0}
                         justifyContent="space-around"
                         alignItems="flex-start"
-                        // sx={{ px: 2 }}
+                    // sx={{ px: 2 }}
                     >
                         {/* Background Column */}
-                        <Grid 
-                            item 
-                            xs={4} 
+                        <Grid
+                            item
+                            xs={4}
                             container
                             direction="column"
                             alignItems="center"
@@ -105,15 +105,14 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                             style={{ padding: '0px 5px' }}
                         >
                             <Grid item>
-                                <span style={{ fontSize: '12px' }}>Background</span>
-                            </Grid>
+                                <span style={{ fontSize: '12px', color: '#ffffff' }}>Selection</span>                            </Grid>
                             <Grid item container justifyContent="center" sx={{ borderTop: '2px solid black', pt: 1 }}>
                                 <Grid item xs={6}>
                                     <ToggleButton
                                         value="show"
                                         selected={selectedBackground === 'show'}
                                         onClick={() => setSelectedBackground('show')}
-                                        sx={{ 
+                                        sx={{
                                             opacity: selectedBackground === 'show' ? 1 : 0.5,
                                             padding: '4px',
                                             minWidth: 0,
@@ -131,7 +130,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                         value="hide"
                                         selected={selectedBackground === 'hide'}
                                         onClick={() => setSelectedBackground('hide')}
-                                        sx={{ 
+                                        sx={{
                                             opacity: selectedBackground === 'hide' ? 1 : 0.5,
                                             padding: '4px',
                                             minWidth: 0,
@@ -147,8 +146,8 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                         </Grid>
 
                         {/* Selection Column */}
-                        <Grid 
-                            item 
+                        <Grid
+                            item
                             xs={4}
                             container
                             direction="column"
@@ -158,7 +157,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
 
                         >
                             <Grid item xs={12}>
-                                <span style={{ fontSize: '12px' }}>Selection</span>
+                                <span style={{ fontSize: '12px', color: '#ffffff' }}>Selection</span>
                             </Grid>
                             <Grid item container justifyContent="center" sx={{ borderTop: '2px solid black', pt: 1 }}>
                                 <Grid item xs={6}>
@@ -166,7 +165,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                         value="spotlight"
                                         selected={selectedSelection === 'spotlight'}
                                         onClick={() => setSelectedSelection('spotlight')}
-                                        sx={{ 
+                                        sx={{
                                             opacity: selectedSelection === 'spotlight' ? 1 : 0.5,
                                             padding: '4px',
                                             minWidth: 0,
@@ -184,7 +183,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                         value="outline"
                                         selected={selectedSelection === 'outline'}
                                         onClick={() => setSelectedSelection('outline')}
-                                        sx={{ 
+                                        sx={{
                                             opacity: selectedSelection === 'outline' ? 1 : 0.5,
                                             padding: '4px',
                                             minWidth: 0,
@@ -200,8 +199,8 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                         </Grid>
 
                         {/* Opacity Column */}
-                        <Grid 
-                            item 
+                        <Grid
+                            item
                             xs={4}
                             container
                             direction="column"
@@ -210,10 +209,10 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                             style={{ padding: '0px 5px' }}
                         >
                             <Grid item>
-                                <span style={{ fontSize: '12px' }}>Opacity</span>
+                                <span style={{ fontSize: '12px', color: '#ffffff' }}>Opacity</span>
                             </Grid>
-                            <Grid item container sx={{ 
-                                borderTop: '2px solid black', 
+                            <Grid item container sx={{
+                                borderTop: '2px solid black',
                                 pt: 1,
                                 opacity: visible ? 1 : 0.1
                             }}>

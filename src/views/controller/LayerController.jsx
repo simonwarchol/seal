@@ -166,6 +166,30 @@ const darkTheme = createTheme({
         },
       },
     },
+    MuiTypography: {
+      root: {
+        color: '#ffffff',
+      },
+    },
+    MuiTab: {
+      root: {
+        color: '#ffffff',
+      },
+    },
+    MuiButton: {
+      root: {
+        color: '#ffffff',
+      },
+      outlined: {
+        color: '#ffffff',
+        borderColor: 'rgba(255, 255, 255, 0.23)',
+      },
+    },
+    MuiInputLabel: {
+      root: {
+        color: '#ffffff !important',
+      },
+    },
   },
 });
 
@@ -638,7 +662,7 @@ export default function LayerController(props) {
                 >
                   <Visibility />
                 </Button>
-                Segmentation Mask
+                <span style={{ color: '#ffffff' }}>Segmentation Mask</span>
               </Grid>
               {!disabled && !isExpanded && (
                 <Grid
@@ -652,7 +676,7 @@ export default function LayerController(props) {
                       htmlFor={`layer-${name}-opacity-closed`}
                       classes={{ root: inputLabelClasses.inputLabelRoot }}
                     >
-                      Opacity:
+                      <span style={{ color: '#ffffff' }}>Opacity:</span>
                     </InputLabel>
                   </Grid>
                   <Grid item xs={6}>
@@ -720,10 +744,8 @@ export default function LayerController(props) {
                   aria-label="Toggle layer visibility"
                   onClick={(e) => {
                     if (!disabled) {
-                      // Needed to prevent affecting the expansion panel from changing
                       e.stopPropagation();
-                      const nextVisible =
-                        typeof visible === "boolean" ? !visible : false;
+                      const nextVisible = typeof visible === "boolean" ? !visible : false;
                       setVisible(nextVisible);
                     }
                   }}
@@ -736,7 +758,7 @@ export default function LayerController(props) {
                 >
                   <Visibility />
                 </Button>
-                Tissue Images
+                <span style={{ color: '#ffffff' }}>Tissue Images</span>
               </Grid>
               {!disabled && !isExpanded && !use3d && (
                 <Grid
