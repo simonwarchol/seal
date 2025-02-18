@@ -10,6 +10,7 @@ import {
   canLoadResolution,
 } from "@vitessce/spatial-utils";
 import useStore from '../../store.js';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 
 import {
   Grid,
@@ -78,6 +79,95 @@ const buttonStyles = {
   marginTop: "10px",
   fontWeight: 400,
 };
+
+// Create a dark theme
+const darkTheme = createTheme({
+  palette: {
+    type: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    secondary: {
+      main: '#f48fb1',
+    },
+    background: {
+      paper: '#1A1A1A',
+      default: '#121212'
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#ffffff'
+    },
+    action: {
+      active: '#ffffff',
+      hover: 'rgba(255, 255, 255, 0.08)',
+      selected: 'rgba(255, 255, 255, 0.16)',
+    },
+    divider: 'rgba(255, 255, 255, 0.12)',
+  },
+  overrides: {
+    MuiAccordion: {
+      root: {
+        backgroundColor: '#1A1A1A',
+        '&$expanded': {
+          margin: 0,
+        },
+      },
+    },
+    MuiAccordionSummary: {
+      root: {
+        backgroundColor: '#1A1A1A',
+      },
+    },
+    MuiAccordionDetails: {
+      root: {
+        backgroundColor: '#1A1A1A',
+        padding: '8px 16px 16px',
+      },
+    },
+    MuiPaper: {
+      root: {
+        backgroundColor: '#1A1A1A',
+        color: '#ffffff',
+      },
+    },
+    MuiSlider: {
+      root: {
+        color: '#90caf9',
+      },
+      track: {
+        backgroundColor: '#90caf9',
+      },
+      rail: {
+        backgroundColor: '#666666',
+      },
+      thumb: {
+        backgroundColor: '#90caf9',
+      },
+    },
+    MuiSwitch: {
+      root: {
+        color: '#90caf9',
+      },
+      track: {
+        backgroundColor: '#666666',
+      },
+    },
+    MuiInputBase: {
+      root: {
+        color: '#ffffff',
+      },
+    },
+    MuiFormLabel: {
+      root: {
+        color: '#ffffff',
+        '&$focused': {
+          color: '#90caf9',
+        },
+      },
+    },
+  },
+});
 
 /**
  * Controller for the various imaging options (color, opactiy, sliders etc.)
@@ -503,7 +593,7 @@ export default function LayerController(props) {
     </>
   );
   return (
-    <>
+    <ThemeProvider theme={darkTheme}>
       {isSpotlight ? (
         <Accordion
           className={controllerSectionClasses.layerControllerRoot}
@@ -699,6 +789,6 @@ export default function LayerController(props) {
           </AccordionDetails>
         </Accordion>
       )}
-    </>
+    </ThemeProvider>
   );
 }

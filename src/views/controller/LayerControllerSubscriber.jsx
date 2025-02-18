@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { CoordinationType as ct } from "@vitessce/constants";
 import Grid from '@mui/material/Grid2';
+import { ThemeProvider } from '@mui/material/styles';
 
 import {
   TitleInfo,
@@ -370,7 +371,7 @@ export function LayerControllerSubscriber(props) {
 
     coordinationScopes
   );
-  console.log('cellsLayer2', cellsLayer,coordinationScopes);
+  console.log('cellsLayer', cellsLayer, coordinationScopes);
 
 
   const [
@@ -432,7 +433,7 @@ export function LayerControllerSubscriber(props) {
   );
 
   const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
-  
+
   const isReady = useReady([
     obsLocationsStatus,
     obsSegmentationsStatus,
@@ -517,7 +518,7 @@ export function LayerControllerSubscriber(props) {
       closeButtonVisible={closeButtonVisible}
       downloadButtonVisible={downloadButtonVisible}
       removeGridComponent={removeGridComponent}
-      theme={'dark'}
+      theme={theme}
       isReady={isReady}
       moleculesLayer={moleculesLayer}
       dataset={dataset}
@@ -554,7 +555,6 @@ export function LayerControllerSubscriber(props) {
       setTargetZ={setTargetZ}
       setRotationX={setRotationX}
       setRotationOrbit={setRotationOrbit}
-      // Fall back to window for height and width.
       componentHeight={componentHeight || windowHeight}
       componentWidth={componentWidth || windowWidth}
       spatialLayout={spatialLayout}

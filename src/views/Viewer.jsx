@@ -19,7 +19,7 @@ import {
 
 import { ObsSetsManagerSubscriber } from "./setsManager/ObsSetsManagerSubscriber";
 import { LayerControllerSubscriber } from "./controller/LayerControllerSubscriber";
-import {SelectionsSummarySubscriber} from "./selectionSummary/SelectionSummarySubscriber"
+import { SelectionsSummarySubscriber } from "./selectionSummary/SelectionSummarySubscriber"
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
 function Viewer({ value, setValue, height, config }) {
@@ -88,7 +88,6 @@ function Viewer({ value, setValue, height, config }) {
     ]),
     new PluginViewType("selectionSummary", SelectionsSummarySubscriber, [
       ct.DATASET,
-      ct.DATASET,
       ct.OBS_TYPE,
       ct.OBS_SET_SELECTION,
       ct.OBS_SET_EXPANSION,
@@ -138,8 +137,8 @@ function Viewer({ value, setValue, height, config }) {
   const exemplarDataset = {
     embeddingImageUrl: "http://localhost:8181/files/embedding_image.ome.tif",
     embeddingSegmentationUrl: "http://localhost:8181/files/embedding_segmentation.ome.tif",
-    csvUrl: "http://localhost:8181/files/csv.csv", 
-    clusterColumns: ["kmeans", "agcluster"],  
+    csvUrl: "http://localhost:8181/files/csv.csv",
+    clusterColumns: ["kmeans", "agcluster"],
     imageUrl: "http://localhost:8181/files/image.ome.tif",
     segmentationUrl: "http://localhost:8181/files/segmentation.ome.tif",
 
@@ -279,7 +278,7 @@ function Viewer({ value, setValue, height, config }) {
 
 
   const v1 = vc.addView(ds0, "spotlight");
-  const v2 = vc.addView(ds0, "controller");
+  // const v2 = vc.addView(ds0, "controller");
   const v3 = vc.addView(ds1, "spotlight");
   // const v4 = vc.addView(ds1, "setDiff");
   const v5 = vc.addView(ds1, "selectionSummary");
@@ -293,7 +292,7 @@ function Viewer({ value, setValue, height, config }) {
   v1.useCoordination(zoomScope, xScope, yScope, pointLayer);
   // const v4 = vc.addView(ds0, "setDiff");
   // const v4 = vc.addView(ds1, "myCustomZoomController");
-  vc.layout(vconcat( hconcat(vconcat(v2), v1, v3),v5));
+  vc.layout(vconcat(hconcat(v1, v3), v5));
   // vc.layout(hconcat(v1));
 
 
