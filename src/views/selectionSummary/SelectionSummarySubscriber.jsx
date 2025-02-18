@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData, useAuxiliaryCoordination, useObsLocationsData, useObsSegmentationsData, useReady } from '@vitessce/vit-s';
+import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData, useAuxiliaryCoordination, useObsLocationsData, useObsSegmentationsData, useReady, useClosestVitessceContainerSize, useWindowDimensions, useComponentLayout } from '@vitessce/vit-s';
 import { COMPONENT_COORDINATION_TYPES, ViewType, CoordinationType as ct } from '@vitessce/constants-internal';
 import { capitalize } from '@vitessce/utils';
 import { treeFindNodeByNamePath, mergeObsSets } from '@vitessce/sets-utils';
@@ -17,6 +17,7 @@ import SetOperationIcon from './SetOperationIcon';
 import { iconConfigs } from './SetOperationIcon';
 import { Close as CloseIcon } from '@mui/icons-material';
 import { LayerControllerMemoized } from '../controller/LayerControllerSubscriber';
+import { DEFAULT_RASTER_LAYER_PROPS } from "@vitessce/spatial-utils";
 
 
 const OPERATION_NAMES = {
@@ -174,7 +175,7 @@ function SelectionColumn({
   );
 }
 
-function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection, rasterLayers, setRasterLayers, cellsLayer, setCellsLayer, imageLayerLoaders, imageLayerMeta, isReady, imageLayerCallbacks, setImageLayerCallbacks, areLoadingImageChannels, setAreLoadingImageChannels, handleRasterLayerChange, handleRasterLayerRemove, handleSegmentationLayerChange, handleSegmentationLayerRemove }) {
+function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection, rasterLayers, setRasterLayers, cellsLayer, setCellsLayer, imageLayerLoaders, imageLayerMeta, isReady, imageLayerCallbacks, setImageLayerCallbacks, areLoadingImageChannels, setAreLoadingImageChannels, handleRasterLayerChange, handleRasterLayerRemove, handleSegmentationLayerChange, handleSegmentationLayerRemove, layerControllerRef, moleculesLayer, setMoleculesLayer, closeButtonVisible, downloadButtonVisible, removeGridComponent, theme, title, disable3d, globalDisable3d, disableChannelsIfRgbDetected, enableLayerButtonsWithOneLayer, dataset, obsType, segmentationLayerLoaders, segmentationLayerMeta, segmentationLayerCallbacks, setSegmentationLayerCallbacks, areLoadingSegmentationChannels, setAreLoadingSegmentationChannels, componentHeight, componentWidth, spatialLayout, layerIs3DIndex, setZoom, setTargetX, setTargetY, setTargetZ, setRotationX, setRotationOrbit, obsSegmentationsType, additionalObsSets }) {
   // Move all useStore calls to the top of the component
   const setFeatures = useStore((state) => state.setFeatures);
   const compareMode = useStore((state) => state.compareMode);
@@ -435,6 +436,18 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
     );
   }
 
+  const handleImageAdd = useCallback(
+    (newLayer) => {
+      const newLayers = [...(rasterLayers || [])];
+      newLayers.push({
+        ...DEFAULT_RASTER_LAYER_PROPS,
+        ...newLayer,
+      });
+      setRasterLayers(newLayers);
+    },
+    [rasterLayers, setRasterLayers]
+  );
+
   return (
     <div style={{
       display: 'flex',
@@ -474,27 +487,53 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
         <div style={{ padding: '0', color: '#ffffff' }}>
           <LayerControllerMemoized
             simon={true}
-            selections={selections}
-            cellSets={cellSets}
-            setCellSetSelection={setCellSetSelection}
-            displayedChannels={displayedChannels}
-            channelNames={channelNames}
-            rasterLayers={rasterLayers}
-            setRasterLayers={setRasterLayers}
+            ref={layerControllerRef}
+            title={''}
+            closeButtonVisible={closeButtonVisible}
+            downloadButtonVisible={downloadButtonVisible}
+            removeGridComponent={removeGridComponent}
+            theme={theme}
+            isReady={isReady}
+            moleculesLayer={moleculesLayer}
+            dataset={dataset}
+            obsType={obsType}
+            setMoleculesLayer={setMoleculesLayer}
             cellsLayer={cellsLayer}
             setCellsLayer={setCellsLayer}
+            rasterLayers={rasterLayers}
             imageLayerLoaders={imageLayerLoaders}
             imageLayerMeta={imageLayerMeta}
-            isReady={isReady}
-            isSpotlight={true}
             imageLayerCallbacks={imageLayerCallbacks}
             setImageLayerCallbacks={setImageLayerCallbacks}
             areLoadingImageChannels={areLoadingImageChannels}
             setAreLoadingImageChannels={setAreLoadingImageChannels}
             handleRasterLayerChange={handleRasterLayerChange}
             handleRasterLayerRemove={handleRasterLayerRemove}
+            obsSegmentationsType={obsSegmentationsType}
+            segmentationLayerLoaders={segmentationLayerLoaders}
+            segmentationLayerMeta={segmentationLayerMeta}
+            segmentationLayerCallbacks={segmentationLayerCallbacks}
+            setSegmentationLayerCallbacks={setSegmentationLayerCallbacks}
+            areLoadingSegmentationChannels={areLoadingSegmentationChannels}
+            setAreLoadingSegmentationChannels={setAreLoadingSegmentationChannels}
             handleSegmentationLayerChange={handleSegmentationLayerChange}
             handleSegmentationLayerRemove={handleSegmentationLayerRemove}
+            disable3d={disable3d}
+            globalDisable3d={globalDisable3d}
+            layerIs3DIndex={layerIs3DIndex}
+            disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
+            enableLayerButtonsWithOneLayer={enableLayerButtonsWithOneLayer}
+            setZoom={setZoom}
+            setTargetX={setTargetX}
+            setTargetY={setTargetY}
+            setTargetZ={setTargetZ}
+            setRotationX={setRotationX}
+            setRotationOrbit={setRotationOrbit}
+            componentHeight={componentHeight || windowHeight}
+            componentWidth={componentWidth || windowWidth}
+            spatialLayout={spatialLayout}
+            handleImageAdd={handleImageAdd}
+            additionalObsSets={additionalObsSets}
           />
         </div>
       </div>
@@ -789,10 +828,23 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 }
 
 export function SelectionsSummarySubscriber(props) {
-  const { coordinationScopes, title: titleOverride, theme } = props;
+  const {
+    coordinationScopes,
+    closeButtonVisible,
+    downloadButtonVisible,
+    removeGridComponent,
+    theme,
+    title: titleOverride,
+    disable3d,
+    globalDisable3d,
+    disableChannelsIfRgbDetected,
+    enableLayerButtonsWithOneLayer,
+  } = props;
 
   const loaders = useLoaders();
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const layerControllerRef = useRef(null);
 
   const [{
     obsType,
@@ -820,9 +872,12 @@ export function SelectionsSummarySubscriber(props) {
       ...COMPONENT_COORDINATION_TYPES[ViewType.LAYER_CONTROLLER],
       ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
       ct.ADDITIONAL_OBS_SETS,
+      ct.SPATIAL_SEGMENTATION_LAYER,
     ],
     coordinationScopes
   );
+
+  console.log('cellsLayer', cellsLayer,coordinationScopes);
 
   const [displayedChannels, setDisplayedChannels] = useState([]);
   const [channelNames, setChannelNames] = useState([]);
@@ -844,6 +899,8 @@ export function SelectionsSummarySubscriber(props) {
     {}
   );
 
+
+
   const [{ obsSegmentations, obsSegmentationsType }, obsSegmentationsStatus] =
     useObsSegmentationsData(
       loaders,
@@ -851,7 +908,7 @@ export function SelectionsSummarySubscriber(props) {
       false,
       { setSpatialSegmentationLayer: setCellsLayer },
       { spatialSegmentationLayer: cellsLayer },
-      {}
+      { obsType }
     );
 
   const [{ image }, imageStatus] = useImageData(
@@ -895,7 +952,6 @@ export function SelectionsSummarySubscriber(props) {
     obsLocationsStatus,
     obsSegmentationsStatus,
     imageStatus,
-    obsSetsStatus
   ]);
 
   const [
@@ -953,6 +1009,36 @@ export function SelectionsSummarySubscriber(props) {
     [cellsLayer, setCellsLayer]
   );
 
+  const [spatialLayout] = useComponentLayout(
+    "spatial",
+    ["spatialImageLayer"],
+    coordinationScopes
+  );
+
+  const segmentationLayerLoaders =
+    obsSegmentations && obsSegmentationsType === "bitmask"
+      ? obsSegmentations.loaders
+      : null;
+  const segmentationLayerMeta =
+    obsSegmentations && obsSegmentationsType === "bitmask"
+      ? obsSegmentations.meta
+      : null;
+
+  const [componentWidth, componentHeight] = useClosestVitessceContainerSize(layerControllerRef);
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+
+  const handleImageAdd = useCallback(
+    (newLayer) => {
+      const newLayers = [...(rasterLayers || [])];
+      newLayers.push({
+        ...DEFAULT_RASTER_LAYER_PROPS,
+        ...newLayer,
+      });
+      setRasterLayers(newLayers);
+    },
+    [rasterLayers, setRasterLayers]
+  );
+
   return (
     <div style={{
       backgroundColor: '#121212',
@@ -969,6 +1055,8 @@ export function SelectionsSummarySubscriber(props) {
         setRasterLayers={setRasterLayers}
         cellsLayer={cellsLayer}
         setCellsLayer={setCellsLayer}
+        moleculesLayer={moleculesLayer}
+        setMoleculesLayer={setMoleculesLayer}
         imageLayerLoaders={imageLayerLoaders}
         imageLayerMeta={imageLayerMeta}
         isReady={isReady}
@@ -980,6 +1068,36 @@ export function SelectionsSummarySubscriber(props) {
         handleRasterLayerRemove={handleRasterLayerRemove}
         handleSegmentationLayerChange={handleSegmentationLayerChange}
         handleSegmentationLayerRemove={handleSegmentationLayerRemove}
+        layerControllerRef={layerControllerRef}
+        closeButtonVisible={closeButtonVisible}
+        downloadButtonVisible={downloadButtonVisible}
+        removeGridComponent={removeGridComponent}
+        theme={theme}
+        title={title}
+        disable3d={disable3d}
+        globalDisable3d={globalDisable3d}
+        disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
+        enableLayerButtonsWithOneLayer={enableLayerButtonsWithOneLayer}
+        dataset={dataset}
+        obsType={obsType}
+        segmentationLayerLoaders={segmentationLayerLoaders}
+        segmentationLayerMeta={segmentationLayerMeta}
+        segmentationLayerCallbacks={segmentationLayerCallbacks}
+        setSegmentationLayerCallbacks={setSegmentationLayerCallbacks}
+        areLoadingSegmentationChannels={areLoadingSegmentationChannels}
+        setAreLoadingSegmentationChannels={setAreLoadingSegmentationChannels}
+        componentHeight={componentHeight || windowHeight}
+        componentWidth={componentWidth || windowWidth}
+        spatialLayout={spatialLayout}
+        layerIs3DIndex={-1}
+        setZoom={setSpatialZoom}
+        setTargetX={setSpatialTargetX}
+        setTargetY={setSpatialTargetY}
+        setTargetZ={setSpatialTargetZ}
+        setRotationX={setSpatialRotationX}
+        setRotationOrbit={setSpatialRotationOrbit}
+        obsSegmentationsType={obsSegmentationsType}
+        additionalObsSets={additionalObsSets}
       />
       {isPanelOpen && (
         <div style={{
@@ -991,7 +1109,8 @@ export function SelectionsSummarySubscriber(props) {
           backgroundColor: '#1A1A1A',
           borderLeft: '1px solid #333333',
           zIndex: 1000,
-          padding: '16px'
+          padding: '16px',
+          overflowY: 'auto'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <Typography variant="h6">Channel Configuration</Typography>
@@ -1000,12 +1119,16 @@ export function SelectionsSummarySubscriber(props) {
             </IconButton>
           </div>
           <LayerControllerMemoized
-            title="Channel Configuration"
+            ref={layerControllerRef}
+            title={title}
+            closeButtonVisible={closeButtonVisible}
+            downloadButtonVisible={downloadButtonVisible}
+            removeGridComponent={removeGridComponent}
             theme={theme}
             isReady={isReady}
+            moleculesLayer={moleculesLayer}
             dataset={dataset}
             obsType={obsType}
-            moleculesLayer={moleculesLayer}
             setMoleculesLayer={setMoleculesLayer}
             cellsLayer={cellsLayer}
             setCellsLayer={setCellsLayer}
@@ -1019,6 +1142,7 @@ export function SelectionsSummarySubscriber(props) {
             handleRasterLayerChange={handleRasterLayerChange}
             handleRasterLayerRemove={handleRasterLayerRemove}
             obsSegmentationsType={obsSegmentationsType}
+
             segmentationLayerLoaders={segmentationLayerLoaders}
             segmentationLayerMeta={segmentationLayerMeta}
             segmentationLayerCallbacks={segmentationLayerCallbacks}
@@ -1027,12 +1151,21 @@ export function SelectionsSummarySubscriber(props) {
             setAreLoadingSegmentationChannels={setAreLoadingSegmentationChannels}
             handleSegmentationLayerChange={handleSegmentationLayerChange}
             handleSegmentationLayerRemove={handleSegmentationLayerRemove}
+            disable3d={disable3d}
+            globalDisable3d={globalDisable3d}
+            layerIs3DIndex={layerIs3DIndex}
+            disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
+            enableLayerButtonsWithOneLayer={enableLayerButtonsWithOneLayer}
             setZoom={setSpatialZoom}
             setTargetX={setSpatialTargetX}
             setTargetY={setSpatialTargetY}
             setTargetZ={setSpatialTargetZ}
             setRotationX={setSpatialRotationX}
             setRotationOrbit={setSpatialRotationOrbit}
+            componentHeight={componentHeight || windowHeight}
+            componentWidth={componentWidth || windowWidth}
+            spatialLayout={spatialLayout}
+            handleImageAdd={handleImageAdd}
             additionalObsSets={additionalObsSets}
           />
         </div>

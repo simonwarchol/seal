@@ -43,7 +43,6 @@ import BitmaskChannelController from "./BitmaskChannelController.jsx";
 // expensive so we have to be careful with props in this file in general.
 export const LayerControllerMemoized = React.memo(
   forwardRef((props, ref) => {
-    console.log('LayerControllerMemoized', props);
     const {
       title,
       closeButtonVisible,
@@ -99,6 +98,9 @@ export const LayerControllerMemoized = React.memo(
     const shouldShowImageLayerButton = Boolean(
       enableLayerButtonsWithOneLayer || imageLayerLoaders?.length > 1
     );
+    // cellsLayer &&
+    // obsSegmentationsType, rasterLayers
+    console.log('test', cellsLayer, obsSegmentationsType, rasterLayers);
 
     return (
       <TitleInfo
@@ -368,6 +370,8 @@ export function LayerControllerSubscriber(props) {
 
     coordinationScopes
   );
+  console.log('cellsLayer2', cellsLayer,coordinationScopes);
+
 
   const [
     {
@@ -513,7 +517,7 @@ export function LayerControllerSubscriber(props) {
       closeButtonVisible={closeButtonVisible}
       downloadButtonVisible={downloadButtonVisible}
       removeGridComponent={removeGridComponent}
-      theme={theme}
+      theme={'dark'}
       isReady={isReady}
       moleculesLayer={moleculesLayer}
       dataset={dataset}

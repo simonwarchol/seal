@@ -112,7 +112,7 @@ export default function LayerController(props) {
     additionalObsSets,
     isSpotlight,
   } = props;
-
+  console.log('IS SPOTLIGHT', isSpotlight);
   const {
     colormap,
     opacity,
