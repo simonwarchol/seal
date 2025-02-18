@@ -104,208 +104,202 @@ export const LayerControllerMemoized = React.memo(
     console.log('test', cellsLayer, obsSegmentationsType, rasterLayers);
 
     return (
-      <TitleInfo
-        title={title}
-        isScroll
-        closeButtonVisible={closeButtonVisible}
-        downloadButtonVisible={downloadButtonVisible}
-        removeGridComponent={removeGridComponent}
-        theme={theme}
-        isReady={isReady}
-      >
-        <div className="layer-controller-container" ref={ref}>
-          {/* Segmentation bitmask layers: */}
-          {cellsLayer &&
-            obsSegmentationsType === "bitmask" &&
-            cellsLayer.map((layer, i) => {
-              const { index } = layer;
-              const loader = segmentationLayerLoaders?.[index];
-              const layerMeta = segmentationLayerMeta?.[index];
-              const isRaster = false;
-              // Set up the call back mechanism so that each layer manages
-              // callbacks/loading state for itself and its channels.
-              const setSegmentationLayerCallback = (cb) => {
-                const newRasterLayersCallbacks = [
-                  ...(imageLayerCallbacks || []),
-                ];
-                newRasterLayersCallbacks[i] = cb;
-                setSegmentationLayerCallbacks(newRasterLayersCallbacks);
-              };
-              const areLayerChannelsLoading =
-                (areLoadingSegmentationChannels || [])[i] || [];
-              const setAreLayerChannelsLoading = (v) => {
-                const newAreLoadingImageChannels = [
-                  ...(areLoadingSegmentationChannels || []),
-                ];
-                newAreLoadingImageChannels[i] = v;
-                setAreLoadingSegmentationChannels(newAreLoadingImageChannels);
-              };
-              return loader && layerMeta ? (
-                <Grid
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={`${dataset}-raster-${index}-${i}`}
-                  item
-                  style={{ marginTop: "10px" }}
-                >
-                  <LayerController
-                    name={layerMeta.name}
-                    layer={layer}
-                    loader={loader}
-                    theme={theme}
-                    isSpotlight={true}
-                    handleLayerChange={(v) =>
-                      handleSegmentationLayerChange(v, i)
-                    }
-                    handleLayerRemove={() => handleSegmentationLayerRemove(i)}
-                    ChannelController={BitmaskChannelController}
-                    shouldShowTransparentColor={isRaster}
-                    shouldShowDomain={isRaster}
-                    shouldShowColormap={isRaster}
-                    // Disable 3D if given explicit instructions to do so
-                    // or if another layer is using 3D mode.
-                    disable3d={true}
-                    disabled={
-                      typeof layerIs3DIndex === "number" &&
+
+      <div className="layer-controller-container" style={{
+        padding: '0px',
+        margin: '0px',
+      }} ref={ref}>
+        {/* Segmentation bitmask layers: */}
+        {cellsLayer &&
+          obsSegmentationsType === "bitmask" &&
+          cellsLayer.map((layer, i) => {
+            const { index } = layer;
+            const loader = segmentationLayerLoaders?.[index];
+            const layerMeta = segmentationLayerMeta?.[index];
+            const isRaster = false;
+            // Set up the call back mechanism so that each layer manages
+            // callbacks/loading state for itself and its channels.
+            const setSegmentationLayerCallback = (cb) => {
+              const newRasterLayersCallbacks = [
+                ...(imageLayerCallbacks || []),
+              ];
+              newRasterLayersCallbacks[i] = cb;
+              setSegmentationLayerCallbacks(newRasterLayersCallbacks);
+            };
+            const areLayerChannelsLoading =
+              (areLoadingSegmentationChannels || [])[i] || [];
+            const setAreLayerChannelsLoading = (v) => {
+              const newAreLoadingImageChannels = [
+                ...(areLoadingSegmentationChannels || []),
+              ];
+              newAreLoadingImageChannels[i] = v;
+              setAreLoadingSegmentationChannels(newAreLoadingImageChannels);
+            };
+            return loader && layerMeta ? (
+              <Grid
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${dataset}-raster-${index}-${i}`}
+                item
+                style={{ marginTop: "10px" }}
+              >
+                <LayerController
+                  name={layerMeta.name}
+                  layer={layer}
+                  loader={loader}
+                  theme={theme}
+                  isSpotlight={true}
+                  handleLayerChange={(v) =>
+                    handleSegmentationLayerChange(v, i)
+                  }
+                  handleLayerRemove={() => handleSegmentationLayerRemove(i)}
+                  ChannelController={BitmaskChannelController}
+                  shouldShowTransparentColor={isRaster}
+                  shouldShowDomain={isRaster}
+                  shouldShowColormap={isRaster}
+                  // Disable 3D if given explicit instructions to do so
+                  // or if another layer is using 3D mode.
+                  disable3d={true}
+                  disabled={
+                    typeof layerIs3DIndex === "number" &&
+                    layerIs3DIndex !== -1 &&
+                    layerIs3DIndex !== i
+                  }
+                  disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
+                  imageLayerCallbacks={imageLayerCallbacks}
+                  setImageLayerCallback={setSegmentationLayerCallback}
+                  setViewState={({
+                    zoom: newZoom,
+                    target,
+                    rotationX: newRotationX,
+                    rotationOrbit: newRotationOrbit,
+                  }) => {
+                    setZoom(newZoom);
+                    setTargetX(target[0]);
+                    setTargetY(target[1]);
+                    setTargetZ(target[2]);
+                    setRotationX(newRotationX);
+                    setRotationOrbit(newRotationOrbit);
+                  }}
+                  setAreLayerChannelsLoading={setAreLayerChannelsLoading}
+                  areLayerChannelsLoading={areLayerChannelsLoading}
+                  spatialHeight={
+                    (componentHeight *
+                      (spatialLayout ? spatialLayout.h : 1)) /
+                    12
+                  }
+                  spatialWidth={
+                    (componentWidth * (spatialLayout ? spatialLayout.w : 1)) /
+                    12
+                  }
+                  shouldShowRemoveLayerButton={shouldShowImageLayerButton}
+                  additionalObsSets={additionalObsSets}
+                />
+              </Grid>
+            ) : null;
+          })}
+        {/* Image layers: */}
+        {rasterLayers &&
+          rasterLayers.map((layer, i, arr) => {
+
+            const { index } = layer;
+            const loader = imageLayerLoaders?.[index];
+            const layerMeta = imageLayerMeta?.[index];
+            // Bitmasks are handled above.
+            const isRaster = true;
+            // if
+
+            // Set up the call back mechanism so that each layer manages
+            // callbacks/loading state for itself and its channels.
+            const setImageLayerCallback = (cb) => {
+              const newRasterLayersCallbacks = [
+                ...(imageLayerCallbacks || []),
+              ];
+              newRasterLayersCallbacks[i] = cb;
+              setImageLayerCallbacks(newRasterLayersCallbacks);
+            };
+
+            const areLayerChannelsLoading =
+              (areLoadingImageChannels || [])[i] || [];
+            const setAreLayerChannelsLoading = (v) => {
+              const newAreLoadingImageChannels = [
+                ...(areLoadingImageChannels || []),
+              ];
+              newAreLoadingImageChannels[i] = v;
+              setAreLoadingImageChannels(newAreLoadingImageChannels);
+            };
+            return loader && layerMeta ? (
+              <Grid
+                // eslint-disable-next-line react/no-array-index-key
+                key={`${dataset}-raster-${index}-${i}`}
+                item
+                style={{ marginTop: "10px" }}
+              >
+                <LayerController
+                  name={layerMeta.name}
+                  layer={layer}
+                  loader={loader}
+                  theme={theme}
+                  handleLayerChange={(v) => handleRasterLayerChange(v, i)}
+                  handleLayerRemove={() => handleRasterLayerRemove(i)}
+                  ChannelController={RasterChannelController}
+                  shouldShowTransparentColor={isRaster}
+                  shouldShowDomain={isRaster}
+                  shouldShowColormap={isRaster}
+                  // Disable 3D if given explicit instructions to do so
+                  // or if another layer is using 3D mode.
+                  disable3d={
+                    globalDisable3d ||
+                    (disable3d || []).indexOf(layerMeta.name) >= 0 ||
+                    (typeof layerIs3DIndex === "number" &&
                       layerIs3DIndex !== -1 &&
-                      layerIs3DIndex !== i
-                    }
-                    disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
-                    imageLayerCallbacks={imageLayerCallbacks}
-                    setImageLayerCallback={setSegmentationLayerCallback}
-                    setViewState={({
-                      zoom: newZoom,
-                      target,
-                      rotationX: newRotationX,
-                      rotationOrbit: newRotationOrbit,
-                    }) => {
-                      setZoom(newZoom);
-                      setTargetX(target[0]);
-                      setTargetY(target[1]);
-                      setTargetZ(target[2]);
-                      setRotationX(newRotationX);
-                      setRotationOrbit(newRotationOrbit);
-                    }}
-                    setAreLayerChannelsLoading={setAreLayerChannelsLoading}
-                    areLayerChannelsLoading={areLayerChannelsLoading}
-                    spatialHeight={
-                      (componentHeight *
-                        (spatialLayout ? spatialLayout.h : 1)) /
-                      12
-                    }
-                    spatialWidth={
-                      (componentWidth * (spatialLayout ? spatialLayout.w : 1)) /
-                      12
-                    }
-                    shouldShowRemoveLayerButton={shouldShowImageLayerButton}
-                    additionalObsSets={additionalObsSets}
-                  />
-                </Grid>
-              ) : null;
-            })}
-          {/* Image layers: */}
-          {rasterLayers &&
-            rasterLayers.map((layer, i, arr) => {
-
-              const { index } = layer;
-              const loader = imageLayerLoaders?.[index];
-              const layerMeta = imageLayerMeta?.[index];
-              // Bitmasks are handled above.
-              const isRaster = true;
-              // if
-
-              // Set up the call back mechanism so that each layer manages
-              // callbacks/loading state for itself and its channels.
-              const setImageLayerCallback = (cb) => {
-                const newRasterLayersCallbacks = [
-                  ...(imageLayerCallbacks || []),
-                ];
-                newRasterLayersCallbacks[i] = cb;
-                setImageLayerCallbacks(newRasterLayersCallbacks);
-              };
-
-              const areLayerChannelsLoading =
-                (areLoadingImageChannels || [])[i] || [];
-              const setAreLayerChannelsLoading = (v) => {
-                const newAreLoadingImageChannels = [
-                  ...(areLoadingImageChannels || []),
-                ];
-                newAreLoadingImageChannels[i] = v;
-                setAreLoadingImageChannels(newAreLoadingImageChannels);
-              };
-              return loader && layerMeta ? (
-                <Grid
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={`${dataset}-raster-${index}-${i}`}
-                  item
-                  style={{ marginTop: "10px" }}
-                >
-                  <LayerController
-                    name={layerMeta.name}
-                    layer={layer}
-                    loader={loader}
-                    theme={theme}
-                    handleLayerChange={(v) => handleRasterLayerChange(v, i)}
-                    handleLayerRemove={() => handleRasterLayerRemove(i)}
-                    ChannelController={RasterChannelController}
-                    shouldShowTransparentColor={isRaster}
-                    shouldShowDomain={isRaster}
-                    shouldShowColormap={isRaster}
-                    // Disable 3D if given explicit instructions to do so
-                    // or if another layer is using 3D mode.
-                    disable3d={
-                      globalDisable3d ||
-                      (disable3d || []).indexOf(layerMeta.name) >= 0 ||
-                      (typeof layerIs3DIndex === "number" &&
-                        layerIs3DIndex !== -1 &&
-                        layerIs3DIndex !== i)
-                    }
-                    disabled={
-                      typeof layerIs3DIndex === "number" &&
-                      layerIs3DIndex !== -1 &&
-                      layerIs3DIndex !== i
-                    }
-                    disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
-                    imageLayerCallbacks={imageLayerCallbacks}
-                    setImageLayerCallback={setImageLayerCallback}
-                    setViewState={({
-                      zoom: newZoom,
-                      target,
-                      rotationX: newRotationX,
-                      rotationOrbit: newRotationOrbit,
-                    }) => {
-                      setZoom(newZoom);
-                      setTargetX(target[0]);
-                      setTargetY(target[1]);
-                      setTargetZ(target[2]);
-                      setRotationX(newRotationX);
-                      setRotationOrbit(newRotationOrbit);
-                    }}
-                    setAreLayerChannelsLoading={setAreLayerChannelsLoading}
-                    areLayerChannelsLoading={areLayerChannelsLoading}
-                    spatialHeight={
-                      (componentHeight *
-                        (spatialLayout ? spatialLayout.h : 1)) /
-                      12
-                    }
-                    spatialWidth={
-                      (componentWidth * (spatialLayout ? spatialLayout.w : 1)) /
-                      12
-                    }
-                    shouldShowRemoveLayerButton={shouldShowImageLayerButton}
-                  />
-                </Grid>
-              ) : null;
-            })}
-          {shouldShowImageLayerButton ? (
-            <Grid item>
-              <ImageAddButton
-                imageOptions={imageLayerMeta}
-                handleImageAdd={handleImageAdd}
-              />
-            </Grid>
-          ) : null}
-        </div>
-      </TitleInfo>
+                      layerIs3DIndex !== i)
+                  }
+                  disabled={
+                    typeof layerIs3DIndex === "number" &&
+                    layerIs3DIndex !== -1 &&
+                    layerIs3DIndex !== i
+                  }
+                  disableChannelsIfRgbDetected={disableChannelsIfRgbDetected}
+                  imageLayerCallbacks={imageLayerCallbacks}
+                  setImageLayerCallback={setImageLayerCallback}
+                  setViewState={({
+                    zoom: newZoom,
+                    target,
+                    rotationX: newRotationX,
+                    rotationOrbit: newRotationOrbit,
+                  }) => {
+                    setZoom(newZoom);
+                    setTargetX(target[0]);
+                    setTargetY(target[1]);
+                    setTargetZ(target[2]);
+                    setRotationX(newRotationX);
+                    setRotationOrbit(newRotationOrbit);
+                  }}
+                  setAreLayerChannelsLoading={setAreLayerChannelsLoading}
+                  areLayerChannelsLoading={areLayerChannelsLoading}
+                  spatialHeight={
+                    (componentHeight *
+                      (spatialLayout ? spatialLayout.h : 1)) /
+                    12
+                  }
+                  spatialWidth={
+                    (componentWidth * (spatialLayout ? spatialLayout.w : 1)) /
+                    12
+                  }
+                  shouldShowRemoveLayerButton={shouldShowImageLayerButton}
+                />
+              </Grid>
+            ) : null;
+          })}
+        {shouldShowImageLayerButton ? (
+          <Grid item>
+            <ImageAddButton
+              imageOptions={imageLayerMeta}
+              handleImageAdd={handleImageAdd}
+            />
+          </Grid>
+        ) : null}
+      </div>
     );
   })
 );

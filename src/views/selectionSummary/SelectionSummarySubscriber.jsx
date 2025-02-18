@@ -466,25 +466,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
         zIndex: 999,
         borderRight: '1px solid #333333',
       }}>
-        <div style={{
-          padding: '10px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          borderBottom: '1px solid #333333'
-        }}>
-          <Typography variant="subtitle1" sx={{ color: '#ffffff' }}>
-            Channel Configuration
-          </Typography>
-          <IconButton
-            onClick={() => setIsPanelOpen(false)}
-            size="small"
-            sx={{ color: '#ffffff' }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </div>
-        <div style={{ padding: '0', color: '#ffffff' }}>
+        
+        <div style={{ padding: '0', color: '#ffffff', margin:0 }}>
           <LayerControllerMemoized
             simon={true}
             ref={layerControllerRef}

@@ -106,7 +106,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                         >
                             <Grid item>
                                 <span style={{ fontSize: '12px', color: '#ffffff' }}>Selection</span>                            </Grid>
-                            <Grid item container justifyContent="center" sx={{ borderTop: '2px solid black', pt: 1 }}>
+                            <Grid item container justifyContent="center" sx={{ borderTop: '2px solid white', pt: 1 }}>
                                 <Grid item xs={6}>
                                     <ToggleButton
                                         value="show"
@@ -120,7 +120,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                             mr: 1
                                         }}
                                     >
-                                        <Icon style={{ height: '45px', width: 'auto' }}>
+                                        <Icon style={{ height: '35px', width: 'auto' }}>
                                             <img src={showBackground} />
                                         </Icon>
                                     </ToggleButton>
@@ -137,7 +137,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                             border: '1px solid rgba(0, 0, 0, 0.12)'
                                         }}
                                     >
-                                        <Icon style={{ height: '45px', width: 'auto' }}>
+                                        <Icon style={{ height: '35px', width: 'auto' }}>
                                             <img src={hideBackground} />
                                         </Icon>
                                     </ToggleButton>
@@ -159,7 +159,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                             <Grid item xs={12}>
                                 <span style={{ fontSize: '12px', color: '#ffffff' }}>Selection</span>
                             </Grid>
-                            <Grid item container justifyContent="center" sx={{ borderTop: '2px solid black', pt: 1 }}>
+                            <Grid item container justifyContent="center" sx={{ borderTop: '2px solid white', pt: 1 }}>
                                 <Grid item xs={6}>
                                     <ToggleButton
                                         value="spotlight"
@@ -173,7 +173,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                             mr: 1
                                         }}
                                     >
-                                        <Icon style={{ height: '45px', width: 'auto' }}>
+                                        <Icon style={{ height: '35px', width: 'auto' }}>
                                             <img src={spotlightSelection} />
                                         </Icon>
                                     </ToggleButton>
@@ -190,7 +190,7 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                             border: '1px solid rgba(0, 0, 0, 0.12)'
                                         }}
                                     >
-                                        <Icon style={{ height: '45px', width: 'auto' }}>
+                                        <Icon style={{ height: '35px', width: 'auto' }}>
                                             <img src={outlineSelection} />
                                         </Icon>
                                     </ToggleButton>
@@ -212,12 +212,12 @@ const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setO
                                 <span style={{ fontSize: '12px', color: '#ffffff' }}>Opacity</span>
                             </Grid>
                             <Grid item container sx={{
-                                borderTop: '2px solid black',
+                                borderTop: '2px solid white',
                                 pt: 1,
                                 opacity: visible ? 1 : 0.1
                             }}>
                                 <Grid item xs={12}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1873.3 650" version="1.1" style={{ maxHeight: '150px' }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1873.3 650" version="1.1" style={{ maxHeight: '120px' }}>
                                         <g id="flashlight">
                                             <path
                                                 className="st6"
