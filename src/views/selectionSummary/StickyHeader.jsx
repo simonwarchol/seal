@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef, useMemo, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
@@ -11,14 +11,16 @@ function StickyHeader({
   setSortBy,
   sortDirection,
   setSortDirection,
-  viewMode,
   height,
   plotSize,
+  viewMode,
   handleViewChange,
   importanceColorScale,
   occuranceColorScale,
   importanceInColor = true,
   setImportanceInColor,
+  isPanelOpen,
+  onPanelToggle,
   ...props
 }) {
   // Sort features alphabetically to match FeatureHeatmap
@@ -53,57 +55,12 @@ function StickyHeader({
         flexDirection: 'column',
         padding: '5px'
       }}>
-        <ToggleButtonGroup
-          value={viewMode}
-          exclusive
-          onChange={handleViewChange}
-          size="small"
-          style={{ display: 'flex', alignItems: 'center' }}
-        >
-          <IconButton
-            size="small"
 
-            style={{
-              color: '#ffffff',
-              padding: '4px',
-              marginRight: '4px',
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-            </svg>
-          </IconButton>
-          <ToggleButton
-            value="embedding"
-            style={{
-              backgroundColor: viewMode === 'embedding' ? '#4a4a4a' : '#2a2a2a',
-              color: '#ffffff',
-              border: '1px solid #333333',
-              fontSize: '0.7rem',
-            }}
-            m={0}
-            p={0}
-          >
-            Emb.</ToggleButton>
-          <ToggleButton
-            value="spatial"
-            style={{
-              backgroundColor: viewMode === 'spatial' ? '#4a4a4a' : '#2a2a2a',
-              color: '#ffffff',
-              border: '1px solid #333333',
-              fontSize: '0.7rem',
-            }}
-            m={0}
-            p={0}
-          >
-            Img.
-          </ToggleButton>
-        </ToggleButtonGroup>
 
         {/* Legend */}
-        <Box 
-          p={0} 
-          m={0} 
+        <Box
+          p={0}
+          m={0}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -116,10 +73,10 @@ function StickyHeader({
           onClick={() => setImportanceInColor(!importanceInColor)}
         >
           {/* Importance Legend (Always on top) */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            m: 0, 
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            m: 0,
             p: 0,
           }}>
             <Typography variant="caption" sx={{ color: '#ffffff', m: 0, p: 0 }}>
@@ -177,10 +134,10 @@ function StickyHeader({
           </Box>
 
           {/* Occurrence Legend (Always bottom) */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            m: 0, 
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            m: 0,
             p: 0,
           }}>
             <Typography variant="caption" sx={{ color: '#ffffff', m: 0, p: 0 }}>
@@ -279,7 +236,7 @@ function StickyHeader({
             </svg>
           </Box>
           {hoveredLegend === 'legend' && (
-            <div 
+            <div
               style={{
                 position: 'absolute',
                 top: 0,
@@ -295,11 +252,55 @@ function StickyHeader({
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
-                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/>
+                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
               </svg>
             </div>
           )}
         </Box>
+        <ToggleButtonGroup
+          value={viewMode}
+          exclusive
+          onChange={handleViewChange}
+          size="small"
+          m={0}
+          p={0}
+          style={{ display: 'flex', alignItems: 'center' }}
+        >
+          <ToggleButton
+            value="channels"
+            m={0}
+            onClick={() => onPanelToggle(!isPanelOpen)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              color: '#ffffff',
+              border: 'none',
+              padding: '4px 0 0 0'
+            }}
+          >
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="currentColor"
+              style={{
+                transform: `rotate(${isPanelOpen ? 180 : 0}deg)`,
+                transition: 'transform 0.3s ease-in-out'
+              }}
+            >
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+            </svg>
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#ffffff',
+                ml: 1
+              }}
+            >
+              Conf.
+            </Typography>
+          </ToggleButton>
+        </ToggleButtonGroup>
       </div>
 
       {/* Feature labels section */}

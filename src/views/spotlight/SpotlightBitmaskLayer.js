@@ -510,7 +510,7 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
 
   getShaders() {
     const { colormap } = this.props;
-    console.log('spotlight bitmask layer', this.props);
+    // console.log('spotlight bitmask layer', this.props);
     return {
       fs,
       vs,

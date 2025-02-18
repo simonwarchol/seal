@@ -1364,14 +1364,14 @@ class Spatial extends AbstractSpatialOrScatterplot {
         pickable: true,
         getTextAnchor: 'start',
         getPosition: (d, i, a) => {
-          console.log('d', d, i)
+          // console.log('d', d, i)
           // Space text 10 pixels from the bottom left, with a 10 pixel gap between each text
           const test = [bottomLeft[0] + 100, bottomLeft[1] - (i.index * 500) - 1500];
-          console.log('test', test, bottomLeft)
+          // console.log('test', test, bottomLeft)
           return test;
         },
         onClick: async (info, event, d) => {
-          console.log('info', info, event, d)
+          // console.log('info', info, event, d)
           if (!this?.state?.tool) {
             const featureImportance = info.object.features;
             let changeI = 0;
@@ -1655,7 +1655,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       });
     }
     const [Layer, layerLoader] = getLayerLoaderTuple(data, layerDef.use3d);
-    console.log('layerLoader', layerLoader)
+    // console.log('layerLoader', layerLoader)
 
     const extensions = getVivLayerExtensions(
       layerDef.use3d,

@@ -41,8 +41,9 @@ import BitmaskChannelController from "./BitmaskChannelController.jsx";
 // are caused by view state updates i.e zooming and panning within
 // the actual Spatial component.  Re-rendering this component is very
 // expensive so we have to be careful with props in this file in general.
-const LayerControllerMemoized = React.memo(
+export const LayerControllerMemoized = React.memo(
   forwardRef((props, ref) => {
+    console.log('LayerControllerMemoized', props);
     const {
       title,
       closeButtonVisible,

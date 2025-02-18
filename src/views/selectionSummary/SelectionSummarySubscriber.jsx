@@ -1,9 +1,9 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData } from '@vitessce/vit-s';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { useCoordination, TitleInfo, useLoaders, useImageData, useObsSetsData, useAuxiliaryCoordination, useObsLocationsData, useObsSegmentationsData, useReady } from '@vitessce/vit-s';
 import { COMPONENT_COORDINATION_TYPES, ViewType, CoordinationType as ct } from '@vitessce/constants-internal';
 import { capitalize } from '@vitessce/utils';
 import { treeFindNodeByNamePath, mergeObsSets } from '@vitessce/sets-utils';
-import { Card, CardContent, Typography } from '@material-ui/core';
+import { Card, CardContent, Typography, Tabs, Tab } from '@material-ui/core';
 import useStore from "../../store";
 import ScatterPlot from './ScatterPlot';
 import FeatureHeatmap from './FeatureHeatmap';
@@ -15,6 +15,9 @@ import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import SetOperationIcon from './SetOperationIcon';
 import { iconConfigs } from './SetOperationIcon';
+import { Close as CloseIcon } from '@mui/icons-material';
+import { LayerControllerMemoized } from '../controller/LayerControllerSubscriber';
+
 
 const OPERATION_NAMES = {
   'a_minus_intersection': 'Only in first set',
@@ -171,7 +174,7 @@ function SelectionColumn({
   );
 }
 
-function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection }) {
+function SelectionsDisplay({ selections = [], displayedChannels, channelNames, cellSets, setCellSetSelection, rasterLayers, setRasterLayers, cellsLayer, setCellsLayer, imageLayerLoaders, imageLayerMeta, isReady, imageLayerCallbacks, setImageLayerCallbacks, areLoadingImageChannels, setAreLoadingImageChannels, handleRasterLayerChange, handleRasterLayerRemove, handleSegmentationLayerChange, handleSegmentationLayerRemove }) {
   // Move all useStore calls to the top of the component
   const setFeatures = useStore((state) => state.setFeatures);
   const compareMode = useStore((state) => state.compareMode);
@@ -227,6 +230,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 
   const [rectWidth, setRectWidth] = useState(0);
   const [compareSelections, setCompareSelections] = useState([]);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (!allSelections?.length || !setFeatures) {
@@ -271,7 +276,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
         // Sort by the feature importance if sortBy is present
         if (sortBy) {
           let aValue, bValue;
-          if (importanceInColor){
+          if (importanceInColor) {
             aValue = setFeatures[a.path[0]]?.[a.path[1]]?.feat_imp.find(d => d[0] === sortBy)?.[1] || 0;
             bValue = setFeatures[b.path[0]]?.[b.path[1]]?.feat_imp.find(d => d[0] === sortBy)?.[1] || 0;
           } else {
@@ -281,7 +286,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 
           if (!aValue || !bValue) return 0;
 
-         
+
 
           return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
         }
@@ -407,12 +412,28 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
   }, [setFeatures, selections]);
 
   // Interpolate between #00E5D3, to #0C074E, to #DD94C5
-  const occuranceColorScale = useMemo(() => 
+  const occuranceColorScale = useMemo(() =>
     d3.scaleLinear()
       .domain([-1, 0, 1])
       .range(['#00E5D3', '#0C074E', '#DD94C5'])
       .interpolate(d3.interpolateRgb)
-  , []);
+    , []);
+
+  function TabPanel(props) {
+    const { children, value, index, ...other } = props;
+
+    return (
+      <div
+        role="tabpanel"
+        hidden={value !== index}
+        id={`simple-tabpanel-${index}`}
+        aria-labelledby={`simple-tab-${index}`}
+        {...other}
+      >
+        {value === index && children}
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -420,283 +441,348 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
       height: '100%',
       overflow: 'hidden',
     }}>
-    
-
-      {/* Main content area - added ref */}
-      <div 
-        ref={scrollContainerRef}
-        style={{
-          flex: 1,
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        width: '300px',
+        height: '100vh',
+        backgroundColor: '#1a1a1a',
+        transform: `translateX(${isPanelOpen ? '0' : '-300px'})`,
+        transition: 'transform 0.3s ease-in-out',
+        zIndex: 999,
+        borderRight: '1px solid #333333',
+      }}>
+        <div style={{
+          padding: '10px',
           display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'nowrap',
-          gap: '2px',
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          whiteSpace: 'nowrap',
-          paddingBottom: '0',
-        }}
-      >
-        <StickyHeader
-          sortBy={sortBy}
-          setSortBy={setSortBy}
-          sortDirection={sortDirection}
-          setSortDirection={setSortDirection}
-          featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
-          rectWidth={rectWidth}
-          height={scrollContainerRef.current?.clientHeight}
-          plotSize={PLOT_SIZE}
-          importanceColorScale={importanceColorScale}
-          occuranceColorScale={occuranceColorScale}
-          importanceInColor={importanceInColor}
-          setImportanceInColor={setImportanceInColor}
-        />
-
-        {/* Only show the comparison UI when in compare mode */}
-        {compareMode ? (
-          <div style={{ 
-            display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '1px solid #333333'
+        }}>
+          <Typography variant="subtitle1" sx={{ color: '#ffffff' }}>
+            Channel Configuration
+          </Typography>
+          <IconButton
+            onClick={() => setIsPanelOpen(false)}
+            size="small"
+            sx={{ color: '#ffffff' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </div>
+        <div style={{ padding: '0', color: '#ffffff' }}>
+          <LayerControllerMemoized
+            simon={true}
+            selections={selections}
+            cellSets={cellSets}
+            setCellSetSelection={setCellSetSelection}
+            displayedChannels={displayedChannels}
+            channelNames={channelNames}
+            rasterLayers={rasterLayers}
+            setRasterLayers={setRasterLayers}
+            cellsLayer={cellsLayer}
+            setCellsLayer={setCellsLayer}
+            imageLayerLoaders={imageLayerLoaders}
+            imageLayerMeta={imageLayerMeta}
+            isReady={isReady}
+            isSpotlight={true}
+            imageLayerCallbacks={imageLayerCallbacks}
+            setImageLayerCallbacks={setImageLayerCallbacks}
+            areLoadingImageChannels={areLoadingImageChannels}
+            setAreLoadingImageChannels={setAreLoadingImageChannels}
+            handleRasterLayerChange={handleRasterLayerChange}
+            handleRasterLayerRemove={handleRasterLayerRemove}
+            handleSegmentationLayerChange={handleSegmentationLayerChange}
+            handleSegmentationLayerRemove={handleSegmentationLayerRemove}
+          />
+        </div>
+      </div>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+        marginLeft: isPanelOpen ? '300px' : '0',
+        transition: 'margin-left 0.3s ease-in-out',
+      }}>
+        <div
+          ref={scrollContainerRef}
+          style={{
+            flex: 1,
+            display: 'flex',
             flexDirection: 'row',
+            flexWrap: 'nowrap',
             gap: '2px',
-            height: '100%',
-            flex: 1
-          }}>
-            {/* Selected sets */}
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'row', 
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            whiteSpace: 'nowrap',
+            paddingBottom: '0',
+          }}
+        >
+          <StickyHeader
+            sortBy={sortBy}
+            setSortBy={setSortBy}
+            sortDirection={sortDirection}
+            setSortDirection={setSortDirection}
+            featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
+            rectWidth={rectWidth}
+            height={scrollContainerRef.current?.clientHeight}
+            plotSize={PLOT_SIZE}
+            importanceColorScale={importanceColorScale}
+            occuranceColorScale={occuranceColorScale}
+            importanceInColor={importanceInColor}
+            setImportanceInColor={setImportanceInColor}
+            isPanelOpen={isPanelOpen}
+            onPanelToggle={setIsPanelOpen}
+          />
+
+          {/* Only show the comparison UI when in compare mode */}
+          {compareMode ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
               gap: '2px',
-              height: '100%'
+              height: '100%',
+              flex: 1
             }}>
-              {sortedSelections?.filter(selection =>
-                compareSelections.some(s =>
-                  s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-                )
-              ).map((selection, i) => (
-                <Card
-                  key={`selected-${i}`}
-                  variant="outlined"
-                  style={{
-                    backgroundColor: '#2C3E50',
-                    borderColor: '#333333',
-                    padding: 1,
-                    marginRight: '2px',
-                    display: 'inline-block',
-                    height: '100%',
-                    width: 'auto',
-                    flex: '1 0 auto',
-                    minWidth: `${PLOT_SIZE * 2}px`,
-                  }}
-                >
-                  <CardContent style={{
-                    padding: 0,
-                    height: '100%',
-                    width: '100%',
-                  }}>
-                    <SelectionColumn
-                      selection={selection}
-                      setFeatures={setFeatures}
-                      viewMode={viewMode}
-                      PLOT_SIZE={PLOT_SIZE}
-                      heatmapContainerWidth={heatmapContainerWidth}
-                      heatmapContainerRef={heatmapContainerRef}
-                      isVisible={isSelectionVisible(selection.path)}
-                      onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                      onClick={() => handleRowClick(selection)}
-                      colorScheme={colorScheme}
-                      cellSets={cellSets}
-                      compareMode={compareMode}
-                      importanceColorScale={importanceColorScale}
-                      occuranceColorScale={occuranceColorScale}
-                      importanceInColor={importanceInColor}
-                      setImportanceInColor={setImportanceInColor}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Set operation icons */}
-            {compareMode && compareSelections.length === 2 && (
+              {/* Selected sets */}
               <div style={{
-                padding: '4px',
-                backgroundColor: 'rgba(30, 30, 30, 0.8)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginLeft: '2px',
-                marginRight: '2px'
-              }}>
-                {Object.keys(OPERATION_NAMES).map((operation) => (
-                  <SetOperationIcon
-                    key={operation}
-                    type={operation}
-                    size={30}
-                    disabled={!comparisonResults?.operations?.[operation]}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Derived sets from comparison */}
-            {compareMode && comparisonResults?.operations && (
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'row', 
+                flexDirection: 'row',
                 gap: '2px',
                 height: '100%'
               }}>
-                {Object.entries(comparisonResults.operations)
-                  .filter(([_, value]) => value.count > 0)
-                  .map(([operation, value], i) => (
-                    <Card
-                      key={`comparison-${i}`}
-                      variant="outlined"
-                      style={{
-                        backgroundColor: `${iconConfigs[operation]?.color}99`,
-                        borderColor: '#333333',
-                        padding: 1,
-                        marginRight: '2px',
-                        display: 'inline-block',
-                        height: '100%',
-                        width: 'auto',
-                        flex: '1 0 auto',
-                        minWidth: `${PLOT_SIZE * 2}px`,
-                      }}
-                    >
-                      <CardContent style={{
-                        padding: 0,
-                        height: '100%',
-                        width: '100%',
-                      }}>
-                        <SelectionColumn
-                          selection={{
-                            path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
-                          }}
-                          setFeatures={{
-                            [OPERATION_NAMES[operation]]: {
-                              [`${value.count} cells`]: value.data
-                            }
-                          }}
-                          viewMode={viewMode}
-                          PLOT_SIZE={PLOT_SIZE}
-                          heatmapContainerWidth={heatmapContainerWidth}
-                          heatmapContainerRef={heatmapContainerRef}
-                          isVisible={true}
-                          onVisibilityToggle={() => { }}
-                          onClick={() => { }}
-                          colorScheme={colorScheme}
-                          cellSets={cellSets}
-                          compareMode={compareMode}
-                          importanceColorScale={importanceColorScale}
-                          occuranceColorScale={occuranceColorScale}
-                          importanceInColor={importanceInColor}
-                          setImportanceInColor={setImportanceInColor}
-                        />
-                      </CardContent>
-                    </Card>
-                  ))}
+                {sortedSelections?.filter(selection =>
+                  compareSelections.some(s =>
+                    s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+                  )
+                ).map((selection, i) => (
+                  <Card
+                    key={`selected-${i}`}
+                    variant="outlined"
+                    style={{
+                      backgroundColor: '#2C3E50',
+                      borderColor: '#333333',
+                      padding: 1,
+                      marginRight: '2px',
+                      display: 'inline-block',
+                      height: '100%',
+                      width: 'auto',
+                      flex: '1 0 auto',
+                      minWidth: `${PLOT_SIZE * 2}px`,
+                    }}
+                  >
+                    <CardContent style={{
+                      padding: 0,
+                      height: '100%',
+                      width: '100%',
+                    }}>
+                      <SelectionColumn
+                        selection={selection}
+                        setFeatures={setFeatures}
+                        viewMode={viewMode}
+                        PLOT_SIZE={PLOT_SIZE}
+                        heatmapContainerWidth={heatmapContainerWidth}
+                        heatmapContainerRef={heatmapContainerRef}
+                        isVisible={isSelectionVisible(selection.path)}
+                        onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                        onClick={() => handleRowClick(selection)}
+                        colorScheme={colorScheme}
+                        cellSets={cellSets}
+                        compareMode={compareMode}
+                        importanceColorScale={importanceColorScale}
+                        occuranceColorScale={occuranceColorScale}
+                        importanceInColor={importanceInColor}
+                        setImportanceInColor={setImportanceInColor}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            )}
 
-            {/* Unselected sets */}
-            <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
-              {sortedSelections?.filter(selection =>
-                !compareSelections.some(s =>
-                  s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
-                )
-              ).map((selection, i) => (
-                <Card
-                  key={`unselected-${i}`}
-                  variant="outlined"
-                  style={{
-                    backgroundColor: '#1A1A1A',
-                    borderColor: '#333333',
-                    padding: 1,
-                    marginRight: '2px',
-                    display: 'inline-block',
-                    height: '100%',
-                    width: 'auto',
-                    flex: '1 0 auto',
-                    minWidth: `${PLOT_SIZE * 2}px`,
-                  }}
-                >
-                  <CardContent style={{
-                    padding: 0,
-                    height: '100%',
-                    width: '100%',
-                  }}>
-                    <SelectionColumn
-                      selection={selection}
-                      setFeatures={setFeatures}
-                      viewMode={viewMode}
-                      PLOT_SIZE={PLOT_SIZE}
-                      heatmapContainerWidth={heatmapContainerWidth}
-                      heatmapContainerRef={heatmapContainerRef}
-                      isVisible={isSelectionVisible(selection.path)}
-                      onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                      onClick={() => handleRowClick(selection)}
-                      colorScheme={colorScheme}
-                      cellSets={cellSets}
-                      compareMode={compareMode}
-                      importanceColorScale={importanceColorScale}
-                      occuranceColorScale={occuranceColorScale}
-                      importanceInColor={importanceInColor}
-                      setImportanceInColor={setImportanceInColor}
+              {/* Set operation icons */}
+              {compareMode && compareSelections.length === 2 && (
+                <div style={{
+                  padding: '4px',
+                  backgroundColor: 'rgba(30, 30, 30, 0.8)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginLeft: '2px',
+                  marginRight: '2px'
+                }}>
+                  {Object.keys(OPERATION_NAMES).map((operation) => (
+                    <SetOperationIcon
+                      key={operation}
+                      type={operation}
+                      size={30}
+                      disabled={!comparisonResults?.operations?.[operation]}
                     />
-                  </CardContent>
-                </Card>
-              ))}
+                  ))}
+                </div>
+              )}
+
+              {/* Derived sets from comparison */}
+              {compareMode && comparisonResults?.operations && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '2px',
+                  height: '100%'
+                }}>
+                  {Object.entries(comparisonResults.operations)
+                    .filter(([_, value]) => value.count > 0)
+                    .map(([operation, value], i) => (
+                      <Card
+                        key={`comparison-${i}`}
+                        variant="outlined"
+                        style={{
+                          backgroundColor: `${iconConfigs[operation]?.color}99`,
+                          borderColor: '#333333',
+                          padding: 1,
+                          marginRight: '2px',
+                          display: 'inline-block',
+                          height: '100%',
+                          width: 'auto',
+                          flex: '1 0 auto',
+                          minWidth: `${PLOT_SIZE * 2}px`,
+                        }}
+                      >
+                        <CardContent style={{
+                          padding: 0,
+                          height: '100%',
+                          width: '100%',
+                        }}>
+                          <SelectionColumn
+                            selection={{
+                              path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
+                            }}
+                            setFeatures={{
+                              [OPERATION_NAMES[operation]]: {
+                                [`${value.count} cells`]: value.data
+                              }
+                            }}
+                            viewMode={viewMode}
+                            PLOT_SIZE={PLOT_SIZE}
+                            heatmapContainerWidth={heatmapContainerWidth}
+                            heatmapContainerRef={heatmapContainerRef}
+                            isVisible={true}
+                            onVisibilityToggle={() => { }}
+                            onClick={() => { }}
+                            colorScheme={colorScheme}
+                            cellSets={cellSets}
+                            compareMode={compareMode}
+                            importanceColorScale={importanceColorScale}
+                            occuranceColorScale={occuranceColorScale}
+                            importanceInColor={importanceInColor}
+                            setImportanceInColor={setImportanceInColor}
+                          />
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
+              )}
+
+              {/* Unselected sets */}
+              <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
+                {sortedSelections?.filter(selection =>
+                  !compareSelections.some(s =>
+                    s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
+                  )
+                ).map((selection, i) => (
+                  <Card
+                    key={`unselected-${i}`}
+                    variant="outlined"
+                    style={{
+                      backgroundColor: '#1A1A1A',
+                      borderColor: '#333333',
+                      padding: 1,
+                      marginRight: '2px',
+                      display: 'inline-block',
+                      height: '100%',
+                      width: 'auto',
+                      flex: '1 0 auto',
+                      minWidth: `${PLOT_SIZE * 2}px`,
+                    }}
+                  >
+                    <CardContent style={{
+                      padding: 0,
+                      height: '100%',
+                      width: '100%',
+                    }}>
+                      <SelectionColumn
+                        selection={selection}
+                        setFeatures={setFeatures}
+                        viewMode={viewMode}
+                        PLOT_SIZE={PLOT_SIZE}
+                        heatmapContainerWidth={heatmapContainerWidth}
+                        heatmapContainerRef={heatmapContainerRef}
+                        isVisible={isSelectionVisible(selection.path)}
+                        onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                        onClick={() => handleRowClick(selection)}
+                        colorScheme={colorScheme}
+                        cellSets={cellSets}
+                        compareMode={compareMode}
+                        importanceColorScale={importanceColorScale}
+                        occuranceColorScale={occuranceColorScale}
+                        importanceInColor={importanceInColor}
+                        setImportanceInColor={setImportanceInColor}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          // Regular view (not compare mode)
-          sortedSelections?.map((selection, i) => (
-            <Card
-              key={i}
-              variant="outlined"
-              style={{
-                backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
-                borderColor: '#333333',
-                padding: 1,
-                marginRight: '2px',
-                opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
-                display: 'inline-block',
-                height: '100%',
-                width: 'auto',
-                flex: '1 0 auto',
-                minWidth: `${PLOT_SIZE * 2}px`,
-              }}
-            >
-              <CardContent style={{
-                padding: 0,
-                height: '100%',
-                width: '100%',
-              }}>
-                <SelectionColumn
-                  selection={selection}
-                  setFeatures={setFeatures}
-                  viewMode={viewMode}
-                  PLOT_SIZE={PLOT_SIZE}
-                  heatmapContainerWidth={heatmapContainerWidth}
-                  heatmapContainerRef={heatmapContainerRef}
-                  isVisible={isSelectionVisible(selection.path)}
-                  onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                  onClick={() => handleRowClick(selection)}
-                  colorScheme={colorScheme}
-                  cellSets={cellSets}
-                  compareMode={compareMode}
-                  importanceColorScale={importanceColorScale}
-                  occuranceColorScale={occuranceColorScale}
-                  importanceInColor={importanceInColor}
-                  setImportanceInColor={setImportanceInColor}
-                />
-              </CardContent>
-            </Card>
-          ))
-        )}
+          ) : (
+            // Regular view (not compare mode)
+            sortedSelections?.map((selection, i) => (
+              <Card
+                key={i}
+                variant="outlined"
+                style={{
+                  backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
+                  borderColor: '#333333',
+                  padding: 1,
+                  marginRight: '2px',
+                  opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
+                  display: 'inline-block',
+                  height: '100%',
+                  width: 'auto',
+                  flex: '1 0 auto',
+                  minWidth: `${PLOT_SIZE * 2}px`,
+                }}
+              >
+                <CardContent style={{
+                  padding: 0,
+                  height: '100%',
+                  width: '100%',
+                }}>
+                  <SelectionColumn
+                    selection={selection}
+                    setFeatures={setFeatures}
+                    viewMode={viewMode}
+                    PLOT_SIZE={PLOT_SIZE}
+                    heatmapContainerWidth={heatmapContainerWidth}
+                    heatmapContainerRef={heatmapContainerRef}
+                    isVisible={isSelectionVisible(selection.path)}
+                    onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                    onClick={() => handleRowClick(selection)}
+                    colorScheme={colorScheme}
+                    cellSets={cellSets}
+                    compareMode={compareMode}
+                    importanceColorScale={importanceColorScale}
+                    occuranceColorScale={occuranceColorScale}
+                    importanceInColor={importanceInColor}
+                    setImportanceInColor={setImportanceInColor}
+                  />
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
@@ -705,25 +791,41 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
 export function SelectionsSummarySubscriber(props) {
   const { coordinationScopes, title: titleOverride, theme } = props;
 
+  const loaders = useLoaders();
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+
   const [{
     obsType,
     obsSetSelection,
     obsSetColor,
-    spatialImageLayer,
+    spatialImageLayer: rasterLayers,
+    spatialSegmentationLayer: cellsLayer,
+    spatialPointLayer: moleculesLayer,
     dataset,
     additionalObsSets
   }, {
-    setSpatialImageLayer,
+    setSpatialImageLayer: setRasterLayers,
+    setSpatialSegmentationLayer: setCellsLayer,
+    setSpatialPointLayer: setMoleculesLayer,
     setObsSetSelection,
-    setObsSetColor
+    setObsSetColor,
+    setSpatialTargetX,
+    setSpatialTargetY,
+    setSpatialTargetZ,
+    setSpatialRotationX,
+    setSpatialRotationOrbit,
+    setSpatialZoom,
   }] = useCoordination(
     [
+      ...COMPONENT_COORDINATION_TYPES[ViewType.LAYER_CONTROLLER],
       ...COMPONENT_COORDINATION_TYPES[ViewType.OBS_SETS],
-      ...COMPONENT_COORDINATION_TYPES[ViewType.SPATIAL],
-      ct.SPATIAL_IMAGE_LAYER
+      ct.ADDITIONAL_OBS_SETS,
     ],
     coordinationScopes
   );
+
+  const [displayedChannels, setDisplayedChannels] = useState([]);
+  const [channelNames, setChannelNames] = useState([]);
 
   // Get data from loaders using the data hooks
   const [{ obsIndex, obsSets: cellSets }, obsSetsStatus, obsSetsUrls] = useObsSetsData(
@@ -733,50 +835,125 @@ export function SelectionsSummarySubscriber(props) {
     { obsType },
   );
 
+  const [obsLocationsData, obsLocationsStatus] = useObsLocationsData(
+    loaders,
+    dataset,
+    false,
+    { setSpatialPointLayer: setMoleculesLayer },
+    { spatialPointLayer: moleculesLayer },
+    {}
+  );
+
+  const [{ obsSegmentations, obsSegmentationsType }, obsSegmentationsStatus] =
+    useObsSegmentationsData(
+      loaders,
+      dataset,
+      false,
+      { setSpatialSegmentationLayer: setCellsLayer },
+      { spatialSegmentationLayer: cellsLayer },
+      {}
+    );
+
+  const [{ image }, imageStatus] = useImageData(
+    loaders,
+    dataset,
+    false,
+    { setSpatialImageLayer: setRasterLayers },
+    { spatialImageLayer: rasterLayers },
+    {}
+  );
+
+  const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
+
+  useEffect(() => {
+    if (!imageLayerLoaders) return;
+    setChannelNames(imageLayerLoaders?.[0]?.channels);
+  }, [imageLayerLoaders]);
+
+  useEffect(() => {
+    if (rasterLayers && rasterLayers.length > 0) {
+      const firstLayer = rasterLayers[0];
+      const channels = firstLayer.channels.map((channel, index) => ({
+        color: channel.color,
+        contrastLimits: channel.slider,
+        visible: channel.visible,
+        selection: channel.selection,
+      }));
+      setDisplayedChannels(channels);
+    }
+  }, [rasterLayers]);
+
   // Merge the cell sets with additional sets
   const mergedCellSets = useMemo(
     () => mergeObsSets(cellSets, additionalObsSets),
     [cellSets, additionalObsSets],
   );
 
-  const [{ image }, _] = useImageData(
-    loaders,
-    dataset,
-    false,
-    { setSpatialImageLayer },
-    { spatialImageLayer },
-    {} // TODO: which values to match on
-  );
-
-  const [displayedChannels, setDisplayedChannels] = useState([]);
-  const [channelNames, setChannelNames] = useState([]);
-  const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
-  useEffect(() => {
-    if (!imageLayerLoaders) return;
-    setChannelNames(imageLayerLoaders?.[0]?.channels);
-  }, [imageLayerLoaders]);
-  useEffect(() => {
-    if (spatialImageLayer && spatialImageLayer.length > 0) {
-      // Get the first image layer
-      const firstLayer = spatialImageLayer[0];
-
-      // Log channel information
-      const channels = firstLayer.channels.map((channel, index) => {
-        return {
-          color: channel.color, // RGB color array
-          contrastLimits: channel.slider, // [min, max] contrast limits
-          visible: channel.visible,
-          selection: channel.selection,
-        }
-      });
-      setDisplayedChannels(channels);
-    }
-  }, [spatialImageLayer, imageLayerLoaders, imageLayerMeta, image]);
-
   const title = titleOverride || `${capitalize(obsType)} Selections`;
 
-  return (
+  const isReady = useReady([
+    obsLocationsStatus,
+    obsSegmentationsStatus,
+    imageStatus,
+    obsSetsStatus
+  ]);
 
+  const [
+    {
+      imageLayerCallbacks,
+      areLoadingImageChannels,
+      segmentationLayerCallbacks,
+      areLoadingSegmentationChannels,
+    },
+    {
+      setImageLayerCallbacks,
+      setAreLoadingImageChannels,
+      setSegmentationLayerCallbacks,
+      setAreLoadingSegmentationChannels,
+    },
+  ] = useAuxiliaryCoordination(
+    COMPONENT_COORDINATION_TYPES.layerController,
+    coordinationScopes
+  );
+
+  // Add the layer controller handlers
+  const handleRasterLayerChange = useCallback(
+    (newLayer, layerIndex) => {
+      const newLayers = [...(rasterLayers || [])];
+      newLayers[layerIndex] = newLayer;
+      setRasterLayers(newLayers);
+    },
+    [rasterLayers, setRasterLayers]
+  );
+
+  const handleRasterLayerRemove = useCallback(
+    (layerIndex) => {
+      const newLayers = [...(rasterLayers || [])];
+      newLayers.splice(layerIndex, 1);
+      setRasterLayers(newLayers);
+    },
+    [rasterLayers, setRasterLayers]
+  );
+
+  const handleSegmentationLayerChange = useCallback(
+    (newLayer, layerIndex) => {
+      const newLayers = [...(cellsLayer || [])];
+      newLayers[layerIndex] = newLayer;
+      setCellsLayer(newLayers);
+    },
+    [cellsLayer, setCellsLayer]
+  );
+
+  const handleSegmentationLayerRemove = useCallback(
+    (layerIndex) => {
+      const newLayers = [...(cellsLayer || [])];
+      newLayers.splice(layerIndex, 1);
+      setCellsLayer(newLayers);
+    },
+    [cellsLayer, setCellsLayer]
+  );
+
+  return (
     <div style={{
       backgroundColor: '#121212',
       color: '#ffffff',
@@ -788,7 +965,78 @@ export function SelectionsSummarySubscriber(props) {
         setCellSetSelection={setObsSetSelection}
         displayedChannels={displayedChannels}
         channelNames={channelNames}
+        rasterLayers={rasterLayers}
+        setRasterLayers={setRasterLayers}
+        cellsLayer={cellsLayer}
+        setCellsLayer={setCellsLayer}
+        imageLayerLoaders={imageLayerLoaders}
+        imageLayerMeta={imageLayerMeta}
+        isReady={isReady}
+        imageLayerCallbacks={imageLayerCallbacks}
+        setImageLayerCallbacks={setImageLayerCallbacks}
+        areLoadingImageChannels={areLoadingImageChannels}
+        setAreLoadingImageChannels={setAreLoadingImageChannels}
+        handleRasterLayerChange={handleRasterLayerChange}
+        handleRasterLayerRemove={handleRasterLayerRemove}
+        handleSegmentationLayerChange={handleSegmentationLayerChange}
+        handleSegmentationLayerRemove={handleSegmentationLayerRemove}
       />
+      {isPanelOpen && (
+        <div style={{
+          position: 'absolute',
+          right: 0,
+          top: 0,
+          width: '300px',
+          height: '100%',
+          backgroundColor: '#1A1A1A',
+          borderLeft: '1px solid #333333',
+          zIndex: 1000,
+          padding: '16px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <Typography variant="h6">Channel Configuration</Typography>
+            <IconButton onClick={() => setIsPanelOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </div>
+          <LayerControllerMemoized
+            title="Channel Configuration"
+            theme={theme}
+            isReady={isReady}
+            dataset={dataset}
+            obsType={obsType}
+            moleculesLayer={moleculesLayer}
+            setMoleculesLayer={setMoleculesLayer}
+            cellsLayer={cellsLayer}
+            setCellsLayer={setCellsLayer}
+            rasterLayers={rasterLayers}
+            imageLayerLoaders={imageLayerLoaders}
+            imageLayerMeta={imageLayerMeta}
+            imageLayerCallbacks={imageLayerCallbacks}
+            setImageLayerCallbacks={setImageLayerCallbacks}
+            areLoadingImageChannels={areLoadingImageChannels}
+            setAreLoadingImageChannels={setAreLoadingImageChannels}
+            handleRasterLayerChange={handleRasterLayerChange}
+            handleRasterLayerRemove={handleRasterLayerRemove}
+            obsSegmentationsType={obsSegmentationsType}
+            segmentationLayerLoaders={segmentationLayerLoaders}
+            segmentationLayerMeta={segmentationLayerMeta}
+            segmentationLayerCallbacks={segmentationLayerCallbacks}
+            setSegmentationLayerCallbacks={setSegmentationLayerCallbacks}
+            areLoadingSegmentationChannels={areLoadingSegmentationChannels}
+            setAreLoadingSegmentationChannels={setAreLoadingSegmentationChannels}
+            handleSegmentationLayerChange={handleSegmentationLayerChange}
+            handleSegmentationLayerRemove={handleSegmentationLayerRemove}
+            setZoom={setSpatialZoom}
+            setTargetX={setSpatialTargetX}
+            setTargetY={setSpatialTargetY}
+            setTargetZ={setSpatialTargetZ}
+            setRotationX={setSpatialRotationX}
+            setRotationOrbit={setSpatialRotationOrbit}
+            additionalObsSets={additionalObsSets}
+          />
+        </div>
+      )}
     </div>
   );
 }
