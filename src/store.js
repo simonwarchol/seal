@@ -42,6 +42,8 @@ const useStore = create((set) => ({
     setNeighborhoodPointerMode: (mode) => set({ neighborhoodPointerMode: mode }),
     importanceInColor: true,
     setImportanceInColor: (value) => set({ importanceInColor: value }),
+    viewMode: 'embedding',
+    setViewMode: (viewMode) => set({ viewMode }),
 }))
 
 export default useStore;

@@ -178,9 +178,8 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
   const importanceInColor = useStore((state) => state.importanceInColor);
   const setImportanceInColor = useStore((state) => state.setImportanceInColor);
   const setCompareMode = useStore((state) => state.setCompareMode);
-
+  const viewMode = useStore((state) => state.viewMode);
   const scrollContainerRef = useRef(null);
-  const [viewMode, setViewMode] = useState('embedding');
   const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
   const heatmapContainerRef = useRef();
   const [sortBy, setSortBy] = useState(null);
@@ -439,33 +438,14 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
         }}
       >
         <StickyHeader
-          viewMode={viewMode}
-          handleViewChange={handleViewChange}
           sortBy={sortBy}
           setSortBy={setSortBy}
           sortDirection={sortDirection}
           setSortDirection={setSortDirection}
           featureData={setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]}
           rectWidth={rectWidth}
-          displayedChannels={displayedChannels}
-          channelNames={channelNames}
-          compareMode={compareMode}
-          onCompareToggle={() => {
-            setCompareMode(prev => !prev);
-            setCompareSelections([]);
-            setCellSetSelection(selections);
-          }}
           height={scrollContainerRef.current?.clientHeight}
           plotSize={PLOT_SIZE}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'rgba(30, 30, 30, 0.8)',
-            padding: '5px',
-            position: 'sticky',
-            left: 0,
-            zIndex: 1,
-          }}
           importanceColorScale={importanceColorScale}
           occuranceColorScale={occuranceColorScale}
           importanceInColor={importanceInColor}

@@ -26,6 +26,8 @@ const Toolbar = () => {
     const setCompareMode = useStore((state) => state.setCompareMode);
     const neighborhoodPointerMode = useStore((state) => state.neighborhoodPointerMode);
     const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
+    const viewMode = useStore((state) => state.viewMode);
+    const setViewMode = useStore((state) => state.setViewMode);
 
     const handleFeatureCountChange = (event) => {
         setFeatureCount(event.target.value);
@@ -122,6 +124,21 @@ const Toolbar = () => {
                             </Grid>
                         </Grid>
                     </MenuItem>
+                    <MenuItem onClick={() => setViewMode(viewMode === 'embedding' ? 'spatial' : 'embedding')}>
+                        <Grid container alignItems="center" spacing={2}>
+                            <Grid item>
+                                <Icon style={{ textAlign: 'center' }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 3h18v18H3V3m1 1v16h16V4H4z"/>
+                                        <path d="M12 8l-4 4 4 4 4-4z"/>
+                                    </svg>
+                                </Icon>
+                            </Grid>
+                            <Grid item>
+                                <span>{viewMode === 'embedding' ? 'Switch to Image' : 'Switch to Embedding'}</span>
+                            </Grid>
+                        </Grid>
+                    </MenuItem>
                     <MenuItem>
                         <Grid container alignItems="center" spacing={2}>
                             <Grid item xs={6}>
@@ -160,6 +177,7 @@ const Toolbar = () => {
                             </Grid>
                         </Grid>
                     </MenuItem>
+                    
                 </Menu>
             </Grid>
         </div>

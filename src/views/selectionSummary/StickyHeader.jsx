@@ -11,9 +11,9 @@ function StickyHeader({
   setSortBy,
   sortDirection,
   setSortDirection,
+  viewMode,
   height,
   plotSize,
-  viewMode,
   handleViewChange,
   importanceColorScale,
   occuranceColorScale,
@@ -34,26 +34,6 @@ function StickyHeader({
   }, [importanceColorScale]);
 
   const [hoveredLegend, setHoveredLegend] = React.useState(null);
-
-  // Add this component for the reverse icon
-  const ReverseIcon = () => (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'rgba(0, 0, 0, 0.7)',
-      cursor: 'pointer',
-    }}>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
-        <path d="M9 3L5 7l4 4V9c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8V3z"/>
-      </svg>
-    </div>
-  );
 
   return (
     <div style={{
@@ -78,14 +58,31 @@ function StickyHeader({
           exclusive
           onChange={handleViewChange}
           size="small"
+          style={{ display: 'flex', alignItems: 'center' }}
         >
+          <IconButton
+            size="small"
+
+            style={{
+              color: '#ffffff',
+              padding: '4px',
+              marginRight: '4px',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+          </IconButton>
           <ToggleButton
             value="embedding"
             style={{
               backgroundColor: viewMode === 'embedding' ? '#4a4a4a' : '#2a2a2a',
               color: '#ffffff',
               border: '1px solid #333333',
+              fontSize: '0.7rem',
             }}
+            m={0}
+            p={0}
           >
             Emb.</ToggleButton>
           <ToggleButton
@@ -94,7 +91,10 @@ function StickyHeader({
               backgroundColor: viewMode === 'spatial' ? '#4a4a4a' : '#2a2a2a',
               color: '#ffffff',
               border: '1px solid #333333',
+              fontSize: '0.7rem',
             }}
+            m={0}
+            p={0}
           >
             Img.
           </ToggleButton>
@@ -148,7 +148,7 @@ function StickyHeader({
                   <line
                     x1="15"
                     y1="5"
-                    x2="45"
+                    x2="55"
                     y2="5"
                     stroke="#000000"
                     strokeWidth="2"
@@ -157,14 +157,14 @@ function StickyHeader({
                   <line
                     x1="15"
                     y1="5"
-                    x2="45"
+                    x2="55"
                     y2="5"
                     stroke="#ffffff"
                     strokeWidth="1"
                     strokeLinecap="round"
                   />
                   <circle
-                    cx="45"
+                    cx="55"
                     cy="5"
                     r="2"
                     fill="#ffffff"
@@ -295,7 +295,7 @@ function StickyHeader({
               }}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
-                <path d="M9 3L5 7l4 4V9c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8V3z"/>
+                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"/>
               </svg>
             </div>
           )}

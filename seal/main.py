@@ -338,7 +338,10 @@ def process_selection(selection_ids):
     selection_mean_features = selected_rows[potential_features].mean().to_dict()
     normalized_occurrence = {}
     for feature in potential_features:
-        normalized_occurrence[feature] = (selection_mean_features[feature] - summary["global_mean_features"][feature]) / summary["global_mean_features"][feature]
+        if pd.isna(selection_mean_features[feature]) or pd.isna(summary["global_mean_features"][feature]) or summary["global_mean_features"][feature] == 0:
+            normalized_occurrence[feature] = 0
+        else:
+            normalized_occurrence[feature] = (selection_mean_features[feature] - summary["global_mean_features"][feature]) / summary["global_mean_features"][feature]
 
     return {
         "feat_imp": feat_imp,
