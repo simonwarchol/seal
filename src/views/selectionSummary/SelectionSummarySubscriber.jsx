@@ -29,9 +29,10 @@ const OPERATION_NAMES = {
   'complement': 'Complement'
 };
 
+
 function SelectionColumn({
   selection,
-  setFeatures,
+  setFeature,
   viewMode,
   PLOT_SIZE,
   heatmapContainerWidth,
@@ -46,7 +47,8 @@ function SelectionColumn({
   importanceColorScale,
   occuranceColorScale,
   importanceInColor,
-  setImportanceInColor
+  setImportanceInColor,
+  fromRegularSelections = false
 }) {
   // Add ref and state for column width
   const columnRef = useRef(null);
@@ -121,16 +123,16 @@ function SelectionColumn({
             )}
           </IconButton>
         </div>
-        {setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.feat_imp && (
+        {setFeature?.feat_imp && (
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             <div style={{ height: `${PLOT_SIZE}px`, padding: 0, margin: 0, lineHeight: 0 }}>
               {viewMode === 'embedding' ? (
                 <ScatterPlot
-                  data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.embedding_coordinates}
-                  backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_subsample}
+                  data={setFeature?.embedding_coordinates}
+                  backgroundData={setFeature?.summary.embedding_subsample}
                   ranges={[
-                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[0][1]],
-                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.embedding_ranges[1][1]]
+                    [setFeature?.summary.embedding_ranges[0][0], setFeature?.summary.embedding_ranges[0][1]],
+                    [setFeature?.summary.embedding_ranges[1][0], setFeature?.summary.embedding_ranges[1][1]]
                   ]}
                   height={PLOT_SIZE}
                   width={plotWidth}
@@ -138,11 +140,11 @@ function SelectionColumn({
                 />
               ) : (
                 <ScatterPlot
-                  data={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.spatial_coordinates}
-                  backgroundData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_subsample}
+                  data={setFeature?.spatial_coordinates}
+                  backgroundData={setFeature?.summary.spatial_subsample}
                   ranges={[
-                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[0][1]],
-                    [setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][0], setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]?.summary.spatial_ranges[1][1]]
+                    [setFeature?.summary.spatial_ranges[0][0], setFeature?.summary.spatial_ranges[0][1]],
+                    [setFeature?.summary.spatial_ranges[1][0], setFeature?.summary.spatial_ranges[1][1]]
                   ]}
                   height={PLOT_SIZE}
                   width={plotWidth}
@@ -159,7 +161,7 @@ function SelectionColumn({
               }}
             >
               <FeatureHeatmap
-                featureData={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                featureData={setFeature}
                 height={200}
                 width={plotWidth}
                 importanceColorScale={importanceColorScale}
@@ -190,6 +192,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
   const [sortDirection, setSortDirection] = useState('desc');
   const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   const PLOT_SIZE = 75;
+  console.log('setFeatures', setFeatures?.['My Selections']);
   const allSelections = useMemo(() => {
     // Return everything in cellSets.tree that has members
     return cellSets?.tree?.flatMap((cellSet, index) => {
@@ -603,7 +606,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                     }}>
                       <SelectionColumn
                         selection={selection}
-                        setFeatures={setFeatures}
+                        setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
                         viewMode={viewMode}
                         PLOT_SIZE={PLOT_SIZE}
                         heatmapContainerWidth={heatmapContainerWidth}
@@ -683,11 +686,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                             selection={{
                               path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
                             }}
-                            setFeatures={{
-                              [OPERATION_NAMES[operation]]: {
-                                [`${value.count} cells`]: value.data
-                              }
-                            }}
+                            setFeature={setFeatures[OPERATION_NAMES[operation]]?.[`${value.count} cells`]}
                             viewMode={viewMode}
                             PLOT_SIZE={PLOT_SIZE}
                             heatmapContainerWidth={heatmapContainerWidth}
@@ -738,7 +737,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                     }}>
                       <SelectionColumn
                         selection={selection}
-                        setFeatures={setFeatures}
+                        setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
                         viewMode={viewMode}
                         PLOT_SIZE={PLOT_SIZE}
                         heatmapContainerWidth={heatmapContainerWidth}
@@ -785,7 +784,7 @@ function SelectionsDisplay({ selections = [], displayedChannels, channelNames, c
                 }}>
                   <SelectionColumn
                     selection={selection}
-                    setFeatures={setFeatures}
+                    setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
                     viewMode={viewMode}
                     PLOT_SIZE={PLOT_SIZE}
                     heatmapContainerWidth={heatmapContainerWidth}
@@ -861,7 +860,6 @@ export function SelectionsSummarySubscriber(props) {
     coordinationScopes
   );
 
-  console.log('cellsLayer', cellsLayer,coordinationScopes);
 
   const [displayedChannels, setDisplayedChannels] = useState([]);
   const [channelNames, setChannelNames] = useState([]);

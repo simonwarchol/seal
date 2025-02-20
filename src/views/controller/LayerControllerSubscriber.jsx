@@ -99,9 +99,6 @@ export const LayerControllerMemoized = React.memo(
     const shouldShowImageLayerButton = Boolean(
       enableLayerButtonsWithOneLayer || imageLayerLoaders?.length > 1
     );
-    // cellsLayer &&
-    // obsSegmentationsType, rasterLayers
-    console.log('test', cellsLayer, obsSegmentationsType, rasterLayers);
 
     return (
 
@@ -365,7 +362,6 @@ export function LayerControllerSubscriber(props) {
 
     coordinationScopes
   );
-  console.log('cellsLayer', cellsLayer, coordinationScopes);
 
 
   const [

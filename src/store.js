@@ -16,7 +16,19 @@ const useStore = create((set) => ({
     selectionPath: [],
     setSelectionPath: (path) => set({ selectionPath: path }),
     setFeatures: {},
-    setSetFeatures: (features) => set({ setFeatures: features }),
+    setSetFeatures: (features) => set((state) => {
+        // If features is a function, call it with previous state
+        if (typeof features === 'function') {
+            return { setFeatures: features(state.setFeatures) };
+        }
+        // If it's an object, merge it with existing state
+        return {
+            setFeatures: {
+                ...state.setFeatures,
+                ...features
+            }
+        };
+    }),
     hoveredClusters: {},
     setHoveredClusters: (clusters) => set({ hoveredClusters: clusters }),
     hoverClusterOpacities: {},

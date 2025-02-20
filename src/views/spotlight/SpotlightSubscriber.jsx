@@ -1181,7 +1181,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       }
       return null;
     }).filter(d => d && d.density > 0.0005)
-    
+
 
 
 
@@ -1384,7 +1384,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
                   if (changeI >= featureCount) {
                     return channel;
                   }
-                  
+
                   const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
                   if (c === -1) {
                     changeI++;
@@ -2608,49 +2608,69 @@ export function SpotlightSubscriber(props) {
 
   useEffect(() => {
     const fetchSelectionData = async (sets, path, setSelection) => {
-      if (!path || path?.length == 0) return;
+      if (!path || path?.length === 0) return null;
 
-      // Check if path is in setFeatures
-      if (!setFeatures[path[0]]) setSetFeatures({ ...setFeatures, [path[0]]: {} });
-      if (setFeatures[path[0]]?.[path[1]]?.hulls) return;
-
-      const selectionUrl = "http://localhost:8181/selection";
-
-      const selectionPost = await fetch(selectionUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...setSelection, path }),
-      });
-      const selectionData = await selectionPost.json();
-      const newSetFeature = { [path[0]]: { ...setFeatures[path[0]], [path[1]]: selectionData?.data } };
-      // setSetFeatures(newSetFeatures);
-      return newSetFeature;
-    };
-    if (!cellSetSelection || cellSetSelection?.length == 0) return;
-    Promise.all(cellSetSelection.map(selp => {
-      const inAdditionalSets = additionalCellSets ? treeFindNodeByNamePath(additionalCellSets, selp) : null;
-      const inMainSets = cellSets ? treeFindNodeByNamePath(cellSets, selp) : cellSets;
-      if (inAdditionalSets) {
-        return fetchSelectionData(additionalCellSets, selp, inAdditionalSets, setFeatures);
-        // check if the set has features and concavity
-      } else if (inMainSets) {
-        // check if the set has features and concavity
-        return fetchSelectionData(cellSets, selp, inMainSets, setFeatures);
+      try {
+        const selectionUrl = "http://localhost:8181/selection";
+        const selectionPost = await fetch(selectionUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...setSelection, path }),
+        });
+        
+        const selectionData = await selectionPost.json();
+        
+        // Return the new data structure instead of directly setting state
+        return {
+          [path[0]]: {
+            ...setFeatures[path[0]],
+            [path[1]]: selectionData?.data
+          }
+        };
+      } catch (error) {
+        console.error('Error fetching selection data:', error);
+        return null;
       }
-    }))
-      .then((newSetFeatures) => {
-        const allNewFeatures = merge(setFeatures, ...newSetFeatures);
-        setSetFeatures(allNewFeatures);
-      })
+    };
 
+    if (!cellSetSelection || cellSetSelection?.length === 0) return;
 
+    const fetchAllSelectionData = async () => {
+      const promises = cellSetSelection.map(selp => {
+        const inAdditionalSets = additionalCellSets ? treeFindNodeByNamePath(additionalCellSets, selp) : null;
+        const inMainSets = cellSets ? treeFindNodeByNamePath(cellSets, selp) : null;
+        
+        if (inAdditionalSets) {
+          return fetchSelectionData(additionalCellSets, selp, inAdditionalSets);
+        } else if (inMainSets) {
+          return fetchSelectionData(cellSets, selp, inMainSets);
+        }
+        return null;
+      });
 
+      const results = await Promise.all(promises);
+      const validResults = results.filter(Boolean);
 
+      if (validResults.length > 0) {
+        setSetFeatures(prev => {
+          const newState = { ...prev };
+          validResults.forEach(result => {
+            Object.entries(result).forEach(([key, value]) => {
+              newState[key] = {
+                ...newState[key],
+                ...value
+              };
+            });
+          });
+          return newState;
+        });
+      }
+    };
 
-
-  }, [cellSetSelection, additionalCellSets, cellSets, selectionPath])
+    fetchAllSelectionData();
+  }, [cellSetSelection, additionalCellSets, cellSets, selectionPath]);
 
   const setCellSelectionProp = useCallback(
     (v) => {

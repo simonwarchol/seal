@@ -226,7 +226,6 @@ export default function LayerController(props) {
     additionalObsSets,
     isSpotlight,
   } = props;
-  console.log('IS SPOTLIGHT', isSpotlight);
   const {
     colormap,
     opacity,
@@ -702,14 +701,14 @@ export default function LayerController(props) {
             m={0}
             p={0}
           >
-            <SpotlightSlider 
+            <SpotlightSlider
               useOverflowEllipsisGridStyles={useOverflowEllipsisGridStyles}
-              name={name} 
-              opacity={opacity} 
+              name={name}
+              opacity={opacity}
               setOpacity={setOpacity}
-              titleClass={overflowEllipsisGridClasses.item} 
-              setVisible={setVisible} 
-              visible={visible} 
+              titleClass={overflowEllipsisGridClasses.item}
+              setVisible={setVisible}
+              visible={visible}
               visibleSetting={visibleSetting}
             />
           </AccordionDetails>
