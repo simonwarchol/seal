@@ -10,6 +10,7 @@ import { iconConfigs } from './SetOperationIcon';
 import { LayerControllerMemoized } from '../controller/LayerControllerSubscriber';
 import { DEFAULT_RASTER_LAYER_PROPS } from "@vitessce/spatial-utils";
 import SelectionColumn from './SelectionColumn';
+import '../../index.css';
 
 const OPERATION_NAMES = {
     'a_minus_intersection': 'Only in first set',
@@ -223,7 +224,6 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
 
     const handleRowClick = (selection) => {
         if (!compareMode) return;
-
         setCompareSelections(prev => {
             if (prev.length === 2) {
                 // If already have 2 selections, don't add more
@@ -294,6 +294,13 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
         },
         [rasterLayers, setRasterLayers]
     );
+
+    const [neighborhoodSelection, setNeighborhoodSelection] = useState(null);
+
+    const handleNeighborhoodClick = useCallback((selection) => {
+        console.log('handleNeighborhoodClick', selection);
+
+    }, [neighborhoodSelection]);
 
     return (
         <div style={{
@@ -417,57 +424,33 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                             flex: 1
                         }}>
                             {/* Selected sets */}
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                gap: '2px',
-                                height: '100%'
-                            }}>
+                            <div className="selection-row">
                                 {sortedSelections?.filter(selection =>
                                     compareSelections.some(s =>
                                         s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
                                     )
                                 ).map((selection, i) => (
-                                    <Card
+                                    <SelectionColumn
                                         key={`selected-${i}`}
-                                        variant="outlined"
-                                        style={{
-                                            backgroundColor: '#2C3E50',
-                                            borderColor: '#333333',
-                                            padding: 1,
-                                            marginRight: '2px',
-                                            display: 'inline-block',
-                                            height: '100%',
-                                            width: 'auto',
-                                            flex: '1 0 auto',
-                                            minWidth: `${PLOT_SIZE * 2}px`,
-                                        }}
-                                    >
-                                        <CardContent style={{
-                                            padding: 0,
-                                            height: '100%',
-                                            width: '100%',
-                                        }}>
-                                            <SelectionColumn
-                                                selection={selection}
-                                                setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                                                viewMode={viewMode}
-                                                PLOT_SIZE={PLOT_SIZE}
-                                                heatmapContainerWidth={heatmapContainerWidth}
-                                                heatmapContainerRef={heatmapContainerRef}
-                                                isVisible={isSelectionVisible(selection.path)}
-                                                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                                                onClick={() => handleRowClick(selection)}
-                                                colorScheme={colorScheme}
-                                                cellSets={cellSets}
-                                                compareMode={compareMode}
-                                                importanceColorScale={importanceColorScale}
-                                                occuranceColorScale={occuranceColorScale}
-                                                importanceInColor={importanceInColor}
-                                                setImportanceInColor={setImportanceInColor}
-                                            />
-                                        </CardContent>
-                                    </Card>
+                                        selection={selection}
+                                        setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                                        viewMode={viewMode}
+                                        PLOT_SIZE={PLOT_SIZE}
+                                        heatmapContainerWidth={heatmapContainerWidth}
+                                        heatmapContainerRef={heatmapContainerRef}
+                                        isVisible={isSelectionVisible(selection.path)}
+                                        onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                                        onClick={() => handleRowClick(selection)}
+                                        colorScheme={colorScheme}
+                                        cellSets={cellSets}
+                                        compareMode={compareMode}
+                                        importanceColorScale={importanceColorScale}
+                                        occuranceColorScale={occuranceColorScale}
+                                        importanceInColor={importanceInColor}
+                                        setImportanceInColor={setImportanceInColor}
+                                        onNeighborhoodClick={handleNeighborhoodClick}
+                                        backgroundColor="#2C3E50"
+                                    />
                                 ))}
                             </div>
 
@@ -497,63 +480,39 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
 
                             {/* Derived sets from comparison */}
                             {compareMode && comparisonResults?.operations && (
-                                <div style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    gap: '2px',
-                                    height: '100%'
-                                }}>
+                                <div className="selection-row">
                                     {Object.entries(comparisonResults.operations)
                                         .filter(([_, value]) => value.count > 0)
                                         .map(([operation, value], i) => (
-                                            <Card
+                                            <SelectionColumn
                                                 key={`comparison-${i}`}
-                                                variant="outlined"
-                                                style={{
-                                                    backgroundColor: `${iconConfigs[operation]?.color}99`,
-                                                    borderColor: '#333333',
-                                                    padding: 1,
-                                                    marginRight: '2px',
-                                                    display: 'inline-block',
-                                                    height: '100%',
-                                                    width: 'auto',
-                                                    flex: '1 0 auto',
-                                                    minWidth: `${PLOT_SIZE * 2}px`,
+                                                selection={{
+                                                    path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
                                                 }}
-                                            >
-                                                <CardContent style={{
-                                                    padding: 0,
-                                                    height: '100%',
-                                                    width: '100%',
-                                                }}>
-                                                    <SelectionColumn
-                                                        selection={{
-                                                            path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
-                                                        }}
-                                                        setFeature={setFeatures[OPERATION_NAMES[operation]]?.[`${value.count} cells`]}
-                                                        viewMode={viewMode}
-                                                        PLOT_SIZE={PLOT_SIZE}
-                                                        heatmapContainerWidth={heatmapContainerWidth}
-                                                        heatmapContainerRef={heatmapContainerRef}
-                                                        isVisible={true}
-                                                        onVisibilityToggle={() => { }}
-                                                        onClick={() => { }}
-                                                        colorScheme={colorScheme}
-                                                        cellSets={cellSets}
-                                                        compareMode={compareMode}
-                                                        importanceColorScale={importanceColorScale}
-                                                        occuranceColorScale={occuranceColorScale}
-                                                        importanceInColor={importanceInColor}
-                                                        setImportanceInColor={setImportanceInColor}
-                                                    />
-                                                </CardContent>
-                                            </Card>
+                                                setFeature={setFeatures[OPERATION_NAMES[operation]]?.[`${value.count} cells`]}
+                                                viewMode={viewMode}
+                                                PLOT_SIZE={PLOT_SIZE}
+                                                heatmapContainerWidth={heatmapContainerWidth}
+                                                heatmapContainerRef={heatmapContainerRef}
+                                                isVisible={true}
+                                                onVisibilityToggle={() => { }}
+                                                onClick={() => { }}
+                                                colorScheme={colorScheme}
+                                                cellSets={cellSets}
+                                                compareMode={compareMode}
+                                                importanceColorScale={importanceColorScale}
+                                                occuranceColorScale={occuranceColorScale}
+                                                importanceInColor={importanceInColor}
+                                                setImportanceInColor={setImportanceInColor}
+                                                onNeighborhoodClick={handleNeighborhoodClick}
+                                                backgroundColor={`${iconConfigs[operation]?.color}99`}
+                                            />
                                         ))}
                                 </div>
                             )}
 
                             {/* Unselected sets */}
-                            <div style={{ display: 'flex', flexDirection: 'row', gap: '2px' }}>
+                            <div className="selection-row">
                                 {sortedSelections?.filter(selection =>
                                     !compareSelections.some(s =>
                                         s.path[0] === selection.path[0] && s.path[1] === selection.path[1]
@@ -574,30 +533,25 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                                             minWidth: `${PLOT_SIZE * 2}px`,
                                         }}
                                     >
-                                        <CardContent style={{
-                                            padding: 0,
-                                            height: '100%',
-                                            width: '100%',
-                                        }}>
-                                            <SelectionColumn
-                                                selection={selection}
-                                                setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                                                viewMode={viewMode}
-                                                PLOT_SIZE={PLOT_SIZE}
-                                                heatmapContainerWidth={heatmapContainerWidth}
-                                                heatmapContainerRef={heatmapContainerRef}
-                                                isVisible={isSelectionVisible(selection.path)}
-                                                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                                                onClick={() => handleRowClick(selection)}
-                                                colorScheme={colorScheme}
-                                                cellSets={cellSets}
-                                                compareMode={compareMode}
-                                                importanceColorScale={importanceColorScale}
-                                                occuranceColorScale={occuranceColorScale}
-                                                importanceInColor={importanceInColor}
-                                                setImportanceInColor={setImportanceInColor}
-                                            />
-                                        </CardContent>
+                                        <SelectionColumn
+                                            selection={selection}
+                                            setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                                            viewMode={viewMode}
+                                            PLOT_SIZE={PLOT_SIZE}
+                                            heatmapContainerWidth={heatmapContainerWidth}
+                                            heatmapContainerRef={heatmapContainerRef}
+                                            isVisible={isSelectionVisible(selection.path)}
+                                            onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                                            onClick={() => handleRowClick(selection)}
+                                            colorScheme={colorScheme}
+                                            cellSets={cellSets}
+                                            compareMode={compareMode}
+                                            importanceColorScale={importanceColorScale}
+                                            occuranceColorScale={occuranceColorScale}
+                                            importanceInColor={importanceInColor}
+                                            setImportanceInColor={setImportanceInColor}
+                                            onNeighborhoodClick={handleNeighborhoodClick}
+                                        />
                                     </Card>
                                 ))}
                             </div>
@@ -605,47 +559,28 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                     ) : (
                         // Regular view (not compare mode)
                         sortedSelections?.map((selection, i) => (
-                            <Card
+                            <SelectionColumn
                                 key={i}
-                                variant="outlined"
-                                style={{
-                                    backgroundColor: isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212',
-                                    borderColor: '#333333',
-                                    padding: 1,
-                                    marginRight: '2px',
-                                    opacity: isSelectionVisible(selection.path) ? 1 : 0.5,
-                                    display: 'inline-block',
-                                    height: '100%',
-                                    width: 'auto',
-                                    flex: '1 0 auto',
-                                    minWidth: `${PLOT_SIZE * 2}px`,
-                                }}
-                            >
-                                <CardContent style={{
-                                    padding: 0,
-                                    height: '100%',
-                                    width: '100%',
-                                }}>
-                                    <SelectionColumn
-                                        selection={selection}
-                                        setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
-                                        viewMode={viewMode}
-                                        PLOT_SIZE={PLOT_SIZE}
-                                        heatmapContainerWidth={heatmapContainerWidth}
-                                        heatmapContainerRef={heatmapContainerRef}
-                                        isVisible={isSelectionVisible(selection.path)}
-                                        onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
-                                        onClick={() => handleRowClick(selection)}
-                                        colorScheme={colorScheme}
-                                        cellSets={cellSets}
-                                        compareMode={compareMode}
-                                        importanceColorScale={importanceColorScale}
-                                        occuranceColorScale={occuranceColorScale}
-                                        importanceInColor={importanceInColor}
-                                        setImportanceInColor={setImportanceInColor}
-                                    />
-                                </CardContent>
-                            </Card>
+                                selection={selection}
+                                setFeature={setFeatures[selection?.path?.[0]]?.[selection?.path?.[1]]}
+                                viewMode={viewMode}
+                                PLOT_SIZE={PLOT_SIZE}
+                                heatmapContainerWidth={heatmapContainerWidth}
+                                heatmapContainerRef={heatmapContainerRef}
+                                isVisible={isSelectionVisible(selection.path)}
+                                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                                onClick={() => handleRowClick(selection)}
+                                colorScheme={colorScheme}
+                                cellSets={cellSets}
+                                compareMode={compareMode}
+                                importanceColorScale={importanceColorScale}
+                                occuranceColorScale={occuranceColorScale}
+                                importanceInColor={importanceInColor}
+                                setImportanceInColor={setImportanceInColor}
+                                onNeighborhoodClick={handleNeighborhoodClick}
+                                backgroundColor={isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212'}
+                                opacity={isSelectionVisible(selection.path) ? 1 : 0.5}
+                            />
                         ))
                     )}
                 </div>
