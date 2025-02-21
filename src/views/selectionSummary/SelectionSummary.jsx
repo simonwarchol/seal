@@ -28,7 +28,6 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
     const compareMode = useStore((state) => state.compareMode);
     const importanceInColor = useStore((state) => state.importanceInColor);
     const setImportanceInColor = useStore((state) => state.setImportanceInColor);
-    const setCompareMode = useStore((state) => state.setCompareMode);
     const viewMode = useStore((state) => state.viewMode);
     const scrollContainerRef = useRef(null);
     const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
@@ -37,7 +36,6 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
     const [sortDirection, setSortDirection] = useState('desc');
     const colorScheme = d3.scaleOrdinal(d3.schemeObservable10).domain([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     const PLOT_SIZE = 75;
-    console.log('setFeatures', setFeatures?.['My Selections']);
     const allSelections = useMemo(() => {
         // Return everything in cellSets.tree that has members
         return cellSets?.tree?.flatMap((cellSet, index) => {
@@ -294,14 +292,6 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
         },
         [rasterLayers, setRasterLayers]
     );
-
-    const [neighborhoodSelection, setNeighborhoodSelection] = useState(null);
-
-    const handleNeighborhoodClick = useCallback((selection) => {
-        console.log('handleNeighborhoodClick', selection);
-
-    }, [neighborhoodSelection]);
-
     return (
         <div style={{
             display: 'flex',
@@ -441,14 +431,12 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                                         isVisible={isSelectionVisible(selection.path)}
                                         onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
                                         onClick={() => handleRowClick(selection)}
-                                        colorScheme={colorScheme}
-                                        cellSets={cellSets}
+                                        titleColor={selection.color}
                                         compareMode={compareMode}
                                         importanceColorScale={importanceColorScale}
                                         occuranceColorScale={occuranceColorScale}
                                         importanceInColor={importanceInColor}
                                         setImportanceInColor={setImportanceInColor}
-                                        onNeighborhoodClick={handleNeighborhoodClick}
                                         backgroundColor="#2C3E50"
                                     />
                                 ))}
@@ -497,14 +485,12 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                                                 isVisible={true}
                                                 onVisibilityToggle={() => { }}
                                                 onClick={() => { }}
-                                                colorScheme={colorScheme}
-                                                cellSets={cellSets}
+                                                titleColor={iconConfigs[operation]?.color}
                                                 compareMode={compareMode}
                                                 importanceColorScale={importanceColorScale}
                                                 occuranceColorScale={occuranceColorScale}
                                                 importanceInColor={importanceInColor}
                                                 setImportanceInColor={setImportanceInColor}
-                                                onNeighborhoodClick={handleNeighborhoodClick}
                                                 backgroundColor={`${iconConfigs[operation]?.color}99`}
                                             />
                                         ))}
@@ -543,15 +529,12 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                                             isVisible={isSelectionVisible(selection.path)}
                                             onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
                                             onClick={() => handleRowClick(selection)}
-                                            colorScheme={colorScheme}
-                                            cellSets={cellSets}
+                                            titleColor={selection.color}
                                             compareMode={compareMode}
                                             importanceColorScale={importanceColorScale}
                                             occuranceColorScale={occuranceColorScale}
                                             importanceInColor={importanceInColor}
-                                            setImportanceInColor={setImportanceInColor}
-                                            onNeighborhoodClick={handleNeighborhoodClick}
-                                        />
+                                            setImportanceInColor={setImportanceInColor} />
                                     </Card>
                                 ))}
                             </div>
@@ -570,14 +553,12 @@ function SelectionSummary({ selections = [], displayedChannels, channelNames, ce
                                 isVisible={isSelectionVisible(selection.path)}
                                 onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
                                 onClick={() => handleRowClick(selection)}
-                                colorScheme={colorScheme}
-                                cellSets={cellSets}
+                                titleColor={selection.color}
                                 compareMode={compareMode}
                                 importanceColorScale={importanceColorScale}
                                 occuranceColorScale={occuranceColorScale}
                                 importanceInColor={importanceInColor}
                                 setImportanceInColor={setImportanceInColor}
-                                onNeighborhoodClick={handleNeighborhoodClick}
                                 backgroundColor={isSelectionVisible(selection.path) ? '#1A1A1A' : '#121212'}
                                 opacity={isSelectionVisible(selection.path) ? 1 : 0.5}
                             />
