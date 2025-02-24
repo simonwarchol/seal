@@ -1173,11 +1173,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
       const setFeature = setFeatures?.[cellSet[0]]?.[cellSet[1]] || {};
       if (dataset == 'A') {
         if (!setFeature?.hulls?.embedding?.concave_hull) return;
-        return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
+        return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
       }
       else if (dataset == 'B') {
         if (!setFeature?.hulls?.spatial?.concave_hull) return;
-        return { hull: setFeature?.hulls?.spatial?.concave_hull, density: setFeature?.hulls?.spatial?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
+        return { hull: setFeature?.hulls?.spatial?.concave_hull, density: setFeature?.hulls?.spatial?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
       }
       return null;
     }).filter(d => d && d.density > 0.0005)
@@ -1257,7 +1257,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
           }
         },
         onHover: (info) => {
-          setHoveredCluster(info.object)
+          console.log('info', info.object)
+          // setHoveredCluster(info.object)
         }
 
       }),
@@ -1311,7 +1312,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       const setFeature = setFeatures?.[cellSet[0]]?.[cellSet[1]] || {};
       if (dataset == 'A') {
         if (!setFeature?.hulls?.embedding?.concave_hull) return;
-        return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid };
+        return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
       } else return null;
     }).filter(d => d && d.density <= 0.0005)
     if (concaveData.length == 0) return null;
@@ -2389,16 +2390,15 @@ export function SpotlightSubscriber(props) {
   const setHoverClusterOpacities = useStore((state) => state.setHoverClusterOpacities)
   const setFeatures = useStore((state) => state.setFeatures)
   const setSetFeatures = useStore((state) => state.setSetFeatures)
-  const hoveredClusters = useStore((state) => state.hoveredClusters)
-  const setHoveredClusters = useStore((state) => state.setHoveredClusters)
   const showClusterOutlines = useStore((state) => state.showClusterOutlines);
   const showClusterTitles = useStore((state) => state.showClusterTitles);
-  const hoveredCluster = useStore((state) => state.hoveredCluster);
-  const setHoveredCluster = useStore((state) => state.setHoveredCluster);
   const selectedBackground = useStore((state) => state.selectedBackground)
   const selectedSelection = useStore((state) => state.selectedSelection)
   const featureCount = useStore((state) => state.featureCount);
   const titleFontSize = useStore((state) => state.titleFontSize);
+  const hoverSelection = useStore((state) => state.hoverSelection)
+  const setHoverSelection = useStore((state) => state.setHoverSelection)
+
 
 
   const reverseLocationsIndex = useMemo(() => {
@@ -2504,63 +2504,62 @@ export function SpotlightSubscriber(props) {
 
 
 
-  const [hoverSelection, setHoverSelection] = useState(null);
+    // Removing old hover handling
+  // useEffect(() => {
+  //   if (!mergedCellSets || !cellSetSelection) return;
+  //   if (!hoveredCluster) setHoverClusterOpacities(null)
+  //   else {
+  //     console.log('hoveredCluster', hoveredCluster)
+  //     const highlightedNode = treeFindNodeByNamePath(mergedCellSets, hoveredCluster.path);
+  //     const highlightedSet = new Set(highlightedNode?.set?.map((cell) => `${cell[0]}`));
+  //     console.log('highlightedSet', highlightedSet, highlightedNode)
 
-  useEffect(() => {
-    if (!mergedCellSets || !cellSetSelection) return;
-    if (!hoveredCluster) setHoverClusterOpacities(null)
-    else {
-      console.log('hoveredCluster', hoveredCluster)
-      const highlightedNode = treeFindNodeByNamePath(mergedCellSets, hoveredCluster.path);
-      const highlightedSet = new Set(highlightedNode?.set?.map((cell) => `${cell[0]}`));
-      console.log('highlightedSet', highlightedSet, highlightedNode)
+  //     const opacityMap = new Map();
+  //     cellSetSelection.forEach((set) => {
+  //       const thisSet = new Set(treeFindNodeByNamePath(mergedCellSets, set)?.set?.map((cell) => `${cell[0]}`));
+  //       const overlap = highlightedSet.intersection(thisSet);
+  //       const percentOverlap = overlap.size / highlightedSet.size;
+  //       opacityMap.set(JSON.stringify(set), percentOverlap);
+  //     });
+  //     console.log('opacityMap', opacityMap, highlightedSet)
+  //     setHoverClusterOpacities(opacityMap)
+  //   }
+  // }, [hoveredCluster, mergedCellSets, cellSetSelection])
 
-      const opacityMap = new Map();
-      cellSetSelection.forEach((set) => {
-        const thisSet = new Set(treeFindNodeByNamePath(mergedCellSets, set)?.set?.map((cell) => `${cell[0]}`));
-        const overlap = highlightedSet.intersection(thisSet);
-        const percentOverlap = overlap.size / highlightedSet.size;
-        opacityMap.set(JSON.stringify(set), percentOverlap);
-      });
-      console.log('opacityMap', opacityMap, highlightedSet)
-      setHoverClusterOpacities(opacityMap)
-    }
-  }, [hoveredCluster, mergedCellSets, cellSetSelection])
+  // useEffect(() => {
+  //   // Iterate over objects in hoveredClusters
+  //   const clusterList = Object.keys(hoveredClusters)
+  //   const anyHovered = clusterList.map((key) => {
+  //     return hoveredClusters[key]
+  //   }).some(Boolean)
+  //   if (!anyHovered) {
+  //     setHoverSelection(null)
+  //     return;
+  //   };
+  //   const firstSet = clusterList?.[0]
+  //   const secondSet = clusterList?.[1]
+  //   let setA, setB = null;
+  //   if (firstSet && hoveredClusters[firstSet]) {
+  //     const path = JSON.parse(firstSet)
+  //     setA = new Set(treeFindNodeByNamePath(mergedCellSets, path).set.map((cell) => cell[0]));
+  //   }
+  //   if (secondSet && hoveredClusters[secondSet]) {
+  //     const path = JSON.parse(secondSet)
+  //     setB = new Set(treeFindNodeByNamePath(mergedCellSets, path).set.map((cell) => cell[0]));
+  //   }
+  //   let selection = new Set();
+  //   if (setA && setB) {
+  //     const intersection = setA.intersection(setB);
+  //     intersection.forEach(cell => selection.add(cell));
+  //   } else if (setA) {
+  //     setA.forEach(cell => selection.add(cell));
+  //   } else if (setB) {
+  //     setB.forEach(cell => selection.add(cell));
+  //   }
+  //   let selectArray = Array.from(selection);
+  //   setHoverSelection(selectArray)
 
-  useEffect(() => {
-    // Iterate over objects in hoveredClusters
-    const clusterList = Object.keys(hoveredClusters)
-    const anyHovered = clusterList.map((key) => {
-      return hoveredClusters[key]
-    }).some(Boolean)
-    if (!anyHovered) {
-      setHoverSelection(null)
-      return;
-    };
-    const firstSet = clusterList?.[0]
-    const secondSet = clusterList?.[1]
-    let setA, setB = null;
-    if (firstSet && hoveredClusters[firstSet]) {
-      const path = JSON.parse(firstSet)
-      setA = new Set(treeFindNodeByNamePath(mergedCellSets, path).set.map((cell) => cell[0]));
-    }
-    if (secondSet && hoveredClusters[secondSet]) {
-      const path = JSON.parse(secondSet)
-      setB = new Set(treeFindNodeByNamePath(mergedCellSets, path).set.map((cell) => cell[0]));
-    }
-    let selection = new Set();
-    if (setA && setB) {
-      const intersection = setA.intersection(setB);
-      intersection.forEach(cell => selection.add(cell));
-    } else if (setA) {
-      setA.forEach(cell => selection.add(cell));
-    } else if (setB) {
-      setB.forEach(cell => selection.add(cell));
-    }
-    let selectArray = Array.from(selection);
-    setHoverSelection(selectArray)
-
-  }, [hoveredClusters])
+  // }, [hoveredClusters])
 
 
   const selectNeighborhood = useCallback((info) => {
@@ -3068,8 +3067,8 @@ export function SpotlightSubscriber(props) {
         rasterLayers={rasterLayers}
         setRasterLayers={setRasterLayers}
         channels={image?.loaders?.[0]?.channels}
-        hoverClusterOpacities={hoverClusterOpacities}
-        setHoveredCluster={setHoveredCluster}
+        hoverSelection={hoverSelection}
+        setHoverSelection={setHoverSelection}
         showClusterOutlines={showClusterOutlines}
         showClusterTitles={showClusterTitles}
         featureCount={featureCount}

@@ -451,9 +451,10 @@ async def neighbors(selection_data: SelectionSet):
         csv_df.iloc[indices][["X_centroid", "Y_centroid"]].values, k=2
     )
     neighbor_indices = neighbors[1][:, 1]
-    print("neighbor_indices", len(neighbor_indices), len(selection_ids))
     neighbor_cellids = csv_df.iloc[neighbor_indices]["CellID"].values
-    return {"neighbors": neighbor_cellids.tolist()}
+
+    response_data = process_selection(neighbor_cellids)
+    return {"message": "Complete", "data": response_data}
 
 
 def calculate_concave_hull(coordinates, length_threshold=50):

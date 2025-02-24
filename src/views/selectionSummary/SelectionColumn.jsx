@@ -7,12 +7,68 @@ import IconButton from '@mui/material/IconButton';
 import NeighborhoodIcon from "../../public/NeighborhoodIcon.svg";
 
 function SelectionColumn(props) {
+    console.log('props', props)
     const [showNeighborhood, setShowNeighborhood] = useState(false);
+    const [neighborhoodData, setNeighborhoodData] = useState(null);
+
+    useEffect(() => {
+        const getNeighborhoodData = async () => {
+            try {
+                if (!props?.setFeature?.selection_ids || !props.selection?.path) return;
+
+                const response = await fetch('http://localhost:8181/neighborhood', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: props.selection.path[0] + ' Neighbors',
+                        path: props.selection.path,
+                        set: props?.setFeature?.selection_ids?.map(id => [id])
+
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                console.log('data', data)
+                setNeighborhoodData(data.data);
+            } catch (error) {
+                console.error('Error fetching neighborhood data:', error);
+                setNeighborhoodData(null);
+            }
+        };
+
+        if (showNeighborhood && !neighborhoodData) {
+            getNeighborhoodData();
+        }
+    }, [showNeighborhood, props.setFeature, props.selection]);
+
     return (
         <>
             <SelectionColumnChild {...props} showNeighborhood={showNeighborhood} setShowNeighborhood={setShowNeighborhood} />
-            {showNeighborhood &&
-                <SelectionColumnChild {...props} backgroundColor={'#040'} isNeighborhood={true} />
+            {showNeighborhood && neighborhoodData &&
+                <SelectionColumnChild
+                    {...props}
+                    backgroundColor={'#040'}
+                    isNeighborhood={true}
+                    setFeature={{
+                        selection_ids: neighborhoodData.selection_ids,
+                        embedding_coordinates: neighborhoodData.embedding_coordinates,
+                        spatial_coordinates: neighborhoodData.spatial_coordinates,
+                        feat_imp: neighborhoodData.feat_imp,
+                        summary: neighborhoodData.summary,
+                        hulls: neighborhoodData.hulls,
+                        normalized_occurrence: neighborhoodData.normalized_occurrence,
+                        selection_mean_features: neighborhoodData.selection_mean_features,
+                        selection_ids: neighborhoodData.selection_ids,
+                        global_mean_features: neighborhoodData.global_mean_features
+
+                    }}
+                />
             }
         </>
     );
@@ -169,6 +225,7 @@ function SelectionColumnChild({
                                             <ScatterPlot
                                                 data={setFeature?.embedding_coordinates}
                                                 backgroundData={setFeature?.summary.embedding_subsample}
+                                                selectionIds={setFeature?.selection_ids}
                                                 ranges={[
                                                     [setFeature?.summary.embedding_ranges[0][0], setFeature?.summary.embedding_ranges[0][1]],
                                                     [setFeature?.summary.embedding_ranges[1][0], setFeature?.summary.embedding_ranges[1][1]]
@@ -181,6 +238,7 @@ function SelectionColumnChild({
                                             <ScatterPlot
                                                 data={setFeature?.spatial_coordinates}
                                                 backgroundData={setFeature?.summary.spatial_subsample}
+                                                selectionIds={setFeature?.selection_ids}
                                                 ranges={[
                                                     [setFeature?.summary.spatial_ranges[0][0], setFeature?.summary.spatial_ranges[0][1]],
                                                     [setFeature?.summary.spatial_ranges[1][0], setFeature?.summary.spatial_ranges[1][1]]

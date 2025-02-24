@@ -29,8 +29,8 @@ const useStore = create((set) => ({
             }
         };
     }),
-    hoveredClusters: {},
-    setHoveredClusters: (clusters) => set({ hoveredClusters: clusters }),
+    hoverSelection: null,
+    setHoverSelection: (selection) => set({ hoverSelection: selection }),
     hoverClusterOpacities: {},
     setHoverClusterOpacities: (opacities) => set({ hoverClusterOpacities: opacities }),
     showClusterOutlines: true,

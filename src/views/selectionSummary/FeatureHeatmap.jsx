@@ -2,8 +2,8 @@ import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import StickyHeader from './StickyHeader';
 
-function FeatureHeatmap({ 
-  featureData, 
+function FeatureHeatmap({
+  featureData,
   width,
   importanceColorScale,
   occuranceColorScale,
@@ -11,6 +11,7 @@ function FeatureHeatmap({
   setImportanceInColor
 }) {
   const svgRef = useRef();
+  console.log('fd', featureData,featureData.normalized_occurrence);
 
   useEffect(() => {
     if (!featureData?.feat_imp || !width || !importanceColorScale || !occuranceColorScale) return;
@@ -42,8 +43,8 @@ function FeatureHeatmap({
       .attr("y", (d, i) => i * rectHeight)
       .attr("width", width)
       .attr("height", rectHeight)
-      .attr("fill", d => importanceInColor ? 
-        importanceColorScale(d[1]) : 
+      .attr("fill", d => importanceInColor ?
+        importanceColorScale(d[1]) :
         occuranceColorScale(featureData.normalized_occurrence[d[0]])
       );
 
@@ -91,7 +92,7 @@ function FeatureHeatmap({
     } else {
       // Show importance lollipops
       const maxImportance = d3.max(sortedFeatures, d => d[1]);
-      
+
       const importanceScale = d3.scaleLinear()
         .domain([0, maxImportance])
         .range([0, width / 3]);
@@ -127,7 +128,7 @@ function FeatureHeatmap({
   return (
     <>
       <svg ref={svgRef} width={width} height={'100%'} />
-      
+
     </>
   );
 }
