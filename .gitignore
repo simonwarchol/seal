@@ -184,3 +184,6 @@ cython_debug/
 
 seal/static
 data/
+
+*.pkl
+*.npy
