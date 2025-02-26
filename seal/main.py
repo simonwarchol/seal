@@ -126,7 +126,13 @@ def get_potential_features(df):
         "CD31",
         "PCNA",
         "Collagen",
-    ]
+        'DNA', 'DNA (2)', 'DNA (3)', 'CD3', 'CD45RO', 'DNA (4)',
+       'Pan-cytokeratin', 'Aortic smooth muscle actin', 'DNA (5)', 'CD4',
+       'CD45', 'PD-1', 'DNA (6)', 'CD20', 'CD68', 'CD8a', 'DNA (7)', 'CD163',
+       'FOXP3', 'PD-L1', 'DNA (8)', 'E-cadherin', 'Vimentin', 'CDX-2',
+       'DNA (9)', 'Lamin-A/B/C', 'Desmin', 'CD31', 'DNA (10)', 'PCNA',
+       'Collagen']
+    
 
     all_features = list(set(all_features))
     potential_features = [feature for feature in all_features if feature in df.columns]
