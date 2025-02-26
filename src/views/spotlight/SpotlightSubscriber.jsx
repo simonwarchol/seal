@@ -96,7 +96,7 @@ import { SpotlightBitmaskLayer } from "./SpotlightBitmaskLayer";
 import useStore from "../../store";
 import housePointer from "../../public/housePointer.svg";
 import { OrthographicView, COORDINATE_SYSTEM, Layer, project32, picking, CompositeLayer } from '@deck.gl/core';
-
+import { InfoLayer } from "./InfoLayer";
 
 const getCursorWithTool = () => "crosshair";
 const getCursor = (interactionState) =>
@@ -1318,16 +1318,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     if (concaveData.length == 0) return null;
 
 
-    function makeBoundingBox(viewport) {
-      if (!viewport) return null;
 
-      return [
-        viewport.unproject([0, 0]),
-        viewport.unproject([viewport.width, 0]),
-        viewport.unproject([viewport.width, viewport.height]),
-        viewport.unproject([0, viewport.height])
-      ];
-    }
     const { viewport } = this;
     const boundingBox = makeBoundingBox(viewport);
     if (!boundingBox) return null;
@@ -1522,6 +1513,42 @@ class Spatial extends AbstractSpatialOrScatterplot {
       },
     ]);
   }
+
+  createInfoLayer() {
+    const {
+      viewState,
+      width,
+      height,
+      imageLayerLoaders = {},
+      imageLayerDefs,
+    } = this.props;
+    const use3d = (imageLayerDefs || []).some((i) => i.use3d);
+    // Just get the first layer/loader since they should all be spatially
+    // resolved and therefore have the same unit size scale.
+    const loaders = Object.values(imageLayerLoaders);
+    if (!viewState || !width || !height || loaders.length < 1) return null;
+    const loader = loaders[0];
+    if (!loader) return null;
+    const source = getSourceFromLoader(loader);
+    if (!source.meta) return null;
+    const { physicalSizes } = source.meta;
+    if (physicalSizes && !use3d) {
+      const { x } = physicalSizes;
+      const { unit, size } = x;
+      if (unit && size) {
+        return new InfoLayer({
+          id: "scalebar-layer",
+          unit,
+          size,
+          snap: true,
+          viewState: { ...viewState, width, height },
+        });
+      }
+      return null;
+    }
+    return null;
+  }
+
 
   createScaleBarLayer() {
     const {
@@ -1765,6 +1792,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       obsLocationsLayer,
       this.createFeatureLabelLayer(),
       this.createScaleBarLayer(),
+      this.createInfoLayer(),
       this.createSelectionLayer(),
     ];
     return layers;
@@ -2504,7 +2532,7 @@ export function SpotlightSubscriber(props) {
 
 
 
-    // Removing old hover handling
+  // Removing old hover handling
   // useEffect(() => {
   //   if (!mergedCellSets || !cellSetSelection) return;
   //   if (!hoveredCluster) setHoverClusterOpacities(null)
@@ -2618,9 +2646,9 @@ export function SpotlightSubscriber(props) {
           },
           body: JSON.stringify({ ...setSelection, path }),
         });
-        
+
         const selectionData = await selectionPost.json();
-        
+
         // Return the new data structure instead of directly setting state
         return {
           [path[0]]: {
@@ -2640,7 +2668,7 @@ export function SpotlightSubscriber(props) {
       const promises = cellSetSelection.map(selp => {
         const inAdditionalSets = additionalCellSets ? treeFindNodeByNamePath(additionalCellSets, selp) : null;
         const inMainSets = cellSets ? treeFindNodeByNamePath(cellSets, selp) : null;
-        
+
         if (inAdditionalSets) {
           return fetchSelectionData(additionalCellSets, selp, inAdditionalSets);
         } else if (inMainSets) {
