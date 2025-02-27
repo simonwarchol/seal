@@ -1482,41 +1482,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
           // console.log('info', info, event, d)
           if (!this?.state?.tool) {
             const featureImportance = info.object.features;
-            let changeI = 0;
-
-            if (rasterLayers?.[0]?.channels?.length > 0) {
-              const newRasterLayers = rasterLayers.map(layer => ({
-                ...layer,
-                channels: layer.channels.map((channel, i) => {
-                  // Only update up to featureCount channels
-                  if (changeI >= featureCount) {
-                    return channel;
-                  }
-
-                  const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
-                  if (c === -1) {
-                    changeI++;
-                    return channel;
-                  } else if (lockedChannels?.[i]) {
-                    return channel;
-                  } else {
-                    changeI++;
-                    return {
-                      ...channel,
-                      selection: { c, z: 0, t: 0 }
-                    };
-                  }
-                })
-              }));
-
-              // Update both the layers and channel selections
-              setRasterLayers(newRasterLayers);
-
-              // Force a re-render of channel controllers by updating channel state
-              this.setState({
-                channels: newRasterLayers[0].channels
-              });
-            }
+            handleClusterSelection(featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers)
           } else {
             // Selecting a neighborhood
             selectNeighborhood(info)

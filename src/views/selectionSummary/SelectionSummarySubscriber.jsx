@@ -61,7 +61,7 @@ export function SelectionsSummarySubscriber(props) {
     coordinationScopes
   );
 
-  const selectionSummary = useStore((state) => state.selectionSummary)
+
   // Get data from loaders using the data hooks
   const [{ obsIndex, obsSets: cellSets }, obsSetsStatus, obsSetsUrls] = useObsSetsData(
     loaders, dataset, false,
@@ -104,7 +104,6 @@ export function SelectionsSummarySubscriber(props) {
 
 
 
-  
   // Merge the cell sets with additional sets
   const mergedCellSets = useMemo(
     () => mergeObsSets(cellSets, additionalObsSets),
@@ -214,7 +213,6 @@ export function SelectionsSummarySubscriber(props) {
         selections={obsSetSelection}
         cellSets={mergedCellSets}
         setCellSetSelection={setObsSetSelection}
-        selectionSummary={selectionSummary}
         rasterLayers={rasterLayers}
         setRasterLayers={setRasterLayers}
         cellsLayer={cellsLayer}

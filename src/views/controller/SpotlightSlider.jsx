@@ -45,7 +45,7 @@ const buttons = [
     { x: 1612, y: 349.2, width: 36, height: 450 },
     { x: 1756, y: 322.2, width: 36, height: 504 },
 ];
-const SpotlightSlider = ({ setVisible, visible, titleClass, visibleSetting, setOpacity }) => {
+const SpotlightSlider = ({ visible,  visibleSetting, setOpacity }) => {
 
     const selectedBackground = useStore((state) => state.selectedBackground)
     const setSelectedBackground = useStore((state) => state.setSelectedBackground)

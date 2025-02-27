@@ -123,8 +123,8 @@ const Toolbar = () => {
                                 <span>Neighborhood Pointer</span>
                             </Grid>
                         </Grid>
-                    </MenuItem>
-                    <MenuItem onClick={() => setViewMode(viewMode === 'embedding' ? 'spatial' : 'embedding')}>
+                    </MenuItem>setViewMode
+                    <MenuItem onClick={() => (viewMode === 'embedding' ? 'spatial' : 'embedding')}>
                         <Grid container alignItems="center" spacing={2}>
                             <Grid item>
                                 <Icon style={{ textAlign: 'center' }}>

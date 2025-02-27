@@ -142,18 +142,24 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
     }, [allSelections, setFeatures, sortBy, sortDirection, compareMode, selections]);
 
     // Handle visibility toggle
-    const handleVisibilityToggle = (selectionPath) => {
+    const handleVisibilityToggle = (selectionPath, hideOthers = false) => {
         const isVisible = isSelectionVisible(selectionPath);
-        if (isVisible) {
-            // Remove from selection
-            setCellSetSelection(selections.filter(sel =>
-                !(sel[0] === selectionPath[0] && sel[1] === selectionPath[1])
-            ));
+        if (hideOthers) {
+            setCellSetSelection([selectionPath]);
         } else {
-            // Add to selection
-            setCellSetSelection([...selections, selectionPath]);
+            if (isVisible) {
+                // Remove from selection
+                setCellSetSelection(selections.filter(sel =>
+                    !(sel[0] === selectionPath[0] && sel[1] === selectionPath[1])
+                ));
+            } else {
+                setCellSetSelection([...selections, selectionPath]);
+            }
         }
     };
+
+
+
 
     const [comparisonResults, setComparisonResults] = useState(null);
 
@@ -429,7 +435,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                         heatmapContainerWidth={heatmapContainerWidth}
                                         heatmapContainerRef={heatmapContainerRef}
                                         isVisible={isSelectionVisible(selection.path)}
-                                        onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                                        onVisibilityToggle={(hideOthers) => handleVisibilityToggle(selection.path, hideOthers)}
                                         onClick={() => handleRowClick(selection)}
                                         titleColor={selection.color}
                                         compareMode={compareMode}
@@ -527,7 +533,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                             heatmapContainerWidth={heatmapContainerWidth}
                                             heatmapContainerRef={heatmapContainerRef}
                                             isVisible={isSelectionVisible(selection.path)}
-                                            onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                                            onVisibilityToggle={(hideOthers) => handleVisibilityToggle(selection.path, hideOthers)}
                                             onClick={() => handleRowClick(selection)}
                                             titleColor={selection.color}
                                             compareMode={compareMode}
@@ -551,7 +557,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                 heatmapContainerWidth={heatmapContainerWidth}
                                 heatmapContainerRef={heatmapContainerRef}
                                 isVisible={isSelectionVisible(selection.path)}
-                                onVisibilityToggle={() => handleVisibilityToggle(selection.path)}
+                                onVisibilityToggle={(hideOthers) => handleVisibilityToggle(selection.path, hideOthers)}
                                 onClick={() => handleRowClick(selection)}
                                 titleColor={selection.color}
                                 compareMode={compareMode}
