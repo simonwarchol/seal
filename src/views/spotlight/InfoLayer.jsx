@@ -107,9 +107,14 @@ function range(len) {
     return [...Array(len).keys()];
 }
 export const InfoLayer = class extends viv.ScaleBarLayer {
+    constructor(props) {
+        super(props);
+        this.channelNames = props?.channelNames;
+        this.channelColors = props?.channelColors;
+    }
     renderLayers() {
         // return super.renderLayers();
-        const { id, unit, size, position, viewState, length, snap } = this.props;
+        const { id, position, viewState, length, channelNames, channelColors } = this.props;
         const boundingBox = makeBoundingBox(viewState);
         const { zoom } = viewState;
         const viewLength = boundingBox[2][0] - boundingBox[0][0];
@@ -118,49 +123,42 @@ export const InfoLayer = class extends viv.ScaleBarLayer {
             2 ** (-zoom + 1.5),
             (boundingBox[2][1] - boundingBox[0][1]) * 7e-3
         );
-        let adjustedBarLength = barLength;
-        let displayNumber = (barLength * size).toPrecision(5);
-        let displayUnit = unit;
-        if (snap) {
-            const meterSize = sizeToMeters(size, unit);
-            const numUnits = barLength * meterSize;
-            const [snappedOrigUnits, snappedNewUnits, snappedUnitPrefix] = snapValue(numUnits);
-            adjustedBarLength = snappedOrigUnits / meterSize;
-            displayNumber = snappedNewUnits;
-            displayUnit = `${snappedUnitPrefix}m`;
-        }
         const [yCoord, xLeftCoord] = getPosition(boundingBox, position, length);
-        const xRightCoord = xLeftCoord + barLength;
-        const isLeft = position.endsWith("-left");
 
-        const textLayer = new deck.TextLayer({
-            id: `units-label-layer-${id}`,
-            coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-            data: [
-                {
-                    text: `${displayNumber}${displayUnit}`,
-                    position: [
-                        isLeft ? xLeftCoord + barLength * 0.5 : xRightCoord - barLength * 0.5,
-                        yCoord + barHeight * 4
-                    ]
-                }
-            ],
-            getColor: [220, 220, 220, 255],
-            getSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            sizeUnits: "meters",
-            sizeScale: 2 ** -zoom,
-            characterSet: [
-                ...displayUnit.split(""),
-                ...range(10).map((i) => String(i)),
-                ".",
-                "e",
-                "+"
-            ]
-        });
-        return [textLayer];
-    }
-};
-// InfoLayer.defaultProps = defaultProps;
+        return (channelNames || []).map((channelName, index) => {
+            // Repalce "Autofluorescence-" with "AF-" and "Control-" with "Cont-" in channelName
+            const text = channelName.replace("Autofluorescence-", "AF-").replace("Control-", "Cont-");
+            const textColor = channelColors?.[index] || [255, 255, 255];
+            try {
+                const textLayer = new deck.TextLayer({
+                    id: `info-layer-${id}-${index}`,
+                    coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+                    data: [
+                        {
+                            // take first 6 characters
+                            text: `${text.substring(0, 8)}`,
+                            position: [
+                                xLeftCoord + ((index) * barLength * 2),
+                                yCoord + barHeight * 4
+                            ]
+                        },
+
+                    ],
+                    getColor: textColor,
+                    getSize: 12,
+                    fontFamily: DEFAULT_FONT_FAMILY,
+                    sizeUnits: "meters",
+                    sizeScale: 2 ** -zoom,
+
+                });
+                return [textLayer];
+            } catch (error) {
+                console.error("Error creating text layer", error);
+                return [];
+            }
+        })
+    };
+}
+InfoLayer.defaultProps = defaultProps;
 InfoLayer.layerName = "InfoLayer";
 

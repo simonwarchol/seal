@@ -56,6 +56,14 @@ const useStore = create((set) => ({
     setImportanceInColor: (value) => set({ importanceInColor: value }),
     viewMode: 'embedding',
     setViewMode: (viewMode) => set({ viewMode }),
+
+    // Add new properties for channels
+    displayedChannels: [],
+    channelNames: [],
+    
+    // Add setters
+    setDisplayedChannels: (channels) => set({ displayedChannels: channels }),
+    setChannelNames: (names) => set({ channelNames: names }),
 }))
 
 export default useStore;

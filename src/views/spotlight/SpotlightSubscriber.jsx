@@ -1122,7 +1122,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
     this.obsLocationsData = null;
     this.selectedSelection = props?.selectedSelection;
     this.selectedBackground = props?.selectedBackground;
-
+    this.channelNames = props?.channelNames;
+    this.channelColors = props?.channelColors;
     this.imageLayers = [];
     this.obsSegmentationsBitmaskLayers = [];
     this.obsSegmentationsPolygonLayer = null;
@@ -1520,33 +1521,25 @@ class Spatial extends AbstractSpatialOrScatterplot {
       width,
       height,
       imageLayerLoaders = {},
-      imageLayerDefs,
+      channelNames,
+      channelColors
     } = this.props;
-    const use3d = (imageLayerDefs || []).some((i) => i.use3d);
-    // Just get the first layer/loader since they should all be spatially
-    // resolved and therefore have the same unit size scale.
     const loaders = Object.values(imageLayerLoaders);
     if (!viewState || !width || !height || loaders.length < 1) return null;
     const loader = loaders[0];
     if (!loader) return null;
     const source = getSourceFromLoader(loader);
-    if (!source.meta) return null;
-    const { physicalSizes } = source.meta;
-    if (physicalSizes && !use3d) {
-      const { x } = physicalSizes;
-      const { unit, size } = x;
-      if (unit && size) {
-        return new InfoLayer({
-          id: "scalebar-layer",
-          unit,
-          size,
-          snap: true,
-          viewState: { ...viewState, width, height },
-        });
-      }
-      return null;
-    }
-    return null;
+
+    return new InfoLayer({
+      id: "info-layer",
+      unit: source?.meta?.physicalSizes?.x?.unit,
+      size: source?.meta?.physicalSizes?.x?.size,
+      snap: true,
+      viewState: { ...viewState, width, height },
+      channelNames,
+      channelColors
+    });
+
   }
 
 
@@ -3104,6 +3097,8 @@ export function SpotlightSubscriber(props) {
         selectNeighborhood={selectNeighborhood}
         selectedBackground={selectedBackground}
         selectedSelection={selectedSelection}
+        channelNames={channelNames}
+        channelColors={channelColors}
       />
       {tooltipsVisible && (
         <SpatialTooltipSubscriber

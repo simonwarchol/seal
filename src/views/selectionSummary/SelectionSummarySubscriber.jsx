@@ -9,6 +9,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import { LayerControllerMemoized } from '../controller/LayerControllerSubscriber';
 import { DEFAULT_RASTER_LAYER_PROPS } from "@vitessce/spatial-utils";
 import SelectionSummary from './SelectionSummary';
+import useStore from '../../store';
 
 export function SelectionsSummarySubscriber(props) {
   const {
@@ -60,10 +61,10 @@ export function SelectionsSummarySubscriber(props) {
     coordinationScopes
   );
 
-
-  const [displayedChannels, setDisplayedChannels] = useState([]);
-  const [channelNames, setChannelNames] = useState([]);
-
+  const setDisplayedChannels = useStore((state) => state.setDisplayedChannels);
+  const setChannelNames = useStore((state) => state.setChannelNames);
+  const displayedChannels = useStore((state) => state.displayedChannels);
+  const channelNames = useStore((state) => state.channelNames);
   // Get data from loaders using the data hooks
   const [{ obsIndex, obsSets: cellSets }, obsSetsStatus, obsSetsUrls] = useObsSetsData(
     loaders, dataset, false,
@@ -107,7 +108,7 @@ export function SelectionsSummarySubscriber(props) {
   useEffect(() => {
     if (!imageLayerLoaders) return;
     setChannelNames(imageLayerLoaders?.[0]?.channels);
-  }, [imageLayerLoaders]);
+  }, [imageLayerLoaders, setChannelNames]);
 
   useEffect(() => {
     if (rasterLayers && rasterLayers.length > 0) {
@@ -120,7 +121,11 @@ export function SelectionsSummarySubscriber(props) {
       }));
       setDisplayedChannels(channels);
     }
-  }, [rasterLayers]);
+  }, [rasterLayers, setDisplayedChannels]);
+
+  useEffect(() => {
+    console.log("   ", displayedChannels, channelNames);
+  }, [displayedChannels]);
 
   // Merge the cell sets with additional sets
   const mergedCellSets = useMemo(
