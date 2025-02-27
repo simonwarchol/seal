@@ -61,10 +61,7 @@ export function SelectionsSummarySubscriber(props) {
     coordinationScopes
   );
 
-  const setDisplayedChannels = useStore((state) => state.setDisplayedChannels);
-  const setChannelNames = useStore((state) => state.setChannelNames);
-  const displayedChannels = useStore((state) => state.displayedChannels);
-  const channelNames = useStore((state) => state.channelNames);
+  const selectionSummary = useStore((state) => state.selectionSummary)
   // Get data from loaders using the data hooks
   const [{ obsIndex, obsSets: cellSets }, obsSetsStatus, obsSetsUrls] = useObsSetsData(
     loaders, dataset, false,
@@ -105,28 +102,9 @@ export function SelectionsSummarySubscriber(props) {
 
   const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
 
-  useEffect(() => {
-    if (!imageLayerLoaders) return;
-    setChannelNames(imageLayerLoaders?.[0]?.channels);
-  }, [imageLayerLoaders, setChannelNames]);
 
-  useEffect(() => {
-    if (rasterLayers && rasterLayers.length > 0) {
-      const firstLayer = rasterLayers[0];
-      const channels = firstLayer.channels.map((channel, index) => ({
-        color: channel.color,
-        contrastLimits: channel.slider,
-        visible: channel.visible,
-        selection: channel.selection,
-      }));
-      setDisplayedChannels(channels);
-    }
-  }, [rasterLayers, setDisplayedChannels]);
 
-  useEffect(() => {
-    console.log("   ", displayedChannels, channelNames);
-  }, [displayedChannels]);
-
+  
   // Merge the cell sets with additional sets
   const mergedCellSets = useMemo(
     () => mergeObsSets(cellSets, additionalObsSets),
@@ -236,8 +214,7 @@ export function SelectionsSummarySubscriber(props) {
         selections={obsSetSelection}
         cellSets={mergedCellSets}
         setCellSetSelection={setObsSetSelection}
-        displayedChannels={displayedChannels}
-        channelNames={channelNames}
+        selectionSummary={selectionSummary}
         rasterLayers={rasterLayers}
         setRasterLayers={setRasterLayers}
         cellsLayer={cellsLayer}

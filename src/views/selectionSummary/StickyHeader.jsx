@@ -3,6 +3,7 @@ import IconButton from '@mui/material/IconButton';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { Box, Typography } from '@mui/material';
+import useStore from '../../store';
 
 function StickyHeader({
   featureData,
@@ -36,6 +37,9 @@ function StickyHeader({
   }, [importanceColorScale]);
 
   const [hoveredLegend, setHoveredLegend] = React.useState(null);
+  const channelSelection = useStore((state) => state.channelSelection);
+  console.log("channelSelection", channelSelection);
+ 
 
   return (
     <div style={{
@@ -312,6 +316,13 @@ function StickyHeader({
       }}>
         {sortedFeatures.map(([feature], i) => {
           const rowHeight = (height - plotSize - 30) / sortedFeatures.length;
+          // if channelSelection.channelNames includes feature, then color is channelSelection.channelColors[feature]
+          // check index of feature in channelSelection.channelNames
+          const index = channelSelection.channelNames.indexOf(feature);
+          const color = index !== -1 ? channelSelection.channelColors[index] : [255,255,255];
+          const colorString = `rgb(${color[0]},${color[1]},${color[2]})`;
+          console.log("feature", colorString, feature, channelSelection.channelNames);
+
           return (
             <div
               key={i}
@@ -323,7 +334,7 @@ function StickyHeader({
                 left: 0,
                 top: i * rowHeight,
                 whiteSpace: 'nowrap',
-                color: sortBy === feature ? '#ffd700' : '#ffffff',
+                color: sortBy === feature ? '#ffd700' : colorString,
                 fontSize: '0.7rem',
                 paddingLeft: '4px',
                 height: rowHeight,

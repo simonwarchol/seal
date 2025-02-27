@@ -304,84 +304,84 @@ function ToolMenu(props) {
         </IconButton>
 
       </div>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}
-          onClick={(e) => e.stopPropagation()}
-          MenuListProps={{
-            onMouseLeave: () => setAnchorEl(null)
-          }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'left',
-          }}
-          PaperProps={{
-            style: {
-              width: '250px',
-            },
-          }}
-        >
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        onClick={(e) => e.stopPropagation()}
+        MenuListProps={{
+          onMouseLeave: () => setAnchorEl(null)
+        }}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          style: {
+            width: '250px',
+          },
+        }}
+      >
 
-          <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item>
-                <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
-              </Grid>
-              <Grid item>
-                <span>Outline Clusters</span>
-              </Grid>
+        <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
+          <Grid container alignItems="center" spacing={2}>
+            <Grid item>
+              <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
             </Grid>
-          </MenuItem>
-          <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item>
-                <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
-              </Grid>
-              <Grid item>
-                <span>Show Titles</span>
-              </Grid>
+            <Grid item>
+              <span>Outline Clusters</span>
             </Grid>
-          </MenuItem>
-          <MenuItem>
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item xs={6}>
-                <span>Features</span>
-              </Grid>
-              <Grid item xs={6}>
-                <Select
-                  value={featureCount}
-                  onChange={handleFeatureCountChange}
-                  size="small"
-                  sx={{ height: '30px' }}
-                >
-                  {[0, 1, 2, 3, 4, 5].map((num) => (
-                    <MenuItem key={num} value={num}>{num}</MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+          </Grid>
+        </MenuItem>
+        <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
+          <Grid container alignItems="center" spacing={2}>
+            <Grid item>
+              <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
             </Grid>
-          </MenuItem>
-          <MenuItem>
-            <Grid container alignItems="center" spacing={2}>
-              <Grid item xs={6}>
-                <span>Font Size</span>
-              </Grid>
-              <Grid item xs={6}>
-                <Select
-                  value={titleFontSize}
-                  onChange={handleTitleFontSizeChange}
-                  size="small"
-                  sx={{ height: '30px' }}
-                >
-                  {[8, 10, 12, 14, 16, 18, 20].map((size) => (
-                    <MenuItem key={size} value={size}>{size}</MenuItem>
-                  ))}
-                </Select>
-              </Grid>
+            <Grid item>
+              <span>Show Titles</span>
             </Grid>
-          </MenuItem>
-        </Menu>
+          </Grid>
+        </MenuItem>
+        <MenuItem>
+          <Grid container alignItems="center" spacing={2}>
+            <Grid item xs={6}>
+              <span>Features</span>
+            </Grid>
+            <Grid item xs={6}>
+              <Select
+                value={featureCount}
+                onChange={handleFeatureCountChange}
+                size="small"
+                sx={{ height: '30px' }}
+              >
+                {[0, 1, 2, 3, 4, 5].map((num) => (
+                  <MenuItem key={num} value={num}>{num}</MenuItem>
+                ))}
+              </Select>
+            </Grid>
+          </Grid>
+        </MenuItem>
+        <MenuItem>
+          <Grid container alignItems="center" spacing={2}>
+            <Grid item xs={6}>
+              <span>Font Size</span>
+            </Grid>
+            <Grid item xs={6}>
+              <Select
+                value={titleFontSize}
+                onChange={handleTitleFontSizeChange}
+                size="small"
+                sx={{ height: '30px' }}
+              >
+                {[8, 10, 12, 14, 16, 18, 20].map((size) => (
+                  <MenuItem key={size} value={size}>{size}</MenuItem>
+                ))}
+              </Select>
+            </Grid>
+          </Grid>
+        </MenuItem>
+      </Menu>
     </>
   );
 }
@@ -1124,6 +1124,42 @@ function renderSubBitmaskLayers(props) {
     tileId: { x, y, z },
   });
 }
+const handleClusterSelection = async (featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers) => {
+  let changeI = 0;
+
+  if (rasterLayers?.[0]?.channels?.length > 0) {
+    const newRasterLayers = rasterLayers.map(layer => ({
+      ...layer,
+      channels: layer.channels.map((channel, i) => {
+        // Only update up to featureCount channels
+        if (changeI >= featureCount) {
+          return channel;
+        }
+
+        const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
+        if (c === -1) {
+          changeI++;
+          return channel;
+        } else if (lockedChannels?.[i]) {
+          return channel;
+        } else {
+          changeI++;
+          return {
+            ...channel,
+            selection: { c, z: 0, t: 0 }
+          };
+        }
+      })
+    }));
+
+    // Update both the layers and channel selections
+    setRasterLayers(newRasterLayers);
+
+    // Return the new channels for state update
+    return newRasterLayers[0].channels;
+  }
+  return null;
+};
 
 const CELLS_LAYER_ID = "cells-layer";
 const TITLES_LAYER_ID = "titles-layer";
@@ -1326,43 +1362,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
           }
         },
         onClick: async (info, event, d) => {
+          console.log('clicked', this?.state?.tool)
           if (!this?.state?.tool) {
-            const featureImportance = info.object.features;
-            let changeI = 0;
+            // SELECT A CLUSTER
+            handleClusterSelection(info.object.features, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers)
 
-            if (rasterLayers?.[0]?.channels?.length > 0) {
-              const newRasterLayers = rasterLayers.map(layer => ({
-                ...layer,
-                channels: layer.channels.map((channel, i) => {
-                  // Only update up to featureCount channels
-                  if (changeI >= featureCount) {
-                    return channel;
-                  }
-
-                  const c = channels.indexOf(featureImportance?.[changeI]?.[0]);
-                  if (c === -1) {
-                    changeI++;
-                    return channel;
-                  } else if (lockedChannels?.[i]) {
-                    return channel;
-                  } else {
-                    changeI++;
-                    return {
-                      ...channel,
-                      selection: { c, z: 0, t: 0 }
-                    };
-                  }
-                })
-              }));
-
-              // Update both the layers and channel selections
-              setRasterLayers(newRasterLayers);
-
-              // Force a re-render of channel controllers by updating channel state
-              this.setState({
-                channels: newRasterLayers[0].channels
-              });
-            }
           } else {
             // Selecting a neighborhood
             selectNeighborhood(info)
@@ -2530,6 +2534,8 @@ export function SpotlightSubscriber(props) {
   const titleFontSize = useStore((state) => state.titleFontSize);
   const hoverSelection = useStore((state) => state.hoverSelection)
   const setHoverSelection = useStore((state) => state.setHoverSelection)
+  const channelSelection = useStore((state) => state.channelSelection)
+  const setChannelSelection = useStore((state) => state.setChannelSelection)
 
 
 
@@ -3098,6 +3104,16 @@ export function SpotlightSubscriber(props) {
 
     return [names, colors];
   }, [imageLayers, imageLayerLoaders]);
+
+  useEffect(() => {
+    // only set channelSelection if it's different from the current channelSelection
+    if (JSON.stringify(channelSelection) !== JSON.stringify({ channelNames, channelColors })) {
+      setChannelSelection({
+        channelNames,
+        channelColors
+      })
+    }
+  }, [channelNames, channelColors])
 
   return (
     <TitleInfo
