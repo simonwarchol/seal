@@ -1,10 +1,16 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import useStore from "../../store";
-
 import * as d3 from 'd3';
+import { IconButton } from '@mui/material';
+import { CameraswitchOutlined } from '@mui/icons-material';
+
 function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, title, selectionIds }) {
   const svgRef = useRef();
-  const setHoverSelection = useStore((state) => state.setHoverSelection)
+  const setHoverSelection = useStore((state) => state.setHoverSelection);
+  const viewMode = useStore((state) => state.viewMode);
+  const setViewMode = useStore((state) => state.setViewMode);
+
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (!data || !ranges) return;
@@ -23,7 +29,7 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
 
     const yScale = d3.scaleLinear()
       .domain(ranges[1])
-      .range([0, plotHeight,]);
+      .range([0, plotHeight]);
 
     // Create SVG
     const svg = d3.select(svgRef.current)
@@ -32,9 +38,11 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
       .style('background-color', '#000000')
       .on('mouseenter', () => {
         setHoverSelection(selectionIds);
+        setIsHovered(true);
       })
       .on('mouseleave', () => {
         setHoverSelection(null);
+        setIsHovered(false);
       });
 
     // Add plot group
@@ -67,6 +75,28 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
 
   }, [data, width, height, ranges, backgroundData, title]);
 
-  return <svg ref={svgRef} style={{ display: 'block' }} />;
+  return (
+    <div style={{ position: 'relative' }}>
+      <svg ref={svgRef} style={{ display: 'block' }} />
+      {isHovered && (
+        <IconButton
+          style={{
+            position: 'absolute',
+            top: 5,
+            right: 5,
+            backgroundColor: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '50%',
+            padding: '4px',
+            width: '30px',
+            height: '30px',
+          }}
+          onClick={() => setViewMode(viewMode === 'embedding' ? 'spatial' : 'embedding')}
+        >
+          <CameraswitchOutlined style={{ fontSize: '20px', color: 'white' }} />
+        </IconButton>
+      )}
+    </div>
+  );
 }
+
 export default ScatterPlot;
