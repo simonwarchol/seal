@@ -8,6 +8,10 @@ import React, {
 } from "react";
 import { Icon } from '@material-ui/core';
 import { debounce, find, isEqual, merge } from "lodash-es";
+import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
+import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
+import { Title as TitleIcon } from '@material-ui/icons';
+
 import {
   TitleInfo,
   useDeckCanvasSize,
@@ -66,6 +70,10 @@ import {
   TableRow,
   Slider,
   makeStyles,
+  Menu,
+  MenuItem,
+  Select,
+  Grid,
 } from "@material-ui/core";
 import {
   deck,
@@ -91,7 +99,7 @@ import { Tooltip2D, TooltipContent } from "@vitessce/tooltip";
 import { useId } from "react-aria";
 import clsx from "clsx";
 import { PointerIconSVG, SelectLassoIconSVG } from "@vitessce/icons";
-import { CenterFocusStrong, ErrorSharp } from "@material-ui/icons";
+import { CenterFocusStrong, ErrorSharp, Layers } from "@material-ui/icons";
 import { SpotlightBitmaskLayer } from "./SpotlightBitmaskLayer";
 import useStore from "../../store";
 import housePointer from "../../public/housePointer.svg";
@@ -201,6 +209,7 @@ function IconTool(props) {
 
 function IconButton(props) {
   const { alt, onClick, children } = props;
+  f
   const classes = useStyles();
   return (
     <button
@@ -215,12 +224,37 @@ function IconButton(props) {
 }
 
 function ToolMenu(props) {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const showClusterOutlines = useStore((state) => state.showClusterOutlines);
+  const showClusterTitles = useStore((state) => state.showClusterTitles);
+  const setShowClusterOutlines = useStore((state) => state.setShowClusterOutlines);
+  const setShowClusterTitles = useStore((state) => state.setShowClusterTitles);
+  const featureCount = useStore((state) => state.featureCount);
+  const setFeatureCount = useStore((state) => state.setFeatureCount);
+  const titleFontSize = useStore((state) => state.titleFontSize);
+  const setTitleFontSize = useStore((state) => state.setTitleFontSize);
+  const compareMode = useStore((state) => state.compareMode);
+  const setCompareMode = useStore((state) => state.setCompareMode);
+  const viewMode = useStore((state) => state.viewMode);
+  const setViewMode = useStore((state) => state.setViewMode);
+  const neighborhoodPointerMode = useStore((state) => state.neighborhoodPointerMode);
+  const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
+
   const {
     setActiveTool,
     activeTool,
     visibleTools = { pan: true, selectLasso: true },
     recenterOnClick = () => { },
+
   } = props;
+  const handleFeatureCountChange = (event) => {
+    setFeatureCount(event.target.value);
+  };
+
+  const handleTitleFontSizeChange = (event) => {
+    setTitleFontSize(event.target.value);
+  };
+
 
 
   const classes = useStyles();
@@ -229,49 +263,126 @@ function ToolMenu(props) {
     recenterOnClick();
   };
 
+
   return (
-    <div className={classes.tool}>
-      {visibleTools.pan && (
+    <>
+      <div className={classes.tool}>
         <IconTool
-          alt="pointer tool"
-          onClick={() => {
-            setActiveTool(null)
-          }}
-          isActive={activeTool === null}
+          alt="visible layers"
+
         >
-          <PointerIconSVG />
+          <Layers onMouseEnter={(e) => setAnchorEl(e.currentTarget)} />
         </IconTool>
-      )}
-      {visibleTools.selectLasso ? (
-        <IconTool
-          alt="select lasso"
-          onClick={() => {
-            setActiveTool(SELECTION_TYPE.POLYGON)
-          }}
-          isActive={activeTool === SELECTION_TYPE.POLYGON}
+        {visibleTools.pan && (
+          <IconTool
+            alt="pointer tool"
+            onClick={() => {
+              setActiveTool(null)
+            }}
+            isActive={activeTool === null}
+          >
+            <PointerIconSVG />
+          </IconTool>
+        )}
+        {visibleTools.selectLasso ? (
+          <IconTool
+            alt="select lasso"
+            onClick={() => {
+              setActiveTool(SELECTION_TYPE.POLYGON)
+            }}
+            isActive={activeTool === SELECTION_TYPE.POLYGON}
+          >
+            <SelectLassoIconSVG />
+          </IconTool>
+        ) : null}
+        <IconButton
+          alt="click to recenter"
+          onClick={() => onRecenterButtonCLick()}
+          aria-label="Recenter scatterplot view"
         >
-          <SelectLassoIconSVG />
-        </IconTool>
-      ) : null}
-      <IconButton
-        alt="click to recenter"
-        onClick={() => onRecenterButtonCLick()}
-        aria-label="Recenter scatterplot view"
-      >
-        <CenterFocusStrong />
-      </IconButton>
-      <IconTool
-        alt="neighborhood pointer"
-        onClick={() => {
-          setActiveTool('NEIGHBORHOOD_POINTER')
-        }}
-        isActive={activeTool === 'NEIGHBORHOOD_POINTER'}
-      >
-        <Icon style={{ textAlign: 'center' }}>
-          <img style={{ height: 24, width: 24 }} src={housePointer} />
-        </Icon>
-      </IconTool>
-    </div>
+          <CenterFocusStrong />
+        </IconButton>
+
+      </div>
+        <Menu
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={() => setAnchorEl(null)}
+          onClick={(e) => e.stopPropagation()}
+          MenuListProps={{
+            onMouseLeave: () => setAnchorEl(null)
+          }}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          PaperProps={{
+            style: {
+              width: '250px',
+            },
+          }}
+        >
+
+          <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
+            <Grid container alignItems="center" spacing={2}>
+              <Grid item>
+                <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
+              </Grid>
+              <Grid item>
+                <span>Outline Clusters</span>
+              </Grid>
+            </Grid>
+          </MenuItem>
+          <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
+            <Grid container alignItems="center" spacing={2}>
+              <Grid item>
+                <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
+              </Grid>
+              <Grid item>
+                <span>Show Titles</span>
+              </Grid>
+            </Grid>
+          </MenuItem>
+          <MenuItem>
+            <Grid container alignItems="center" spacing={2}>
+              <Grid item xs={6}>
+                <span>Features</span>
+              </Grid>
+              <Grid item xs={6}>
+                <Select
+                  value={featureCount}
+                  onChange={handleFeatureCountChange}
+                  size="small"
+                  sx={{ height: '30px' }}
+                >
+                  {[0, 1, 2, 3, 4, 5].map((num) => (
+                    <MenuItem key={num} value={num}>{num}</MenuItem>
+                  ))}
+                </Select>
+              </Grid>
+            </Grid>
+          </MenuItem>
+          <MenuItem>
+            <Grid container alignItems="center" spacing={2}>
+              <Grid item xs={6}>
+                <span>Font Size</span>
+              </Grid>
+              <Grid item xs={6}>
+                <Select
+                  value={titleFontSize}
+                  onChange={handleTitleFontSizeChange}
+                  size="small"
+                  sx={{ height: '30px' }}
+                >
+                  {[8, 10, 12, 14, 16, 18, 20].map((size) => (
+                    <MenuItem key={size} value={size}>{size}</MenuItem>
+                  ))}
+                </Select>
+              </Grid>
+            </Grid>
+          </MenuItem>
+        </Menu>
+    </>
   );
 }
 
