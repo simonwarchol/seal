@@ -163,7 +163,6 @@ function SelectionColumnChild({
                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '20px', maxHeight: '20px', minHeight: '20px' }}>
                                 <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.8rem' 
-                                    
                                 }}
                                     onClick={(e) => {
                                         e.stopPropagation();

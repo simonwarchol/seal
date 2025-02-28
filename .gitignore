@@ -187,3 +187,4 @@ data/
 
 *.pkl
 *.npy
+xgb_regressor.json
