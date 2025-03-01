@@ -156,7 +156,7 @@ function Viewer({ value, setValue, height, config }) {
 
 
   };
-  let dataset = config || gregDataset;
+  let dataset = config || exemplarDataset;
 
 
   const vc = new VitessceConfig({

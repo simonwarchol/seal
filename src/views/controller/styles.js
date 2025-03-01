@@ -30,11 +30,18 @@ export const useSelectStyles = makeStyles(() => ({
 }));
 
 export const useControllerSectionStyles = makeStyles(() => ({
+  
   layerControllerRoot: {
     width: '100%',
     flexDirection: 'column',
     padding: '0',
     margin: '0',
+  },
+  layerControllerSegMask: {
+    width: '100%',
+    flexDirection: 'column',
+    padding: '0 15px',
+    // margin: '0 ',
   },
   layerControllerGrid: {
     marginTop: '10px',

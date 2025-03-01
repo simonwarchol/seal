@@ -172,7 +172,7 @@ def load(dataset="exemplar-001", df=None):
 
     if csv_df is not None:
         return
-    if False:
+    if True:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (
@@ -292,6 +292,7 @@ def process_selection(selection_ids):
     global shap_store, summary
     selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
     selected_indices = selected_rows.index.tolist()
+    print(shap_store.shape)
 
     # Convert numpy values to Python native types
     absolute_shap_sums = np.sum(

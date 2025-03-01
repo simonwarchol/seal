@@ -618,101 +618,63 @@ export default function LayerController(props) {
   return (
     <ThemeProvider theme={darkTheme}>
       {isSpotlight ? (
-        <Accordion
-          className={controllerSectionClasses.layerControllerRoot}
-          onChange={(e, expanded) =>
-            !disabled &&
-            setIsExpanded(
-              expanded && e?.target?.attributes?.role?.value === "presentation"
-            )
-          }
-          TransitionProps={{ enter: false }}
-          expanded={!disabled && isExpanded}
-          id={`layer-controls-accordion-${layerControlsId}`}
-        >
-          <AccordionSummary
-            classes={{
-              root: accordionClasses.accordionSummaryRoot,
-              content: accordionClasses.content,
-              expanded: accordionClasses.expanded,
-              expandIcon: accordionClasses.expandIcon,
+        <Grid container direction="column" justifyContent="center" className={controllerSectionClasses.layerControllerSegMask}>
+          <Grid item
+            sx={{
+              padding: '100px !important',
+              margin: '100px !important',
             }}
-            expandIcon={<ExpandMoreIcon role="presentation" />}
-            aria-controls={`layer-${name}-controls`}
-            aria-expanded={isExpanded}
           >
-            <Grid container direction="column" m={1} justifyContent="center">
-              <Grid item classes={{ item: overflowEllipsisGridClasses.item }}>
-                <Button
-                  aria-label="Toggle layer visibility"
-                  onClick={(e) => {
-                    if (!disabled) {
-                      e.stopPropagation();
-                      const nextVisible = typeof visible === "boolean" ? !visible : false;
-                      setVisible(nextVisible);
-                    }
-                  }}
-                  style={{
-                    marginRight: 8,
-                    marginBottom: 2,
-                    padding: 0,
-                    minWidth: 0,
-                  }}
-                >
-                  <Visibility />
-                </Button>
-                <span style={{ color: '#ffffff' }}>Segmentation Mask</span>
-              </Grid>
-              {!disabled && !isExpanded && (
-                <Grid
-                  container
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="center"
-                >
-                  <Grid item xs={6}>
-                    <InputLabel
-                      htmlFor={`layer-${name}-opacity-closed`}
-                      classes={{ root: inputLabelClasses.inputLabelRoot }}
-                    >
-                      <span style={{ color: '#ffffff' }}>Opacity:</span>
-                    </InputLabel>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Slider
-                      id={`layer-${name}-opacity-closed`}
-                      value={opacity}
-                      onChange={(e, v) => setOpacity(v)}
-                      valueLabelDisplay="auto"
-                      aria-label={`Adjust opacity for layer ${name}`}
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      orientation="horizontal"
-                    />
-                  </Grid>
-                </Grid>
-              )}
+            <Button
+              aria-label="Toggle layer visibility"
+              onClick={(e) => {
+                if (!disabled) {
+                  e.stopPropagation();
+                  const nextVisible = typeof visible === "boolean" ? !visible : false;
+                  setVisible(nextVisible);
+                }
+              }}
+              style={{
+                marginRight: 8,
+                marginBottom: 2,
+                padding: 0,
+                minWidth: 0,
+              }}
+            >
+              <Visibility />
+            </Button>
+            <span style={{ color: '#ffffff' }}>Segmentation Mask</span>
+          </Grid>
+          <Grid
+            container
+            direction="row"
+            alignItems="center"
+            justifyContent="center"
+            
+          >
+            <Grid item xs={6}>
+              <InputLabel
+                htmlFor={`layer-${name}-opacity-closed`}
+                classes={{ root: inputLabelClasses.inputLabelRoot }}
+              >
+                <span style={{ color: '#ffffff' }}>Opacity:</span>
+              </InputLabel>
             </Grid>
-          </AccordionSummary>
-          <AccordionDetails
-            classes={{ root: accordionClasses.accordionDetailsRoot }}
-            id={`layer-${name}-controls`}
-            m={0}
-            p={0}
-          >
-            <SpotlightSlider
-              useOverflowEllipsisGridStyles={useOverflowEllipsisGridStyles}
-              name={name}
-              opacity={opacity}
-              setOpacity={setOpacity}
-              titleClass={overflowEllipsisGridClasses.item}
-              setVisible={setVisible}
-              visible={visible}
-              visibleSetting={visibleSetting}
-            />
-          </AccordionDetails>
-        </Accordion>
+            <Grid item xs={6}>
+              <Slider
+                id={`layer-${name}-opacity-closed`}
+                value={opacity}
+                onChange={(e, v) => setOpacity(v)}
+                valueLabelDisplay="auto"
+                aria-label={`Adjust opacity for layer ${name}`}
+                min={0}
+                max={1}
+                step={0.01}
+                orientation="horizontal"
+              />
+            </Grid>
+          </Grid>
+        </Grid>
       ) : (
         <Accordion
           className={controllerSectionClasses.layerControllerRoot}

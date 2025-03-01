@@ -11,6 +11,7 @@ import { debounce, find, isEqual, merge } from "lodash-es";
 import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
 import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
 import { Title as TitleIcon } from '@material-ui/icons';
+import ToolMenu from "./ToolMenu";
 
 import {
   TitleInfo,
@@ -74,6 +75,7 @@ import {
   MenuItem,
   Select,
   Grid,
+  IconButton,
 } from "@material-ui/core";
 import {
   deck,
@@ -97,7 +99,6 @@ import { DEFAULT_LAYER_TYPE_ORDERING } from "@vitessce/spatial-utils";
 import { extent } from "d3-array";
 import { Tooltip2D, TooltipContent } from "@vitessce/tooltip";
 import { useId } from "react-aria";
-import clsx from "clsx";
 import { PointerIconSVG, SelectLassoIconSVG } from "@vitessce/icons";
 import { CenterFocusStrong, ErrorSharp, Layers } from "@material-ui/icons";
 import { SpotlightBitmaskLayer } from "./SpotlightBitmaskLayer";
@@ -137,8 +138,34 @@ const useStyles = makeStyles(() => ({
       extend: "iconClicked",
     },
   },
-  tool: {
+  toolTopLeft: {
     position: "absolute",
+    top: "5px",
+    left: "5px",
+    display: "inline",
+    zIndex: "1000",
+    opacity: ".65",
+    color: "black",
+    "&:hover": {
+      opacity: ".90",
+    },
+  },
+  toolTopRight: {
+    position: "absolute",
+    top: "5px",
+    right: "5px",
+    display: "inline",
+    zIndex: "1000",
+    opacity: ".65",
+    color: "black",
+    "&:hover": {
+      opacity: ".90",
+    },
+  },
+  toolBottom: {
+    position: "absolute",
+    bottom: "10px",
+    left: "10px",
     display: "inline",
     zIndex: "1000",
     opacity: ".65",
@@ -192,199 +219,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function IconTool(props) {
-  const { alt, onClick, isActive, children } = props;
-  const classes = useStyles();
-  return (
-    <button
-      className={clsx(classes.toolIcon, { [classes.toolActive]: isActive })}
-      onClick={onClick}
-      type="button"
-      title={alt}
-    >
-      {children}
-    </button>
-  );
-}
-
-function IconButton(props) {
-  const { alt, onClick, children } = props;
-  f
-  const classes = useStyles();
-  return (
-    <button
-      className={clsx(classes.toolIcon, classes.toolButton)}
-      onClick={onClick}
-      type="button"
-      title={alt}
-    >
-      {children}
-    </button>
-  );
-}
-
-function ToolMenu(props) {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const showClusterOutlines = useStore((state) => state.showClusterOutlines);
-  const showClusterTitles = useStore((state) => state.showClusterTitles);
-  const setShowClusterOutlines = useStore((state) => state.setShowClusterOutlines);
-  const setShowClusterTitles = useStore((state) => state.setShowClusterTitles);
-  const featureCount = useStore((state) => state.featureCount);
-  const setFeatureCount = useStore((state) => state.setFeatureCount);
-  const titleFontSize = useStore((state) => state.titleFontSize);
-  const setTitleFontSize = useStore((state) => state.setTitleFontSize);
-  const compareMode = useStore((state) => state.compareMode);
-  const setCompareMode = useStore((state) => state.setCompareMode);
-  const viewMode = useStore((state) => state.viewMode);
-  const setViewMode = useStore((state) => state.setViewMode);
-  const neighborhoodPointerMode = useStore((state) => state.neighborhoodPointerMode);
-  const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
-
-  const {
-    setActiveTool,
-    activeTool,
-    visibleTools = { pan: true, selectLasso: true },
-    recenterOnClick = () => { },
-
-  } = props;
-  const handleFeatureCountChange = (event) => {
-    setFeatureCount(event.target.value);
-  };
-
-  const handleTitleFontSizeChange = (event) => {
-    setTitleFontSize(event.target.value);
-  };
 
 
-
-  const classes = useStyles();
-
-  const onRecenterButtonCLick = () => {
-    recenterOnClick();
-  };
-
-
-  return (
-    <>
-      <div className={classes.tool}>
-        <IconTool
-          alt="visible layers"
-
-        >
-          <Layers onMouseEnter={(e) => setAnchorEl(e.currentTarget)} />
-        </IconTool>
-        {visibleTools.pan && (
-          <IconTool
-            alt="pointer tool"
-            onClick={() => {
-              setActiveTool(null)
-            }}
-            isActive={activeTool === null}
-          >
-            <PointerIconSVG />
-          </IconTool>
-        )}
-        {visibleTools.selectLasso ? (
-          <IconTool
-            alt="select lasso"
-            onClick={() => {
-              setActiveTool(SELECTION_TYPE.POLYGON)
-            }}
-            isActive={activeTool === SELECTION_TYPE.POLYGON}
-          >
-            <SelectLassoIconSVG />
-          </IconTool>
-        ) : null}
-        <IconButton
-          alt="click to recenter"
-          onClick={() => onRecenterButtonCLick()}
-          aria-label="Recenter scatterplot view"
-        >
-          <CenterFocusStrong />
-        </IconButton>
-
-      </div>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
-        onClick={(e) => e.stopPropagation()}
-        MenuListProps={{
-          onMouseLeave: () => setAnchorEl(null)
-        }}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        PaperProps={{
-          style: {
-            width: '250px',
-          },
-        }}
-      >
-
-        <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
-          <Grid container alignItems="center" spacing={2}>
-            <Grid item>
-              <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
-            </Grid>
-            <Grid item>
-              <span>Outline Clusters</span>
-            </Grid>
-          </Grid>
-        </MenuItem>
-        <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
-          <Grid container alignItems="center" spacing={2}>
-            <Grid item>
-              <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
-            </Grid>
-            <Grid item>
-              <span>Show Titles</span>
-            </Grid>
-          </Grid>
-        </MenuItem>
-        <MenuItem>
-          <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={6}>
-              <span>Features</span>
-            </Grid>
-            <Grid item xs={6}>
-              <Select
-                value={featureCount}
-                onChange={handleFeatureCountChange}
-                size="small"
-                sx={{ height: '30px' }}
-              >
-                {[0, 1, 2, 3, 4, 5].map((num) => (
-                  <MenuItem key={num} value={num}>{num}</MenuItem>
-                ))}
-              </Select>
-            </Grid>
-          </Grid>
-        </MenuItem>
-        <MenuItem>
-          <Grid container alignItems="center" spacing={2}>
-            <Grid item xs={6}>
-              <span>Font Size</span>
-            </Grid>
-            <Grid item xs={6}>
-              <Select
-                value={titleFontSize}
-                onChange={handleTitleFontSizeChange}
-                size="small"
-                sx={{ height: '30px' }}
-              >
-                {[8, 10, 12, 14, 16, 18, 20].map((size) => (
-                  <MenuItem key={size} value={size}>{size}</MenuItem>
-                ))}
-              </Select>
-            </Grid>
-          </Grid>
-        </MenuItem>
-      </Menu>
-    </>
-  );
-}
 
 export default class AbstractSpatialOrScatterplot extends PureComponent {
   constructor(props) {
@@ -635,6 +471,7 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
             selectLasso: showCellSelectionTools && !hideTools,
           }}
           recenterOnClick={this.recenter}
+          useStyles={useStyles}
         />
         <deck.DeckGL
           id={`deckgl-overlay-${uuid}`}
@@ -1539,7 +1376,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       updateTriggers: {
         // getRadius: [layerDef],
         getRadius: 10,
-        getPosition: [obsLocations],
+        getPosition: [obsLabelsTypes],
         getLineColor: [obsLabelsTypes],
         getFillColor: [obsLabelsTypes],
       },

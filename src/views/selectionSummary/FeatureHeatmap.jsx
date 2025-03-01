@@ -65,7 +65,7 @@ function FeatureHeatmap({
         .attr("stroke-linecap", "round")
         .clone(true)
         .attr("stroke", "#ffffff")
-        .attr("stroke-width", 1);
+        .attr("stroke-width", 2);
 
       // Add circles at the end of occurrence lollipops
       g.selectAll(".occurrence-circle")
@@ -76,7 +76,7 @@ function FeatureHeatmap({
           return halfWidth + (diff * halfWidth * 0.4);
         })
         .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("r", rectHeight / 6)
+        .attr("r", rectHeight / 4)
         .attr("fill", "#ffffff")
         .attr("stroke", "#000000")
         .attr("stroke-width", 1);
