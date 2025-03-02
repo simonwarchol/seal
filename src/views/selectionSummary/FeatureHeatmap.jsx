@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import StickyHeader from './StickyHeader';
+import useStore from '../../store';
 
 function FeatureHeatmap({
   featureData,
@@ -11,7 +12,7 @@ function FeatureHeatmap({
   setImportanceInColor
 }) {
   const svgRef = useRef();
-  console.log('fd', featureData,featureData.normalized_occurrence);
+  const hiddenFeatures = useStore((state) => state.hiddenFeatures);
 
   useEffect(() => {
     if (!featureData?.feat_imp || !width || !importanceColorScale || !occuranceColorScale) return;
@@ -24,13 +25,14 @@ function FeatureHeatmap({
 
     svg.selectAll("*").remove();
 
-    // Sort features alphabetically
-    const sortedFeatures = [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]));
+    // Sort features alphabetically and filter out hidden features
+    const sortedFeatures = [...featureData.feat_imp]
+      .filter(([feature]) => !hiddenFeatures.includes(feature))
+      .sort((a, b) => a[0].localeCompare(b[0]));
 
+    // Adjust height based on visible features
     const rectHeight = height / sortedFeatures.length;
     const halfWidth = width / 2;
-
-    // Create a group for the rectangles
 
     // Create a group for the rectangles
     const g = svg.append("g");
@@ -122,14 +124,11 @@ function FeatureHeatmap({
         .attr("stroke-width", 1);
     }
 
-  }, [featureData, width, importanceColorScale, occuranceColorScale, importanceInColor]);
+  }, [featureData, width, importanceColorScale, occuranceColorScale, importanceInColor, hiddenFeatures]);
 
   // Set initial dimensions
   return (
-    <>
-      <svg ref={svgRef} width={width} height={'100%'} />
-
-    </>
+    <svg ref={svgRef} width={width} height={'100%'} />
   );
 }
 

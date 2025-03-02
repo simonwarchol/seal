@@ -474,16 +474,19 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
 
                             {/* Derived sets from comparison */}
                             {compareMode && comparisonResults?.operations && (
+                                // log comparisonResults
+                                console.log('comparisonResults', comparisonResults,setFeatures),
                                 <div className="selection-row">
                                     {Object.entries(comparisonResults.operations)
                                         .filter(([_, value]) => value.count > 0)
                                         .map(([operation, value], i) => (
+                                            console.log('value', comparisonResults?.operations[operation]),
                                             <SelectionColumn
                                                 key={`comparison-${i}`}
                                                 selection={{
                                                     path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
                                                 }}
-                                                setFeature={setFeatures[OPERATION_NAMES[operation]]?.[`${value.count} cells`]}
+                                                setFeature={comparisonResults?.operations[operation].data}
                                                 viewMode={viewMode}
                                                 PLOT_SIZE={PLOT_SIZE}
                                                 heatmapContainerWidth={heatmapContainerWidth}

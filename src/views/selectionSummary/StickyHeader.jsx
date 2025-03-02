@@ -24,9 +24,14 @@ function StickyHeader({
   onPanelToggle,
   ...props
 }) {
-  // Sort features alphabetically to match FeatureHeatmap
+  const hiddenFeatures = useStore((state) => state.hiddenFeatures);
+  const setHiddenFeatures = useStore((state) => state.setHiddenFeatures);
+
+  // Sort features alphabetically and filter out hidden features
   const sortedFeatures = featureData?.feat_imp
-    ? [...featureData.feat_imp].sort((a, b) => a[0].localeCompare(b[0]))
+    ? [...featureData.feat_imp]
+        .filter(([feature]) => !hiddenFeatures.includes(feature))
+        .sort((a, b) => a[0].localeCompare(b[0]))
     : [];
 
   // Create importance steps for the gradient
@@ -339,23 +344,50 @@ function StickyHeader({
                 paddingLeft: '4px',
                 height: rowHeight,
                 display: 'flex',
-                alignItems: 'center'
-              }}
-              onClick={() => {
-                if (sortBy === feature) {
-                  setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-                } else {
-                  setSortBy(feature);
-                  setSortDirection('desc');
-                }
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}
             >
-              {feature.slice(0, 10) + '.'}
-              {sortBy === feature && (
-                <span style={{ marginLeft: '2px' }}>
-                  {sortDirection === 'asc' ? '←' : '→'}
-                </span>
-              )}
+              <div
+                onClick={() => {
+                  if (sortBy === feature) {
+                    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+                  } else {
+                    setSortBy(feature);
+                    setSortDirection('desc');
+                  }
+                }}
+                style={{ flex: 1 }}
+              >
+                {feature.slice(0, 10) + '.'}
+                {sortBy === feature && (
+                  <span style={{ marginLeft: '2px' }}>
+                    {sortDirection === 'asc' ? '←' : '→'}
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setHiddenFeatures(
+                    hiddenFeatures.includes(feature) 
+                      ? hiddenFeatures.filter(f => f !== feature)
+                      : [...hiddenFeatures, feature]
+                  );
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: hiddenFeatures.includes(feature) ? '#666' : '#fff',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  fontSize: '0.7rem',
+                  marginRight: '4px',
+                  opacity: hiddenFeatures.includes(feature) ? 0.5 : 1
+                }}
+              >
+                {hiddenFeatures.includes(feature) ? '⊕' : '⊖'}
+              </button>
             </div>
           );
         })}

@@ -58,6 +58,8 @@ const useStore = create((set) => ({
     // Add new properties for channels
     channelSelection: {},
     setChannelSelection: (selection) => set({ channelSelection: selection }),
+    hiddenFeatures: [],
+    setHiddenFeatures: (features) => set({ hiddenFeatures: features }),
 }))
 
 export default useStore;

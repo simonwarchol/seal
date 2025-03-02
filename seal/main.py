@@ -437,6 +437,8 @@ async def neighbors(selection_data: SelectionSet):
     )
     neighbor_indices = neighbors[1][:, 1]
     neighbor_cellids = csv_df.iloc[neighbor_indices]["CellID"].values
+    # remove indices that are in selection_ids
+    neighbor_cellids = np.setdiff1d(neighbor_cellids, selection_ids)
 
     response_data = process_selection(neighbor_cellids)
     return {"message": "Complete", "data": response_data}
