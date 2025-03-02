@@ -137,6 +137,7 @@ function SelectionColumnChild({
                     width: 'auto',
                     flex: '1 0 auto',
                     minWidth: `${PLOT_SIZE * 2}px`,
+                    maxWidth: `${PLOT_SIZE * 2}px`,
                     opacity,
                     ...style
                 }}

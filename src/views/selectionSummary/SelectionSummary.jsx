@@ -79,6 +79,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
     const [compareSelections, setCompareSelections] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
+    const [isCompareModeActive, setIsCompareModeActive] = useState(false);
 
     useEffect(() => {
         if (!allSelections?.length || !setFeatures) {
@@ -163,6 +164,10 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
 
     const [comparisonResults, setComparisonResults] = useState(null);
 
+    useEffect(() => {
+        console.log('comparisonResults', comparisonResults);
+    }, [comparisonResults]);
+
     // Fetch comparison results when selections change
     useEffect(() => {
         if (!compareSelections || compareSelections.length !== 2 || !cellSets) return;
@@ -219,29 +224,30 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
         };
     }, [compareSelections, cellSets]);
 
-    // Clear comparison results when exiting compare mode
+    // Clear comparison results and selections when exiting compare mode
     useEffect(() => {
         if (!compareMode) {
             setComparisonResults(null);
+            setCompareSelections([]); // Clear the compare selections
         }
     }, [compareMode]);
 
     const handleRowClick = (selection) => {
         if (!compareMode) return;
+
         setCompareSelections(prev => {
-            if (prev.length === 2) {
-                // If already have 2 selections, don't add more
-                return prev;
-            } else if (prev.find(s => s.path[0] === selection.path[0] && s.path[1] === selection.path[1])) {
+            const alreadySelected = prev.find(s => s.path[0] === selection.path[0] && s.path[1] === selection.path[1]);
+
+            if (alreadySelected) {
                 // If clicking an already selected row, remove it
-                return prev.filter(s => !(s.path[0] === selection.path[0] && s.path[1] === selection.path[1]));
+                const newSelections = prev.filter(s => !(s.path[0] === selection.path[0] && s.path[1] === selection.path[1]));
+                setIsCompareModeActive(newSelections.length === 2); // Check if exactly 2 are selected
+                return newSelections;
             } else {
-                // Add the new selection if less than 2 items are selected
-                if (prev.length === 0) {
-                    return [selection];
-                } else {
-                    return [...prev, selection];
-                }
+                // Add the new selection
+                const newSelections = [...prev, selection];
+                setIsCompareModeActive(newSelections.length === 2); // Check if exactly 2 are selected
+                return newSelections;
             }
         });
     };
@@ -257,11 +263,12 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
     // Create color scales for the legend and heatmap
     const importanceColorScale = useMemo(() => {
         if (!setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]?.feat_imp) return () => "#000000"; // Return a default function
+        if (compareMode && compareSelections.length < 2) return () => "#000000"; // 
         const sortedFeatures = [...setFeatures[selections?.[0]?.[0]]?.[selections?.[0]?.[1]]?.feat_imp].sort((a, b) => a[0].localeCompare(b[0]));
         return d3.scaleSequential()
             .domain([0, d3.max(sortedFeatures, d => d[1])])
             .interpolator(d3.interpolateViridis);
-    }, [setFeatures, selections]);
+    }, [setFeatures, selections, compareMode, compareSelections]);
 
     // Interpolate between #00E5D3, to #0C074E, to #DD94C5
     const occuranceColorScale = useMemo(() =>
@@ -473,34 +480,52 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                             )}
 
                             {/* Derived sets from comparison */}
-                            {compareMode && comparisonResults?.operations && (
-                                // log comparisonResults
-                                console.log('comparisonResults', comparisonResults,setFeatures),
-                                <div className="selection-row">
+                            {compareMode && isCompareModeActive && comparisonResults?.operations && (
+                                <div className="selection-row" style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    gap: '2px',
+                                    flexShrink: 0
+                                }}>
                                     {Object.entries(comparisonResults.operations)
                                         .filter(([_, value]) => value.count > 0)
                                         .map(([operation, value], i) => (
-                                            <SelectionColumn
+                                            <Card
                                                 key={`comparison-${i}`}
-                                                selection={{
-                                                    path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
+                                                variant="outlined"
+                                                style={{
+                                                    backgroundColor: '#1A1A1A',
+                                                    borderColor: '#333333',
+                                                    padding: 1,
+                                                    marginRight: '2px',
+                                                    display: 'inline-block',
+                                                    height: '100%',
+                                                    width: `${PLOT_SIZE * 2}px`,
+                                                    flex: '0 0 auto',
                                                 }}
-                                                setFeature={comparisonResults?.operations[operation].data}
-                                                viewMode={viewMode}
-                                                PLOT_SIZE={PLOT_SIZE}
-                                                heatmapContainerWidth={heatmapContainerWidth}
-                                                heatmapContainerRef={heatmapContainerRef}
-                                                isVisible={true}
-                                                onVisibilityToggle={() => { }}
-                                                onClick={() => { }}
-                                                titleColor={iconConfigs[operation]?.color}
-                                                compareMode={compareMode}
-                                                importanceColorScale={importanceColorScale}
-                                                occuranceColorScale={occuranceColorScale}
-                                                importanceInColor={importanceInColor}
-                                                setImportanceInColor={setImportanceInColor}
-                                                backgroundColor={`${iconConfigs[operation]?.color}99`}
-                                            />
+                                            >
+                                                <SelectionColumn
+                                                    key={`comparison-${i}`}
+                                                    selection={{
+                                                        path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
+                                                    }}
+                                                    setFeature={comparisonResults?.operations[operation].data}
+                                                    viewMode={viewMode}
+                                                    PLOT_SIZE={PLOT_SIZE}
+                                                    heatmapContainerWidth={PLOT_SIZE * 2}
+                                                    heatmapContainerRef={heatmapContainerRef}
+                                                    isVisible={true}
+                                                    onVisibilityToggle={() => { }}
+                                                    onClick={() => { }}
+                                                    titleColor={iconConfigs[operation]?.color}
+                                                    compareMode={compareMode}
+                                                    importanceColorScale={importanceColorScale}
+                                                    occuranceColorScale={occuranceColorScale}
+                                                    importanceInColor={importanceInColor}
+                                                    setImportanceInColor={setImportanceInColor}
+                                                    backgroundColor={`${iconConfigs[operation]?.color}99`}
+                                                />
+                                            </Card>
                                         ))}
                                 </div>
                             )}
@@ -573,6 +598,12 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         ))
                     )}
                 </div>
+                <button
+                    onClick={() => setCompareMode(true)}
+                    disabled={compareSelections.length < 2}
+                >
+                    Compare
+                </button>
             </div>
         </div>
     );

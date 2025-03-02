@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import useStore from "../../store";
 import * as d3 from 'd3';
 import { IconButton } from '@mui/material';
@@ -11,6 +11,7 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
   const setViewMode = useStore((state) => state.setViewMode);
 
   const [isHovered, setIsHovered] = useState(false);
+  const hoverTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!data || !ranges) return;
@@ -35,15 +36,7 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
     const svg = d3.select(svgRef.current)
       .attr('width', width)
       .attr('height', height)
-      .style('background-color', '#000000')
-      .on('mouseenter', () => {
-        setHoverSelection(selectionIds);
-        setIsHovered(true);
-      })
-      .on('mouseleave', () => {
-        setHoverSelection(null);
-        setIsHovered(false);
-      });
+      .style('background-color', '#000000');
 
     // Add plot group
     const g = svg.append('g')
@@ -75,8 +68,24 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
 
   }, [data, width, height, ranges, backgroundData, title]);
 
+  const handleMouseEnter = () => {
+    setHoverSelection(selectionIds);
+    setIsHovered(true);
+
+  };
+
+  const handleMouseLeave = (e) => {
+    setHoverSelection(null);
+    setIsHovered(false);
+    console.log('mouse leave',e);
+  };
+
   return (
-    <div style={{ position: 'relative' }}>
+    <div 
+      style={{ position: 'relative' }} 
+      onMouseEnter={handleMouseEnter} 
+      onMouseLeave={handleMouseLeave}
+    >
       <svg ref={svgRef} style={{ display: 'block' }} />
       {isHovered && (
         <IconButton
