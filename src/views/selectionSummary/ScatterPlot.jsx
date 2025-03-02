@@ -77,7 +77,6 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
   const handleMouseLeave = (e) => {
     setHoverSelection(null);
     setIsHovered(false);
-    console.log('mouse leave',e);
   };
 
   return (

@@ -163,8 +163,7 @@ function SelectionColumnChild({
                     >
                         <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '20px', maxHeight: '20px', minHeight: '20px' }}>
-                                <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.8rem' 
-                                }}
+                                <Typography variant="subtitle2" style={{ color: '#ffffff', fontSize: '0.8rem' }}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onVisibilityToggle(true);
@@ -181,7 +180,7 @@ function SelectionColumnChild({
                                     )}
                                 </Typography>
                                 {!isNeighborhood &&
-                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                                         <IconButton
                                             size="small"
                                             onClick={(e) => {
@@ -189,8 +188,8 @@ function SelectionColumnChild({
                                                 setShowNeighborhood(!showNeighborhood);
                                             }}
                                             style={{
-                                                padding: 4,
-                                                position: 'relative',
+                                                padding: 0,
+                                                margin: 0,
                                                 visibility: compareMode ? 'hidden' : 'visible'
                                             }}
                                         >
@@ -198,8 +197,8 @@ function SelectionColumnChild({
                                                 src={NeighborhoodIcon}
                                                 alt="Neighborhood"
                                                 style={{
-                                                    width: 16,
-                                                    height: 16,
+                                                    width: '20px',
+                                                    height: '20px',
                                                     filter: showNeighborhood ? 'invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(40%) contrast(119%)' : 'none'
                                                 }}
                                             />
@@ -211,15 +210,15 @@ function SelectionColumnChild({
                                                 onVisibilityToggle();
                                             }}
                                             style={{
-                                                padding: 4,
-                                                position: 'relative',
+                                                padding: 0,
+                                                margin: 0,
                                                 visibility: compareMode ? 'hidden' : 'visible'
                                             }}
                                         >
                                             {isVisible ? (
-                                                <VisibilityOutlined style={{ fontSize: 16, color: '#ffffff' }} />
+                                                <VisibilityOutlined style={{ fontSize: 20, color: '#ffffff' }} />
                                             ) : (
-                                                <VisibilityOffOutlined style={{ fontSize: 16, color: '#666666' }} />
+                                                <VisibilityOffOutlined style={{ fontSize: 20, color: '#666666' }} />
                                             )}
                                         </IconButton>
                                     </div>

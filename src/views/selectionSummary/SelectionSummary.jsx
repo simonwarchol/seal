@@ -398,6 +398,8 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         overflowY: 'hidden',
                         whiteSpace: 'nowrap',
                         paddingBottom: '0',
+                        height: '100%', // Set height to 100% to occupy the full height of the parent
+
                     }}
                 >
                     <StickyHeader
@@ -598,12 +600,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         ))
                     )}
                 </div>
-                <button
-                    onClick={() => setCompareMode(true)}
-                    disabled={compareSelections.length < 2}
-                >
-                    Compare
-                </button>
+              
             </div>
         </div>
     );
