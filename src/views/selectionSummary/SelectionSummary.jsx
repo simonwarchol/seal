@@ -480,7 +480,6 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                     {Object.entries(comparisonResults.operations)
                                         .filter(([_, value]) => value.count > 0)
                                         .map(([operation, value], i) => (
-                                            console.log('value', comparisonResults?.operations[operation]),
                                             <SelectionColumn
                                                 key={`comparison-${i}`}
                                                 selection={{
