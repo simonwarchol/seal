@@ -964,6 +964,8 @@ function renderSubBitmaskLayers(props) {
 }
 const handleClusterSelection = async (featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers) => {
   let changeI = 0;
+  featureImportance = featureImportance.sort((a, b) => b[1] - a[1]);
+  console.log("featureImportance", featureImportance);
 
   if (rasterLayers?.[0]?.channels?.length > 0) {
     const newRasterLayers = rasterLayers.map(layer => ({
@@ -1200,7 +1202,6 @@ class Spatial extends AbstractSpatialOrScatterplot {
           }
         },
         onClick: async (info, event, d) => {
-          console.log('clicked', this?.state?.tool)
           if (!this?.state?.tool) {
             // SELECT A CLUSTER
             handleClusterSelection(info.object.features, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers)

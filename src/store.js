@@ -58,7 +58,7 @@ const useStore = create((set) => ({
     // Add new properties for channels
     channelSelection: {},
     setChannelSelection: (selection) => set({ channelSelection: selection }),
-    hiddenFeatures: [],
+    hiddenFeatures: ['DNA (2)', 'DNA (3)', 'DNA (4)', 'DNA (5)', 'DNA (6)', 'DNA (7)', 'DNA (8)', 'DNA (9)', 'DNA (10)'],
     setHiddenFeatures: (features) => set({ hiddenFeatures: features }),
     settingsPanelOpen: false,
     setSettingsPanelOpen: (open) => set({ settingsPanelOpen: open }),

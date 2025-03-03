@@ -172,7 +172,8 @@ def load(dataset="exemplar-001", df=None):
 
     if csv_df is not None:
         return
-    if True:
+    # if True
+    if False:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (

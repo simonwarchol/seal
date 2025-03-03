@@ -44,7 +44,6 @@ function StickyHeader({
 
   const [hoveredLegend, setHoveredLegend] = React.useState(null);
   const channelSelection = useStore((state) => state.channelSelection);
-  console.log("channelSelection", channelSelection);
 
 
   return (
@@ -319,7 +318,6 @@ function StickyHeader({
           const index = channelSelection.channelNames.indexOf(feature);
           const color = index !== -1 ? channelSelection.channelColors[index] : [255, 255, 255];
           const colorString = `rgb(${color[0]},${color[1]},${color[2]})`;
-          console.log("feature", colorString, feature, channelSelection.channelNames);
 
           return (
             <div
@@ -362,6 +360,7 @@ function StickyHeader({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  console.log("feature", feature);
                   setHiddenFeatures(
                     hiddenFeatures.includes(feature)
                       ? hiddenFeatures.filter(f => f !== feature)
