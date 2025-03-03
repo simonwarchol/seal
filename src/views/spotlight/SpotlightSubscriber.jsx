@@ -150,10 +150,10 @@ const useStyles = makeStyles(() => ({
       opacity: ".90",
     },
   },
-  toolTopRight: {
+  toolBottomLeft: {
     position: "absolute",
-    top: "5px",
-    right: "5px",
+    bottom: "5px",
+    left: "5px",
     display: "inline",
     zIndex: "1000",
     opacity: ".65",
@@ -444,7 +444,7 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
    * and Scatterplot components.
    */
   render() {
-    const { deckRef, viewState, uuid, hideTools, orbitAxis } = this.props;
+    const { deckRef, viewState, uuid, hideTools, orbitAxis, dataset } = this.props;
     const { gl, tool } = this.state;
     const layers = this.getLayers();
     const use3d = this.use3d();
@@ -472,6 +472,7 @@ export default class AbstractSpatialOrScatterplot extends PureComponent {
           }}
           recenterOnClick={this.recenter}
           useStyles={useStyles}
+          dataset={dataset}
         />
         <deck.DeckGL
           id={`deckgl-overlay-${uuid}`}
@@ -1440,7 +1441,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
       height,
       imageLayerLoaders = {},
       channelNames,
-      channelColors
+      channelColors,
+      dataset
     } = this.props;
     const loaders = Object.values(imageLayerLoaders);
     if (!viewState || !width || !height || loaders.length < 1) return null;
@@ -1468,8 +1470,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
       height,
       imageLayerLoaders = {},
       imageLayerDefs,
+      dataset
     } = this.props;
     const use3d = (imageLayerDefs || []).some((i) => i.use3d);
+    // console.log('scalebardataset', dataset)
+    if (dataset == 'A') return null;
     // Just get the first layer/loader since they should all be spatially
     // resolved and therefore have the same unit size scale.
     const loaders = Object.values(imageLayerLoaders);

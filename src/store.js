@@ -60,6 +60,8 @@ const useStore = create((set) => ({
     setChannelSelection: (selection) => set({ channelSelection: selection }),
     hiddenFeatures: [],
     setHiddenFeatures: (features) => set({ hiddenFeatures: features }),
+    settingsPanelOpen: false,
+    setSettingsPanelOpen: (open) => set({ settingsPanelOpen: open }),
 }))
 
 export default useStore;

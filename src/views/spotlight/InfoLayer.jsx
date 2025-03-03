@@ -36,8 +36,14 @@ const defaultProps = {
 function getPosition(boundingBox, position, length) {
     const viewWidth = boundingBox[2][0] - boundingBox[0][0];
     const viewHeight = boundingBox[2][1] - boundingBox[0][1];
-    const yCoord = boundingBox[2][1] - viewHeight * length;
-    const xLeftCoord = boundingBox[0][0] + viewWidth * length;
+    const yCoord = boundingBox[0][1] + viewHeight * length;
+      const xLeftCoord = boundingBox[2][0] - viewWidth * length;
+    // Bottom Right
+    // const yCoord = boundingBox[2][1] - viewHeight * length;
+    // const xLeftCoord = boundingBox[2][0] - viewWidth * length;
+    // Bottom Left
+    // const yCoord = boundingBox[2][1] - viewHeight * length;
+    // const xLeftCoord = boundingBox[0][0] + viewWidth * length;
     return [yCoord, xLeftCoord];
 
 }
@@ -138,8 +144,8 @@ export const InfoLayer = class extends viv.ScaleBarLayer {
                             // take first 6 characters
                             text: `${text.substring(0, 8)}`,
                             position: [
-                                xLeftCoord + ((index) * barLength * 2),
-                                yCoord + barHeight * 4
+                                xLeftCoord + barLength/2,
+                                yCoord + ((-1+index) * barHeight * 4)
                             ]
                         },
 

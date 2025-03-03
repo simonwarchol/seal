@@ -20,18 +20,19 @@ function StickyHeader({
   occuranceColorScale,
   importanceInColor = true,
   setImportanceInColor,
-  isPanelOpen,
-  onPanelToggle,
   ...props
 }) {
   const hiddenFeatures = useStore((state) => state.hiddenFeatures);
   const setHiddenFeatures = useStore((state) => state.setHiddenFeatures);
-
+  const settingsPanelOpen = useStore((state) => state.settingsPanelOpen);
+  const setSettingsPanelOpen = useStore((state) => state.setSettingsPanelOpen);
+  const compareMode = useStore((state) => state.compareMode);
+  const setCompareMode = useStore((state) => state.setCompareMode);
   // Sort features alphabetically and filter out hidden features
   const sortedFeatures = featureData?.feat_imp
     ? [...featureData.feat_imp]
-        .filter(([feature]) => !hiddenFeatures.includes(feature))
-        .sort((a, b) => a[0].localeCompare(b[0]))
+      .filter(([feature]) => !hiddenFeatures.includes(feature))
+      .sort((a, b) => a[0].localeCompare(b[0]))
     : [];
 
   // Create importance steps for the gradient
@@ -44,7 +45,7 @@ function StickyHeader({
   const [hoveredLegend, setHoveredLegend] = React.useState(null);
   const channelSelection = useStore((state) => state.channelSelection);
   console.log("channelSelection", channelSelection);
- 
+
 
   return (
     <div style={{
@@ -278,35 +279,27 @@ function StickyHeader({
           <ToggleButton
             value="channels"
             m={0}
-            onClick={() => onPanelToggle(!isPanelOpen)}
+            onClick={() => setCompareMode(!compareMode)}
             style={{
               display: 'flex',
               alignItems: 'center',
               color: '#ffffff',
               border: 'none',
-              padding: '4px 0 0 0'
+              padding: '0 0 0 0'
             }}
           >
-            <svg 
-              width="16" 
-              height="16" 
-              viewBox="0 0 24 24" 
-              fill="currentColor"
-              style={{
-                transform: `rotate(${isPanelOpen ? 180 : 0}deg)`,
-                transition: 'transform 0.3s ease-in-out'
-              }}
-            >
-              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-            </svg>
             <Typography
               variant="caption"
               sx={{
                 color: '#ffffff',
-                ml: 1
+                margin: '4px 0'
+              }}
+              style={{
+                cursor: 'pointer',
+                color: compareMode ? '#ffd700' : '#ffffff'
               }}
             >
-              Conf.
+              Compare ⇆
             </Typography>
           </ToggleButton>
         </ToggleButtonGroup>
@@ -324,7 +317,7 @@ function StickyHeader({
           // if channelSelection.channelNames includes feature, then color is channelSelection.channelColors[feature]
           // check index of feature in channelSelection.channelNames
           const index = channelSelection.channelNames.indexOf(feature);
-          const color = index !== -1 ? channelSelection.channelColors[index] : [255,255,255];
+          const color = index !== -1 ? channelSelection.channelColors[index] : [255, 255, 255];
           const colorString = `rgb(${color[0]},${color[1]},${color[2]})`;
           console.log("feature", colorString, feature, channelSelection.channelNames);
 
@@ -370,7 +363,7 @@ function StickyHeader({
                 onClick={(e) => {
                   e.stopPropagation();
                   setHiddenFeatures(
-                    hiddenFeatures.includes(feature) 
+                    hiddenFeatures.includes(feature)
                       ? hiddenFeatures.filter(f => f !== feature)
                       : [...hiddenFeatures, feature]
                   );

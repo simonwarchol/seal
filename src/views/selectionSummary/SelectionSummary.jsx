@@ -26,6 +26,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
     // Move all useStore calls to the top of the component
     const setFeatures = useStore((state) => state.setFeatures);
     const compareMode = useStore((state) => state.compareMode);
+    const settingsPanelOpen = useStore((state) => state.settingsPanelOpen);
     const importanceInColor = useStore((state) => state.importanceInColor);
     const setImportanceInColor = useStore((state) => state.setImportanceInColor);
     const viewMode = useStore((state) => state.viewMode);
@@ -77,7 +78,6 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
 
     const [rectWidth, setRectWidth] = useState(0);
     const [compareSelections, setCompareSelections] = useState([]);
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
     const [isCompareModeActive, setIsCompareModeActive] = useState(false);
 
@@ -319,7 +319,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                 height: '100%',
                 overflow: 'auto',
                 backgroundColor: '#1a1a1a',
-                transform: `translateX(${isPanelOpen ? '0' : '-500px'})`,
+                transform: `translateX(${settingsPanelOpen ? '0' : '-500px'})`,
                 transition: 'transform 0.3s ease-in-out',
                 zIndex: 999,
                 borderRight: '1px solid #333333',
@@ -383,7 +383,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                 flexDirection: 'column',
                 height: '100%',
                 width: '100%',
-                marginLeft: isPanelOpen ? '300px' : '0',
+                marginLeft: settingsPanelOpen ? '300px' : '0',
                 transition: 'margin-left 0.3s ease-in-out',
             }}>
                 <div
@@ -415,8 +415,6 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         occuranceColorScale={occuranceColorScale}
                         importanceInColor={importanceInColor}
                         setImportanceInColor={setImportanceInColor}
-                        isPanelOpen={isPanelOpen}
-                        onPanelToggle={setIsPanelOpen}
                     />
 
                     {/* Only show the comparison UI when in compare mode */}

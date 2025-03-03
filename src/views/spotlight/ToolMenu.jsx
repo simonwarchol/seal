@@ -21,6 +21,7 @@ import hideBackground from "../../public/HideBackground.svg";
 import CellBackground from "../../public/CellBackground.svg";
 import spotlightSelection from "../../public/SpotlightSelection.svg";
 import outlineSelection from "../../public/OutlineSelection.svg";
+import ChannelSettingsIcon from "../../public/ChannelSettings.svg";
 
 import {
 
@@ -43,6 +44,7 @@ import useStore from "../../store";
 
 
 function ToolMenu(props) {
+    const { dataset } = props;
     const [anchorEl, setAnchorEl] = useState(null);
     const showClusterOutlines = useStore((state) => state.showClusterOutlines);
     const showClusterTitles = useStore((state) => state.showClusterTitles);
@@ -62,9 +64,12 @@ function ToolMenu(props) {
     const setSelectedBackground = useStore((state) => state.setSelectedBackground)
     const selectedSelection = useStore((state) => state.selectedSelection)
     const setSelectedSelection = useStore((state) => state.setSelectedSelection)
+    const setSettingsPanelOpen = useStore((state) => state.setSettingsPanelOpen)
+    const settingsPanelOpen = useStore((state) => state.settingsPanelOpen)
     const actions = [
         {
-            icon: <Icon
+            icon: 
+            <Icon
                 onClick={() => {
                     setSelectedSelection(selectedSelection === 'spotlight' ? 'outline' : 'spotlight')
                 }}
@@ -90,8 +95,8 @@ function ToolMenu(props) {
                     }}
                 />
             </Icon>,
-            name: selectedSelection === 'spotlight' ?  'Outline Selection':'Spotlight Selection',
-        }, 
+            name: selectedSelection === 'spotlight' ? 'Outline Selection' : 'Spotlight Selection',
+        },
         {
             icon: <Icon
                 onClick={() => setSelectedBackground(selectedBackground === 'show' ? 'hide' : 'show')}
@@ -117,8 +122,8 @@ function ToolMenu(props) {
                     }}
                 />
             </Icon>,
-            name: selectedBackground === 'show' ?  'Hide Background':'Show Background',
-        }, 
+            name: selectedBackground === 'show' ? 'Hide Background' : 'Show Background',
+        },
         { icon: <TextFieldsOutlinedIcon color={showClusterTitles ? 'primary' : 'inherit'} onClick={() => setShowClusterTitles(!showClusterTitles)} />, name: 'Label Selections' },
 
         {
@@ -149,38 +154,7 @@ function ToolMenu(props) {
         // { icon: <PrintIcon />, name: 'Print' },
         // { icon: <ShareIcon />, name: 'Share' },
     ];
-    // <MenuItem>
-    //     <Grid container alignItems="center" spacing={2}>
-    //         <Grid item>
-    //             <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
-    //         </Grid>
-    //         <Grid item>
-    //             <span>Show Titles</span>
-    //         </Grid>
-    //     </Grid>
-    // </MenuItem>
-    //     <IconButton
-    //     size="small"
-    //     onClick={(e) => {
-    //         e.stopPropagation();
-    //         setShowNeighborhood(!showNeighborhood);
-    //     }}
-    //     style={{
-    //         padding: 4,
-    //         position: 'relative',
-    //         visibility: compareMode ? 'hidden' : 'visible'
-    //     }}
-    // >
-    //     <img
-    //         src={NeighborhoodIcon}
-    //         alt="Neighborhood"
-    //         style={{
-    //             width: 16,
-    //             height: 16,
-    //             filter: showNeighborhood ? 'invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(40%) contrast(119%)' : 'none'
-    //         }}
-    //     />
-    // </IconButton>
+    
 
     function IconTool(props) {
         const { alt, onClick, isActive, children } = props;
@@ -242,7 +216,15 @@ function ToolMenu(props) {
         <>
             <div className={classes.toolTopLeft}>
                 {/* Top left positioned icon tool */}
-
+                <IconTool
+                    alt="channel settings"
+                    onClick={() => {
+                        setSettingsPanelOpen(!settingsPanelOpen)
+                    }}
+                    isActive={settingsPanelOpen}
+                >
+                    <img src={ChannelSettingsIcon} alt="Channel Settings" />
+                </IconTool>
                 {visibleTools.pan && (
                     <IconTool
                         alt="pointer tool"
@@ -275,62 +257,64 @@ function ToolMenu(props) {
                 </IconButton>
 
             </div>
-            <div className={classes.toolTopRight}>
-                {/* <IconTool
+            {dataset == 'B' ? null :
+                <div className={classes.toolBottomLeft}>
+                    {/* <IconTool
                     alt="visible layers"
                 >
                     <Layers onMouseEnter={(e) => setAnchorEl(e.currentTarget)} />
                 </IconTool> */}
-                <SpeedDial
-                    ariaLabel="SpeedDial basic example"
-                    icon={
-                        <Layers style={{ color: 'black', width: '18px', height: '18px' }} />
-                    }
-                    // open={true}
-                    direction="down"
-                    sx={{
-                        '& .MuiSpeedDial-fab': {
-                            width: '40px',
-                            height: '40px',
-                            backgroundColor: '#777777',
-                            '&:hover': {
-                                backgroundColor: '#888888'
-                            },
-                        },
-                        '& .MuiSpeedDialAction-fab': {
-                            width: '30px',
-                            height: '30px',
-                            minHeight: 'unset',
-                            marginTop: '-3px',
-
-                        },
-                        '& .MuiSpeedDialAction-staticTooltipLabel': {
-                            fontSize: '0.75rem'
+                    <SpeedDial
+                        ariaLabel="SpeedDial basic example"
+                        icon={
+                            <Layers style={{ color: 'black', width: '18px', height: '18px' }} />
                         }
-                    }}
-                >
-                    {actions.map((action) => (
-                        <SpeedDialAction
-                            key={action.name}
-                            icon={action.icon}
-                            tooltipTitle={action.name}
-                            sx={{
-                                '& .MuiSvgIcon-root': {
-                                    fontSize: '18px',
-                                    color: 'white'
-                                },
-                                backgroundColor: '#111111',
-                                // border: '1px solid white',
-                                
-                                // red background   
+                        // open={true}
+                        direction="right"
+                        sx={{
+                            '& .MuiSpeedDial-fab': {
+                                width: '40px',
+                                height: '40px',
+                                backgroundColor: '#777777',
                                 '&:hover': {
-                                    backgroundColor: '#333333'
-                                }
-                            }}
-                        />
-                    ))}
-                </SpeedDial>
-            </div>
+                                    backgroundColor: '#888888'
+                                },
+                            },
+                            '& .MuiSpeedDialAction-fab': {
+                                width: '30px',
+                                height: '30px',
+                                minHeight: 'unset',
+                                marginTop: '-3px',
+
+                            },
+                            '& .MuiSpeedDialAction-staticTooltipLabel': {
+                                fontSize: '0.75rem'
+                            }
+                        }}
+                    >
+                        {actions.map((action) => (
+                            <SpeedDialAction
+                                key={action.name}
+                                icon={action.icon}
+                                tooltipTitle={action.name}
+                                sx={{
+                                    '& .MuiSvgIcon-root': {
+                                        fontSize: '18px',
+                                        color: 'white'
+                                    },
+                                    backgroundColor: '#111111',
+                                    // border: '1px solid white',
+
+                                    // red background   
+                                    '&:hover': {
+                                        backgroundColor: '#333333'
+                                    }
+                                }}
+                            />
+                        ))}
+                    </SpeedDial>
+                </div>
+            }
 
         </>
     );
