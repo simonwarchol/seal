@@ -12,6 +12,7 @@ import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
 import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
 import { Title as TitleIcon } from '@material-ui/icons';
 import ToolMenu from "./ToolMenu";
+import { makeBoundingBox } from "@vivjs/layers";
 
 import {
   TitleInfo,
@@ -104,7 +105,7 @@ import { CenterFocusStrong, ErrorSharp, Layers } from "@material-ui/icons";
 import { SpotlightBitmaskLayer } from "./SpotlightBitmaskLayer";
 import useStore from "../../store";
 import housePointer from "../../public/housePointer.svg";
-import { OrthographicView, COORDINATE_SYSTEM, Layer, project32, picking, CompositeLayer } from '@deck.gl/core';
+import { PathLayer } from "@deck.gl/layers";
 import { InfoLayer } from "./InfoLayer";
 
 const getCursorWithTool = () => "crosshair";
@@ -1111,6 +1112,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     this.selectedBackground = props?.selectedBackground;
     this.channelNames = props?.channelNames;
     this.channelColors = props?.channelColors;
+    this.contours = props?.contours;
     this.imageLayers = [];
     this.obsSegmentationsBitmaskLayers = [];
     this.obsSegmentationsPolygonLayer = null;
@@ -1190,7 +1192,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
         getFillColor: [255, 255, 255, 0],
         highlightColor: [255, 255, 255, 50],
-        getLineWidth: 50,
+        getLineWidth: 2,
         getLineColor: (d) => {
           const pathString = JSON.stringify(d.path)
           const opacity = hoverClusterOpacities?.get(pathString)
@@ -1462,6 +1464,43 @@ class Spatial extends AbstractSpatialOrScatterplot {
     });
 
   }
+  createContoursLayer() {
+    const {
+      contours,
+      dataset,
+      viewState,
+      showContours
+    } = this.props;
+    if (!contours || contours.length == 0 || dataset == 'B' || !showContours) return null;
+
+    const boundingBox = makeBoundingBox(viewState);
+    const viewLength = boundingBox[2][0] - boundingBox[0][0];
+    const barLength = viewLength;
+
+    return new deck.PolygonLayer({
+      id: "contours-layer",
+      data: contours,
+      coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
+      pickable: false,
+      autoHighlight: true,
+      filled: false,
+      stroked: true,
+      getLineColor: () => [255, 255, 255],
+      getPolygon: d => d,
+      // opacity
+      opacity: 0.5,
+      getFillColor: [255, 255, 255, 0],
+      highlightColor: [255, 255, 255, 50],
+      getLineWidth: barLength,  // Direct value instead of callback
+      getLineWidth: () => {
+        return barLength;
+      },
+      updateTriggers: {
+        getLineWidth: barLength  // Add update trigger for barLength
+      }
+    });
+
+  }
 
 
   createScaleBarLayer() {
@@ -1710,6 +1749,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       this.createFeatureLabelLayer(),
       this.createScaleBarLayer(),
       this.createInfoLayer(),
+      this.createContoursLayer(),
       this.createSelectionLayer(),
     ];
     return layers;
@@ -1931,6 +1971,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
       this.onUpdateCellsLayer()
       forceUpdate = true;
     }
+
+
 
     if (["cellColors"].some(shallowDiff)) {
       // Cells Color layer props changed.
@@ -2346,6 +2388,21 @@ export function SpotlightSubscriber(props) {
   const channelSelection = useStore((state) => state.channelSelection)
   const setChannelSelection = useStore((state) => state.setChannelSelection)
 
+  const contours = useStore((state) => state.contours)
+  const setContours = useStore((state) => state.setContours)
+  const showContours = useStore((state) => state.showContours)
+
+  useEffect(() => {
+    const fetchContours = async () => {
+      const contoursUrl = "http://localhost:8181/contours";
+      const contoursPost = await fetch(contoursUrl);
+      const contoursData = await contoursPost.json();
+      setContours(contoursData?.data);
+    }
+    fetchContours()
+  }, [])
+
+
 
 
   const reverseLocationsIndex = useMemo(() => {
@@ -2449,66 +2506,6 @@ export function SpotlightSubscriber(props) {
 
 
 
-
-
-  // Removing old hover handling
-  // useEffect(() => {
-  //   if (!mergedCellSets || !cellSetSelection) return;
-  //   if (!hoveredCluster) setHoverClusterOpacities(null)
-  //   else {
-  //     console.log('hoveredCluster', hoveredCluster)
-  //     const highlightedNode = treeFindNodeByNamePath(mergedCellSets, hoveredCluster.path);
-  //     const highlightedSet = new Set(highlightedNode?.set?.map((cell) => `${cell[0]}`));
-  //     console.log('highlightedSet', highlightedSet, highlightedNode)
-
-  //     const opacityMap = new Map();
-  //     cellSetSelection.forEach((set) => {
-  //       const thisSet = new Set(treeFindNodeByNamePath(mergedCellSets, set)?.set?.map((cell) => `${cell[0]}`));
-  //       const overlap = highlightedSet.intersection(thisSet);
-  //       const percentOverlap = overlap.size / highlightedSet.size;
-  //       opacityMap.set(JSON.stringify(set), percentOverlap);
-  //     });
-  //     console.log('opacityMap', opacityMap, highlightedSet)
-  //     setHoverClusterOpacities(opacityMap)
-  //   }
-  // }, [hoveredCluster, mergedCellSets, cellSetSelection])
-
-  // useEffect(() => {
-  //   // Iterate over objects in hoveredClusters
-  //   const clusterList = Object.keys(hoveredClusters)
-  //   const anyHovered = clusterList.map((key) => {
-  //     return hoveredClusters[key]
-  //   }).some(Boolean)
-  //   if (!anyHovered) {
-  //     setHoverSelection(null)
-  //     return;
-  //   };
-  //   const firstSet = clusterList?.[0]
-  //   const secondSet = clusterList?.[1]
-  //   let setA, setB = null;
-  //   if (firstSet && hoveredClusters[firstSet]) {
-  //     const path = JSON.parse(firstSet)
-  //     setA = new Set(treeFindNodeByNamePath(mergedCellSets, path).set.map((cell) => cell[0]));
-  //   }
-  //   if (secondSet && hoveredClusters[secondSet]) {
-  //     const path = JSON.parse(secondSet)
-  //     setB = new Set(treeFindNodeByNamePath(mergedCellSets, path).set.map((cell) => cell[0]));
-  //   }
-  //   let selection = new Set();
-  //   if (setA && setB) {
-  //     const intersection = setA.intersection(setB);
-  //     intersection.forEach(cell => selection.add(cell));
-  //   } else if (setA) {
-  //     setA.forEach(cell => selection.add(cell));
-  //   } else if (setB) {
-  //     setB.forEach(cell => selection.add(cell));
-  //   }
-  //   let selectArray = Array.from(selection);
-  //   setHoverSelection(selectArray)
-
-  // }, [hoveredClusters])
-
-
   const selectNeighborhood = useCallback((info) => {
     const path = info?.object?.path
     if (!path) return;
@@ -2539,6 +2536,8 @@ export function SpotlightSubscriber(props) {
   }, [mergedCellSets, cellSetColor,
     setCellSetSelection, setAdditionalCellSets, setCellSetColor,
     setCellColorEncoding])
+
+
 
 
 
@@ -3028,6 +3027,7 @@ export function SpotlightSubscriber(props) {
         setHoverSelection={setHoverSelection}
         showClusterOutlines={showClusterOutlines}
         showClusterTitles={showClusterTitles}
+        showContours={showContours}
         featureCount={featureCount}
         titleFontSize={titleFontSize}
         selectNeighborhood={selectNeighborhood}
@@ -3035,6 +3035,7 @@ export function SpotlightSubscriber(props) {
         selectedSelection={selectedSelection}
         channelNames={channelNames}
         channelColors={channelColors}
+        contours={contours}
       />
       {tooltipsVisible && (
         <SpatialTooltipSubscriber

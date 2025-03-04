@@ -62,6 +62,10 @@ const useStore = create((set) => ({
     setHiddenFeatures: (features) => set({ hiddenFeatures: features }),
     settingsPanelOpen: false,
     setSettingsPanelOpen: (open) => set({ settingsPanelOpen: open }),
+    contours: [],
+    setContours: (contours) => set({ contours }),
+    showContours: false,
+    setShowContours: (show) => set({ showContours: show }),
 }))
 
 export default useStore;

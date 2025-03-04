@@ -7,7 +7,6 @@ import IconButton from '@mui/material/IconButton';
 import NeighborhoodIcon from "../../public/NeighborhoodIcon.svg";
 
 function SelectionColumn(props) {
-    console.log('props', props)
     const [showNeighborhood, setShowNeighborhood] = useState(false);
     const [neighborhoodData, setNeighborhoodData] = useState(null);
 

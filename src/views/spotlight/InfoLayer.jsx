@@ -131,38 +131,36 @@ export const InfoLayer = class extends viv.ScaleBarLayer {
         );
         const [yCoord, xLeftCoord] = getPosition(boundingBox, position, length);
 
-        return (channelNames || []).map((channelName, index) => {
+        const textLayers = (channelNames || []).map((channelName, index) => {
             // Repalce "Autofluorescence-" with "AF-" and "Control-" with "Cont-" in channelName
             const text = channelName.replace("Autofluorescence-", "AF-").replace("Control-", "Cont-");
             const textColor = channelColors?.[index] || [255, 255, 255];
-            try {
-                const textLayer = new deck.TextLayer({
-                    id: `info-layer-${id}-${index}`,
-                    coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
-                    data: [
-                        {
-                            // take first 6 characters
-                            text: `${text.substring(0, 8)}`,
-                            position: [
-                                xLeftCoord + barLength/2,
-                                yCoord + ((-1+index) * barHeight * 4)
-                            ]
-                        },
+            return {
+                text: `${text.substring(0, 8)}`,
+                position: [
+                    xLeftCoord + barLength/2,
+                    yCoord + ((-1+index) * barHeight * 4)
+                ],
+                color: textColor,
+            };
+        });
 
-                    ],
-                    getColor: textColor,
-                    getSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    sizeUnits: "meters",
-                    sizeScale: 2 ** -zoom,
-
-                });
-                return [textLayer];
-            } catch (error) {
-                console.error("Error creating text layer", error);
-                return [];
-            }
-        })
+        try {
+            const textLayer = new deck.TextLayer({
+                id: `info-layer-${id}`,
+                coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+                data: textLayers,
+                getColor: d => d.color,
+                getSize: 12,
+                fontFamily: DEFAULT_FONT_FAMILY,
+                sizeUnits: "meters",
+                sizeScale: 2 ** -zoom,
+            });
+            return [textLayer];
+        } catch (error) {
+            console.error("Error creating text layer", error);
+            return [];
+        }
     };
 }
 InfoLayer.defaultProps = defaultProps;

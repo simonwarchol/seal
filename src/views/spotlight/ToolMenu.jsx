@@ -21,6 +21,7 @@ import hideBackground from "../../public/HideBackground.svg";
 import CellBackground from "../../public/CellBackground.svg";
 import spotlightSelection from "../../public/SpotlightSelection.svg";
 import outlineSelection from "../../public/OutlineSelection.svg";
+import ContoursIcon from "../../public/ContourIcon.svg";
 import ChannelSettingsIcon from "../../public/ChannelSettings.svg";
 
 import {
@@ -66,6 +67,8 @@ function ToolMenu(props) {
     const setSelectedSelection = useStore((state) => state.setSelectedSelection)
     const setSettingsPanelOpen = useStore((state) => state.setSettingsPanelOpen)
     const settingsPanelOpen = useStore((state) => state.settingsPanelOpen)
+    const showContours = useStore((state) => state.showContours)
+    const setShowContours = useStore((state) => state.setShowContours)
     const actions = [
         {
             icon: 
@@ -150,6 +153,34 @@ function ToolMenu(props) {
                 />
             </Icon>,
             name: 'Outline Selections'
+        },
+        {
+            icon: <Icon
+                onClick={() => setShowContours(!showContours)}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    // color based on showContours
+                }}
+            >
+                <img
+                    src={ContoursIcon}
+                    alt="Outline Selections"
+                    style={{
+                        width: '24px',  // Set a specific size
+                        height: '24px', // Make it square
+                        margin: 'auto', // Center in flex container
+                        display: 'block', // Remove any inline spacing
+                        // color based on showContours
+                        // if showContours is true, make black and white
+                        filter: showContours ? 'grayscale(100%)' : 'none',
+                    }}
+                />
+            </Icon>,
+            name: showContours ? 'Hide Contours' : 'Show Contours'
         },
         // { icon: <PrintIcon />, name: 'Print' },
         // { icon: <ShareIcon />, name: 'Share' },

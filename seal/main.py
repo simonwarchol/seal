@@ -63,6 +63,7 @@ cut_cells = None
 shap_store = None
 dataset_name = None
 summary = None
+contour_lines = None
 
 
 def get_shapes(path):
@@ -168,7 +169,7 @@ def get_potential_features(df):
 def load(dataset="exemplar-001", df=None):
     global shapes, csv_df, tree, tile_size, image_io, image_zarr, seg_io, seg_zarr, set_csv_path
     global segmentation_path, csv_path, image_path, cut_seg_cells, cut_cells, embedding_image_path, embedding_segmentation_path
-    global shap_store, dataset_name, summary
+    global shap_store, dataset_name, summary, contour_lines
 
     if csv_df is not None:
         return
@@ -240,6 +241,10 @@ def load(dataset="exemplar-001", df=None):
     #
     tile_size = 1024
     shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
+    # with open(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.pkl", "rb") as f:
+    #     shap_store = pickle.load(f)
+    with open(f"/Users/swarchol/Research/seal/data/{dataset_name}.contour.pkl", "rb") as f:
+        contour_lines = pickle.load(f)
 
 
 @app.get("/")
@@ -422,6 +427,12 @@ async def set_compare(selection_data: CompareSet):
         }
 
     return {"message": "Complete", "data": results}
+
+
+@app.get("/contours")
+async def contours():
+    global contour_lines
+    return {"message": "Complete", "data": contour_lines}
 
 
 @app.post("/neighborhood")
