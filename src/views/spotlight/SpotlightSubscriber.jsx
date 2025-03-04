@@ -1497,7 +1497,14 @@ class Spatial extends AbstractSpatialOrScatterplot {
       },
       updateTriggers: {
         getLineWidth: barLength  // Add update trigger for barLength
-      }
+      },
+      // getTooltip: ({object}) => {
+      //   console.log('object', object)
+      //   if (object) {
+      //     return 'simon';
+      //   }
+      //   return null;
+      // }
     });
 
   }

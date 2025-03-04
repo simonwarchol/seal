@@ -66,6 +66,8 @@ const useStore = create((set) => ({
     setContours: (contours) => set({ contours }),
     showContours: false,
     setShowContours: (show) => set({ showContours: show }),
+    maxSelectionSize: 0,
+    setMaxSelectionSize: (size) => set({ maxSelectionSize: size }),
 }))
 
 export default useStore;

@@ -10,8 +10,9 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
   const viewMode = useStore((state) => state.viewMode);
   const setViewMode = useStore((state) => state.setViewMode);
 
+  const maxSelectionSize = useStore((state) => state.maxSelectionSize);
   const [isHovered, setIsHovered] = useState(false);
-  const hoverTimeoutRef = useRef(null);
+  const BAR_WIDTH = 10; // Width of the vertical bar
 
   useEffect(() => {
     if (!data || !ranges) return;
@@ -19,18 +20,9 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
     // Clear previous plot
     d3.select(svgRef.current).selectAll("*").remove();
 
-    const margin = { top: 0, right: 0, bottom: 0, left: 0 };
+    const margin = { top: 0, right: 0, bottom: 0, left: BAR_WIDTH + 2 }; // Add margin for the bar
     const plotWidth = width - margin.left - margin.right;
     const plotHeight = height - margin.top - margin.bottom;
-
-    // Create scales
-    const xScale = d3.scaleLinear()
-      .domain(ranges[0])
-      .range([0, plotWidth]);
-
-    const yScale = d3.scaleLinear()
-      .domain(ranges[1])
-      .range([0, plotHeight]);
 
     // Create SVG
     const svg = d3.select(svgRef.current)
@@ -38,11 +30,42 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
       .attr('height', height)
       .style('background-color', '#000000');
 
+    // Add vertical bar to show selection size
+    const selectionRatio = selectionIds?.length / maxSelectionSize || 0;
+    const barHeight = height * selectionRatio;
+
+    // Add bar background
+    svg.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', BAR_WIDTH)
+      .attr('height', height)
+      .attr('fill', '#333333');
+
+    // Add bar indicator
+    svg.append('rect')
+      .attr('x', 0)
+      .attr('y', height - barHeight)
+      .attr('width', BAR_WIDTH)
+      .attr('height', barHeight)
+      .attr('fill', 'rgba(54, 162, 235, 1)');
+
+    // Create scales
+    const xScale = d3.scaleLinear()
+      .domain(ranges[0])
+      .range([0, plotWidth]);
+
+   
+
+    const yScale = d3.scaleLinear()
+      .domain(ranges[1])
+      .range([0, plotHeight]);
+
     // Add plot group
     const g = svg.append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    // Add background points first
+    // Add background points
     if (backgroundData) {
       g.selectAll('.background-circle')
         .data(backgroundData)
@@ -55,7 +78,7 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
         .attr('fill', 'rgba(255, 255, 255, 1)');
     }
 
-    // Add selection points on top
+    // Add selection points
     g.selectAll('.selection-circle')
       .data(data)
       .enter()
@@ -66,23 +89,33 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
       .attr('r', 1.0)
       .attr('fill', 'rgba(54, 162, 235, 1)');
 
-  }, [data, width, height, ranges, backgroundData, title]);
+       // Add cell count label when hovered
+    if (isHovered) {
+      g.append('text')
+        .attr('x', BAR_WIDTH)
+        .attr('y', height )
+        .attr('text-anchor', 'start')
+        .attr('fill', 'white')
+        .style('font-size', '10px')
+        .text(`${selectionIds?.length} cells`);
+    }
+
+  }, [data, width, height, ranges, backgroundData, title, selectionIds, maxSelectionSize, isHovered]);
 
   const handleMouseEnter = () => {
     setHoverSelection(selectionIds);
     setIsHovered(true);
-
   };
 
-  const handleMouseLeave = (e) => {
+  const handleMouseLeave = () => {
     setHoverSelection(null);
     setIsHovered(false);
   };
 
   return (
-    <div 
-      style={{ position: 'relative' }} 
-      onMouseEnter={handleMouseEnter} 
+    <div
+      style={{ position: 'relative' }}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <svg ref={svgRef} style={{ display: 'block' }} />

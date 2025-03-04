@@ -5,10 +5,13 @@ import FeatureHeatmap from './FeatureHeatmap';
 import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import NeighborhoodIcon from "../../public/NeighborhoodIcon.svg";
+import useStore from '../../store';
 
 function SelectionColumn(props) {
     const [showNeighborhood, setShowNeighborhood] = useState(false);
     const [neighborhoodData, setNeighborhoodData] = useState(null);
+    const maxSelectionSize = useStore((state) => state.maxSelectionSize);
+    const setMaxSelectionSize = useStore((state) => state.setMaxSelectionSize);
 
     useEffect(() => {
         const getNeighborhoodData = async () => {
@@ -45,6 +48,16 @@ function SelectionColumn(props) {
             getNeighborhoodData();
         }
     }, [showNeighborhood, props.setFeature, props.selection]);
+
+
+    // Add useEffect to handle maxSelectionSize updates
+    useEffect(() => {
+        const currentSelectionSize = props.setFeature?.selection_ids?.length;
+        if (currentSelectionSize && currentSelectionSize > maxSelectionSize) {
+            setMaxSelectionSize(currentSelectionSize);
+        }
+    }, [props.setFeature?.selection_ids?.length, maxSelectionSize]);
+
 
     return (
         <>
@@ -226,33 +239,23 @@ function SelectionColumnChild({
                             {setFeature?.feat_imp && (
                                 <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                                     <div style={{ height: `${PLOT_SIZE}px`, padding: 0, margin: 0, lineHeight: 0 }}>
-                                        {viewMode === 'embedding' ? (
-                                            <ScatterPlot
-                                                data={setFeature?.embedding_coordinates}
-                                                backgroundData={setFeature?.summary.embedding_subsample}
-                                                selectionIds={setFeature?.selection_ids}
-                                                ranges={[
-                                                    [setFeature?.summary.embedding_ranges[0][0], setFeature?.summary.embedding_ranges[0][1]],
-                                                    [setFeature?.summary.embedding_ranges[1][0], setFeature?.summary.embedding_ranges[1][1]]
-                                                ]}
-                                                height={PLOT_SIZE}
-                                                width={plotWidth}
-                                                title="Embedding"
-                                            />
-                                        ) : (
-                                            <ScatterPlot
-                                                data={setFeature?.spatial_coordinates}
-                                                backgroundData={setFeature?.summary.spatial_subsample}
-                                                selectionIds={setFeature?.selection_ids}
-                                                ranges={[
-                                                    [setFeature?.summary.spatial_ranges[0][0], setFeature?.summary.spatial_ranges[0][1]],
-                                                    [setFeature?.summary.spatial_ranges[1][0], setFeature?.summary.spatial_ranges[1][1]]
-                                                ]}
-                                                height={PLOT_SIZE}
-                                                width={plotWidth}
-                                                title="Spatial"
-                                            />
-                                        )}
+                                        <ScatterPlot
+                                            data={viewMode === 'embedding'
+                                                ? setFeature?.embedding_coordinates
+                                                : setFeature?.spatial_coordinates}
+                                            backgroundData={viewMode === 'embedding'
+                                                ? setFeature?.summary.embedding_subsample
+                                                : setFeature?.summary.spatial_subsample}
+                                            selectionIds={setFeature?.selection_ids}
+                                            ranges={[
+                                                [setFeature?.summary[`${viewMode}_ranges`][0][0], setFeature?.summary[`${viewMode}_ranges`][0][1]],
+                                                [setFeature?.summary[`${viewMode}_ranges`][1][0], setFeature?.summary[`${viewMode}_ranges`][1][1]]
+                                            ]}
+                                            height={PLOT_SIZE}
+                                            width={plotWidth}
+                                            title={viewMode === 'embedding' ? 'Embedding' : 'Spatial'}
+                                            selectionSize={setFeature?.selection_ids?.length}
+                                        />
                                     </div>
                                     <div
                                         ref={heatmapContainerRef}
