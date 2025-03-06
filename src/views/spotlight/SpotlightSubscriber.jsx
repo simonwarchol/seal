@@ -1109,7 +1109,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
     this.obsSegmentationsQuadTree = null;
     this.obsSegmentationsData = null;
     this.obsLocationsData = null;
-    this.selectedSelection = props?.selectedSelection;
+    this.outlineSelection = props?.outlineSelection;
+    this.spotlightSelection = props?.spotlightSelection;
     this.selectedBackground = props?.selectedBackground;
     this.channelNames = props?.channelNames;
     this.channelColors = props?.channelColors;
@@ -1649,7 +1650,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
         colormap: geneExpressionColormap,
         expressionData: this.expression.data,
         selectedBackground: this.props.selectedBackground,
-        selectedSelection: this.props.selectedSelection,
+        outlineSelection: this.props.outlineSelection,
+        spotlightSelection: this.props.spotlightSelection,
         // There is no onHover here,
         // see the onHover method of AbstractSpatialOrScatterplot.
       });
@@ -1983,14 +1985,14 @@ class Spatial extends AbstractSpatialOrScatterplot {
       forceUpdate = true;
     }
 
-    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "selectedSelection", "featureCount", "titleFontSize"].some(shallowDiff)) {
+    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "outlineSelection", "spotlightSelection", "featureCount", "titleFontSize"].some(shallowDiff)) {
       this.onUpdateCellsLayer()
       forceUpdate = true;
     }
 
 
 
-    if (["cellColors"].some(shallowDiff)) {
+    if (["cellColors",].some(shallowDiff)) {
       // Cells Color layer props changed.
       // Must come before onUpdateCellsLayer
       // since the new layer may use the new processed color data.
@@ -2396,7 +2398,8 @@ export function SpotlightSubscriber(props) {
   const showClusterOutlines = useStore((state) => state.showClusterOutlines);
   const showClusterTitles = useStore((state) => state.showClusterTitles);
   const selectedBackground = useStore((state) => state.selectedBackground)
-  const selectedSelection = useStore((state) => state.selectedSelection)
+  const outlineSelection = useStore((state) => state.outlineSelection)
+  const spotlightSelection = useStore((state) => state.spotlightSelection)
   const featureCount = useStore((state) => state.featureCount);
   const titleFontSize = useStore((state) => state.titleFontSize);
   const hoverSelection = useStore((state) => state.hoverSelection)
@@ -3048,7 +3051,8 @@ export function SpotlightSubscriber(props) {
         titleFontSize={titleFontSize}
         selectNeighborhood={selectNeighborhood}
         selectedBackground={selectedBackground}
-        selectedSelection={selectedSelection}
+        outlineSelection={outlineSelection}
+        spotlightSelection={spotlightSelection}
         channelNames={channelNames}
         channelColors={channelColors}
         contours={contours}

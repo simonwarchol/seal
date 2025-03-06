@@ -20,16 +20,16 @@
         stroke-width: 12.1px;
       }
 
-      .st4 {
-        fill: #898989;
-      }
-
       .st2 {
         stroke-width: 3.6px;
       }
 
       .st2, .st3 {
         stroke: #000;
+      }
+
+      .st4 {
+        fill: #898989;
       }
 
       .st3 {

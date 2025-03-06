@@ -14,13 +14,16 @@ import SaveIcon from '@mui/icons-material/Save';
 import PrintIcon from '@mui/icons-material/Print';
 import ShareIcon from '@mui/icons-material/Share';
 import OutlineClusterIcon from "../../public/OutlineCluster.svg";
+import LabelClusterIcon from "../../public/LabelCluster.svg";
 import Icon from '@mui/material/Icon';
 import TextFieldsOutlinedIcon from '@mui/icons-material/TextFieldsOutlined';
 import showBackground from "../../public/ShowBackground.svg";
 import hideBackground from "../../public/HideBackground.svg";
 import CellBackground from "../../public/CellBackground.svg";
-import spotlightSelection from "../../public/SpotlightSelection.svg";
-import outlineSelection from "../../public/OutlineSelection.svg";
+import SpotlightSelectionIcon from "../../public/SpotlightSelection.svg";
+import DoNotSpotlightSelectionIcon from "../../public/DoNotSpotlightSelection.svg";
+import OutlineSelectionIcon from "../../public/OutlineSelection.svg";
+import DoNotOutlineSelectionIcon from "../../public/DoNotOutlineSelection.svg";
 import ContoursIcon from "../../public/ContourIcon.svg";
 import ChannelSettingsIcon from "../../public/ChannelSettings.svg";
 
@@ -63,8 +66,12 @@ function ToolMenu(props) {
     const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
     const selectedBackground = useStore((state) => state.selectedBackground)
     const setSelectedBackground = useStore((state) => state.setSelectedBackground)
-    const selectedSelection = useStore((state) => state.selectedSelection)
-    const setSelectedSelection = useStore((state) => state.setSelectedSelection)
+
+    const outlineSelection = useStore((state) => state.outlineSelection)
+    const spotlightSelection = useStore((state) => state.spotlightSelection)
+    const setOutlineSelection = useStore((state) => state.setOutlineSelection)
+    const setSpotlightSelection = useStore((state) => state.setSpotlightSelection)
+
     const setSettingsPanelOpen = useStore((state) => state.setSettingsPanelOpen)
     const settingsPanelOpen = useStore((state) => state.settingsPanelOpen)
     const showContours = useStore((state) => state.showContours)
@@ -74,7 +81,7 @@ function ToolMenu(props) {
             icon:
                 <Icon
                     onClick={() => {
-                        setSelectedSelection(selectedSelection === 'spotlight' ? 'outline' : 'spotlight')
+                        setOutlineSelection(!outlineSelection)
                     }}
                     style={{
                         display: 'flex',
@@ -85,8 +92,8 @@ function ToolMenu(props) {
                     }}
                 >
                     <img
-                        src={selectedSelection === 'spotlight' ? spotlightSelection : outlineSelection}
-                        alt={selectedSelection === 'spotlight' ? 'Spotlight Selection' : 'Outline Selection'}
+                        src={outlineSelection ? DoNotOutlineSelectionIcon : OutlineSelectionIcon}
+                        alt={'Outline Cells'}
                         style={{
                             width: '22px',  // Set a specific size
                             height: '22px', // Make it square
@@ -98,7 +105,32 @@ function ToolMenu(props) {
                         }}
                     />
                 </Icon>,
-            name: selectedSelection === 'spotlight' ? 'Outline Selection' : 'Spotlight Selection',
+            name: 'Outline Cells',
+        },
+        {
+            icon: <Icon
+                onClick={() => setSpotlightSelection(!spotlightSelection)}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    // red background
+                }}
+            >
+                <img
+                    src={spotlightSelection ? DoNotSpotlightSelectionIcon : SpotlightSelectionIcon}
+                    alt="Spotlight Cells"
+                    style={{
+                        width: '24px',  // Set a specific size
+                        height: '24px', // Make it square
+                        margin: 'auto', // Center in flex container
+                        display: 'block' // Remove any inline spacing
+                    }}
+                />
+            </Icon>,
+            name: 'Spotlight Cells'
         },
         {
             icon: <Icon
@@ -112,8 +144,8 @@ function ToolMenu(props) {
                 }}
             >
                 <img
-                    src={selectedBackground === 'show' ?  hideBackground: showBackground}
-                    alt={selectedBackground === 'show' ?  'Show Background': 'Hide Background'}
+                    src={selectedBackground === 'show' ? hideBackground : showBackground}
+                    alt={selectedBackground === 'show' ? 'Show Background' : 'Hide Background'}
                     style={{
                         width: '22px',  // Set a specific size
                         height: '22px', // Make it square
@@ -125,10 +157,35 @@ function ToolMenu(props) {
                     }}
                 />
             </Icon>,
-            name: selectedBackground === 'show' ?  'Show Background': 'Hide Background',
+            name: selectedBackground === 'show' ? 'Show Background' : 'Hide Background',
         },
-        { icon: <TextFieldsOutlinedIcon color={showClusterTitles ? 'primary' : 'inherit'} onClick={() => setShowClusterTitles(!showClusterTitles)} />, name: 'Label Selections' },
-
+        // { icon: <TextFieldsOutlinedIcon color={showClusterTitles ? 'primary' : 'inherit'} onClick={() => setShowClusterTitles(!showClusterTitles)} />, name: 'Label Selections' },
+       
+        {
+            icon: <Icon
+                onClick={() => setShowClusterTitles(!showClusterTitles)}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    // red background
+                }}
+            >
+                <img
+                    src={LabelClusterIcon}
+                    alt="Label Selections"
+                    style={{
+                        width: '24px',  // Set a specific size
+                        height: '24px', // Make it square
+                        margin: 'auto', // Center in flex container
+                        display: 'block' // Remove any inline spacing
+                    }}
+                />
+            </Icon>,
+            name: 'Label Selections'
+        },
         {
             icon: <Icon
                 onClick={() => setShowClusterOutlines(!showClusterOutlines)}
@@ -154,6 +211,8 @@ function ToolMenu(props) {
             </Icon>,
             name: 'Outline Selections'
         },
+
+
         {
             icon: <Icon
                 onClick={() => setShowContours(!showContours)}
