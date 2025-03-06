@@ -71,33 +71,33 @@ function ToolMenu(props) {
     const setShowContours = useStore((state) => state.setShowContours)
     const actions = [
         {
-            icon: 
-            <Icon
-                onClick={() => {
-                    setSelectedSelection(selectedSelection === 'spotlight' ? 'outline' : 'spotlight')
-                }}
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '100%',
-                    height: '100%',
-                }}
-            >
-                <img
-                    src={selectedSelection === 'spotlight' ? spotlightSelection : outlineSelection}
-                    alt={selectedSelection === 'spotlight' ? 'Spotlight Selection' : 'Outline Selection'}
-                    style={{
-                        width: '22px',  // Set a specific size
-                        height: '22px', // Make it square
-                        margin: 'auto', // Center in flex container
-                        display: 'block', // Remove any inline spacing
-                        opacity: 0.75,
-                        border: '1px solid black',
-                        borderRadius: '5px'
+            icon:
+                <Icon
+                    onClick={() => {
+                        setSelectedSelection(selectedSelection === 'spotlight' ? 'outline' : 'spotlight')
                     }}
-                />
-            </Icon>,
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '100%',
+                        height: '100%',
+                    }}
+                >
+                    <img
+                        src={selectedSelection === 'spotlight' ? spotlightSelection : outlineSelection}
+                        alt={selectedSelection === 'spotlight' ? 'Spotlight Selection' : 'Outline Selection'}
+                        style={{
+                            width: '22px',  // Set a specific size
+                            height: '22px', // Make it square
+                            margin: 'auto', // Center in flex container
+                            display: 'block', // Remove any inline spacing
+                            opacity: 0.75,
+                            border: '1px solid black',
+                            borderRadius: '5px'
+                        }}
+                    />
+                </Icon>,
             name: selectedSelection === 'spotlight' ? 'Outline Selection' : 'Spotlight Selection',
         },
         {
@@ -112,8 +112,8 @@ function ToolMenu(props) {
                 }}
             >
                 <img
-                    src={selectedBackground === 'show' ? showBackground : hideBackground}
-                    alt={selectedBackground === 'show' ? 'Hide Background' : 'Show Background'}
+                    src={selectedBackground === 'show' ?  hideBackground: showBackground}
+                    alt={selectedBackground === 'show' ?  'Show Background': 'Hide Background'}
                     style={{
                         width: '22px',  // Set a specific size
                         height: '22px', // Make it square
@@ -125,7 +125,7 @@ function ToolMenu(props) {
                     }}
                 />
             </Icon>,
-            name: selectedBackground === 'show' ? 'Hide Background' : 'Show Background',
+            name: selectedBackground === 'show' ?  'Show Background': 'Hide Background',
         },
         { icon: <TextFieldsOutlinedIcon color={showClusterTitles ? 'primary' : 'inherit'} onClick={() => setShowClusterTitles(!showClusterTitles)} />, name: 'Label Selections' },
 
@@ -185,7 +185,7 @@ function ToolMenu(props) {
         // { icon: <PrintIcon />, name: 'Print' },
         // { icon: <ShareIcon />, name: 'Share' },
     ];
-    
+
 
     function IconTool(props) {
         const { alt, onClick, isActive, children } = props;

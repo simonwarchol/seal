@@ -439,15 +439,11 @@ bool isSpotlightOutline(sampler2D dataTex, vec2 coord) {
     }
     
     // Check for selected cells in vertical and horizontal directions
-    for(int i=1; i<= 5; ++i) {
+    for(int i=1; i<= 4; ++i) {
       float dist = float(i) * pixelSize;
       
       // Sample neighboring pixels to get their cell IDs
       float left = texture(dataTex, coord + vec2(-dist, 0.0)).r;
-      float right = texture(dataTex, coord + vec2(dist, 0.0)).r;
-      float up = texture(dataTex, coord + vec2(0.0, -dist)).r;
-      float down = texture(dataTex, coord + vec2(0.0, dist)).r;
-      
       // If any neighboring pixel has a cell ID, check if it's a selected cell
       if (left > 0.0) {
           vec2 leftColorCoord = vec2(mod(left, colorTexWidth) / colorTexWidth, 
@@ -457,6 +453,8 @@ bool isSpotlightOutline(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
+      float right = texture(dataTex, coord + vec2(dist, 0.0)).r;
+      
       
       // Repeat for other directions
       if (right > 0.0) {
@@ -467,6 +465,7 @@ bool isSpotlightOutline(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
+      float up = texture(dataTex, coord + vec2(0.0, -dist)).r;
       
       if (up > 0.0) {
           vec2 upColorCoord = vec2(mod(up, colorTexWidth) / colorTexWidth, 
@@ -476,7 +475,7 @@ bool isSpotlightOutline(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
-      
+      float down = texture(dataTex, coord + vec2(0.0, dist)).r;      
       if (down > 0.0) {
           vec2 downColorCoord = vec2(mod(down, colorTexWidth) / colorTexWidth, 
                                    floor(down / colorTexWidth) / (colorTexHeight - 1.0));
@@ -485,7 +484,47 @@ bool isSpotlightOutline(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
+      float diagonalDist = sqrt(2.0) * dist;
+      float upLeft = texture(dataTex, coord + vec2(-diagonalDist, -diagonalDist)).r;
+      if (upLeft > 0.0) {
+        vec2 upLeftColorCoord = vec2(mod(upLeft, colorTexWidth) / colorTexWidth, 
+                                   floor(upLeft / colorTexWidth) / (colorTexHeight - 1.0));
+        vec4 upLeftColor = vec4(texture(colorTex, upLeftColorCoord).rgb, 1.0);
+        if (isCellInSelection(upLeftColor)) {
+          return true;
+        }
+      }
+      float upRight = texture(dataTex, coord + vec2(diagonalDist, -diagonalDist)).r;
+      if (upRight > 0.0) {
+        vec2 upRightColorCoord = vec2(mod(upRight, colorTexWidth) / colorTexWidth, 
+                                   floor(upRight / colorTexWidth) / (colorTexHeight - 1.0));
+        vec4 upRightColor = vec4(texture(colorTex, upRightColorCoord).rgb, 1.0);
+        if (isCellInSelection(upRightColor)) {
+          return true;
+        }
+      }
+      float downLeft = texture(dataTex, coord + vec2(-diagonalDist, diagonalDist)).r;
+      if (downLeft > 0.0) {
+        vec2 downLeftColorCoord = vec2(mod(downLeft, colorTexWidth) / colorTexWidth, 
+                                   floor(downLeft / colorTexWidth) / (colorTexHeight - 1.0));
+        vec4 downLeftColor = vec4(texture(colorTex, downLeftColorCoord).rgb, 1.0);
+        if (isCellInSelection(downLeftColor)) {
+          return true;
+        }
+      }
+      float downRight = texture(dataTex, coord + vec2(diagonalDist, diagonalDist)).r;
+      if (downRight > 0.0) {
+        vec2 downRightColorCoord = vec2(mod(downRight, colorTexWidth) / colorTexWidth, 
+                                   floor(downRight / colorTexWidth) / (colorTexHeight - 1.0));
+        vec4 downRightColor = vec4(texture(colorTex, downRightColorCoord).rgb, 1.0);
+        if (isCellInSelection(downRightColor)) {
+          return true;
+        }
+      }
+
     }
+    
+
     
     return false;
 }
@@ -506,9 +545,7 @@ bool isExteriorBorder(sampler2D dataTex, vec2 coord) {
       
       // Sample neighboring pixels to get their cell IDs
       float left = texture(dataTex, coord + vec2(-dist, 0.0)).r;
-      float right = texture(dataTex, coord + vec2(dist, 0.0)).r;
-      float up = texture(dataTex, coord + vec2(0.0, -dist)).r;
-      float down = texture(dataTex, coord + vec2(0.0, dist)).r;
+
       
       // If any neighboring pixel has a cell ID, check if it's a selected cell
       if (left > 0.0) {
@@ -519,6 +556,8 @@ bool isExteriorBorder(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
+      float right = texture(dataTex, coord + vec2(dist, 0.0)).r;
+
       
       // Repeat for other directions
       if (right > 0.0) {
@@ -529,6 +568,7 @@ bool isExteriorBorder(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
+      float up = texture(dataTex, coord + vec2(0.0, -dist)).r;
       
       if (up > 0.0) {
           vec2 upColorCoord = vec2(mod(up, colorTexWidth) / colorTexWidth, 
@@ -538,6 +578,7 @@ bool isExteriorBorder(sampler2D dataTex, vec2 coord) {
               return true;
           }
       }
+      float down = texture(dataTex, coord + vec2(0.0, dist)).r;
       
       if (down > 0.0) {
           vec2 downColorCoord = vec2(mod(down, colorTexWidth) / colorTexWidth, 
