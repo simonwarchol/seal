@@ -952,6 +952,7 @@ function renderSubBitmaskLayers(props) {
     data.width < base.tileSize ? width : right,
     top,
   ];
+  console.log('Data', data)
   return new SpotlightBitmaskLayer({ ...props }, {
     channelData: data,
     // Uncomment to help debugging - shades the tile being hovered over.
@@ -1285,7 +1286,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     return [
       new deck.TextLayer({
         id: `non-concave-clusters-layer`,
-        coordinateSystem: COORDINATE_SYSTEM.CARTESIAN,
+        coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
         data: concaveData,
         getText: (d) => {
           const title = d.path.join('-');
@@ -1847,7 +1848,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         if (id > 0) {
           const cellColor = this.props.cellColors.get(id);
           if (cellColor) {
-            color.data.set(cellColor.slice(0, 3), Number(id) * 3);
+            color.data.set([255,255,255], Number(id) * 3);
           }
         }
       }
