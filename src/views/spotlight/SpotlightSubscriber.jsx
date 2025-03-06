@@ -1155,9 +1155,12 @@ class Spatial extends AbstractSpatialOrScatterplot {
     const { obsCentroidsIndex, obsSegmentationsIndex, additionalCellSets, setFeatures,
       cellSetSelection, dataset, rasterLayers, lockedChannels, setRasterLayers, channels,
       hoverClusterOpacities, setHoveredCluster, showClusterOutlines, showClusterTitles,
-      featureCount, titleFontSize,
-      selectNeighborhood
+      featureCount, titleFontSize, viewState, selectNeighborhood
     } = this.props;
+
+    const boundingBox = makeBoundingBox(viewState);
+    const viewLength = boundingBox[2][0] - boundingBox[0][0];
+    const barLength = viewLength * 2;
 
 
     const concaveData = (cellSetSelection || []).map((cellSet) => {
@@ -1193,7 +1196,12 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
         getFillColor: [255, 255, 255, 0],
         highlightColor: [255, 255, 255, 50],
-        getLineWidth: 2,
+        getLineWidth: () => {
+          return barLength;
+        },
+        updateTriggers: {
+          getLineWidth: barLength  // Add update trigger for barLength
+        },
         getLineColor: (d) => {
           const pathString = JSON.stringify(d.path)
           const opacity = hoverClusterOpacities?.get(pathString)
@@ -1258,82 +1266,82 @@ class Spatial extends AbstractSpatialOrScatterplot {
     ];
   }
 
-  createFeatureLabelLayer() {
-    const { obsCentroidsIndex, obsSegmentationsIndex, setFeatures,
-      cellSetSelection, dataset, featureCount, titleFontSize,
-      rasterLayers, channels, lockedChannels, setRasterLayers,
-      setHoveredCluster, selectNeighborhood
-    } = this.props;
+  // createFeatureLabelLayer() {
+  //   const { obsCentroidsIndex, obsSegmentationsIndex, setFeatures,
+  //     cellSetSelection, dataset, featureCount, titleFontSize,
+  //     rasterLayers, channels, lockedChannels, setRasterLayers,
+  //     setHoveredCluster, selectNeighborhood
+  //   } = this.props;
 
 
-    const concaveData = (cellSetSelection || []).map((cellSet) => {
-      const setFeature = setFeatures?.[cellSet[0]]?.[cellSet[1]] || {};
-      if (dataset == 'A') {
-        if (!setFeature?.hulls?.embedding?.concave_hull) return;
-        return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
-      } else return null;
-    }).filter(d => d && d.density <= 0.0005)
-    if (concaveData.length == 0) return null;
+  //   const concaveData = (cellSetSelection || []).map((cellSet) => {
+  //     const setFeature = setFeatures?.[cellSet[0]]?.[cellSet[1]] || {};
+  //     if (dataset == 'A') {
+  //       if (!setFeature?.hulls?.embedding?.concave_hull) return;
+  //       return { hull: setFeature?.hulls?.embedding?.concave_hull, density: setFeature?.hulls?.embedding?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
+  //     } else return null;
+  //   }).filter(d => d && d.density <= 0.0005)
+  //   if (concaveData.length == 0) return null;
 
 
 
-    const { viewport } = this;
-    const boundingBox = makeBoundingBox(viewport);
-    if (!boundingBox) return null;
+  //   const { viewport } = this;
+  //   const boundingBox = makeBoundingBox(viewport);
+  //   if (!boundingBox) return null;
 
-    const bottomLeft = boundingBox[3];  // [x, y]
+  //   const bottomLeft = boundingBox[3];  // [x, y]
 
-    return [
-      new deck.TextLayer({
-        id: `non-concave-clusters-layer`,
-        coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
-        data: concaveData,
-        getText: (d) => {
-          const title = d.path.join('-');
-          const features = d.features;
-          // Sort array of 
-          // sort features by value descending
-          features.sort((a, b) => b[1] - a[1]);
+  //   return [
+  //     new deck.TextLayer({
+  //       id: `non-concave-clusters-layer`,
+  //       coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
+  //       data: concaveData,
+  //       getText: (d) => {
+  //         const title = d.path.join('-');
+  //         const features = d.features;
+  //         // Sort array of 
+  //         // sort features by value descending
+  //         features.sort((a, b) => b[1] - a[1]);
 
-          // Take  top featureCount features
-          // Make a string of the names 
-          const featureNames = features.slice(0, featureCount).map((f) => f[0]).join('/');
+  //         // Take  top featureCount features
+  //         // Make a string of the names 
+  //         const featureNames = features.slice(0, featureCount).map((f) => f[0]).join('/');
 
-          return title + '\n' + featureNames;
-        },
-        getAlignmentBaseline: 'center',
-        // 
-        getColor: [255, 147, 1],
-        fontFamily: "sans-serif",
-        outlineWidth: 1,
-        outlineColor: [0, 0, 0, 255],
-        getSize: titleFontSize,
-        fontSettings: {
-          sdf: true,
-        },
-        pickable: true,
-        getTextAnchor: 'start',
-        getPosition: (d, i, a) => {
-          // console.log('d', d, i)
-          // Space text 10 pixels from the bottom left, with a 10 pixel gap between each text
-          const test = [bottomLeft[0] + 100, bottomLeft[1] - (i.index * 500) - 1500];
-          // console.log('test', test, bottomLeft)
-          return test;
-        },
-        onClick: async (info, event, d) => {
-          // console.log('info', info, event, d)
-          if (!this?.state?.tool) {
-            const featureImportance = info.object.features;
-            handleClusterSelection(featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers)
-          } else {
-            // Selecting a neighborhood
-            selectNeighborhood(info)
-          }
-        },
+  //         return title + '\n' + featureNames;
+  //       },
+  //       getAlignmentBaseline: 'center',
+  //       // 
+  //       getColor: [255, 147, 1],
+  //       fontFamily: "sans-serif",
+  //       outlineWidth: 1,
+  //       outlineColor: [0, 0, 0, 255],
+  //       getSize: titleFontSize,
+  //       fontSettings: {
+  //         sdf: true,
+  //       },
+  //       pickable: true,
+  //       getTextAnchor: 'start',
+  //       getPosition: (d, i, a) => {
+  //         // console.log('d', d, i)
+  //         // Space text 10 pixels from the bottom left, with a 10 pixel gap between each text
+  //         const test = [bottomLeft[0] + 100, bottomLeft[1] - (i.index * 500) - 1500];
+  //         // console.log('test', test, bottomLeft)
+  //         return test;
+  //       },
+  //       onClick: async (info, event, d) => {
+  //         // console.log('info', info, event, d)
+  //         if (!this?.state?.tool) {
+  //           const featureImportance = info.object.features;
+  //           handleClusterSelection(featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers)
+  //         } else {
+  //           // Selecting a neighborhood
+  //           selectNeighborhood(info)
+  //         }
+  //       },
 
-      }),
-    ];
-  }
+  //     }),
+  //   ];
+  // }
 
   createMoleculesLayer(layerDef) {
     const {
@@ -1754,7 +1762,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       ...obsSegmentationsPolygonLayer,
       neighborhoodsLayer,
       obsLocationsLayer,
-      this.createFeatureLabelLayer(),
+      // this.createFeatureLabelLayer(),
       this.createScaleBarLayer(),
       this.createInfoLayer(),
       this.createContoursLayer(),
@@ -1848,7 +1856,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         if (id > 0) {
           const cellColor = this.props.cellColors.get(id);
           if (cellColor) {
-            color.data.set([255,255,255], Number(id) * 3);
+            color.data.set([255, 255, 255], Number(id) * 3);
           }
         }
       }
