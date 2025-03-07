@@ -14,28 +14,12 @@
       .st2 {
         fill: #973f98;
       }
-
-      .st3 {
-        opacity: .5;
-      }
-
-      .st3, .st4 {
-        fill: #fff;
-        isolation: isolate;
-      }
-
-      .st4 {
-        opacity: .5;
-      }
     </style>
   </defs>
-  <polyline class="st3" points="-65.1 56.2 11.2 -29 -45.6 66.7"/>
-  <rect width="72" height="72"/>
-  <ellipse class="st1" cx="17.8" cy="45.3" rx="14.6" ry="17.7" transform="translate(-11.1 6.1) rotate(-14.9)"/>
-  <ellipse class="st2" cx="63" cy="20.8" rx="5.7" ry="11.4" transform="translate(-3.3 17.3) rotate(-15.2)"/>
-  <ellipse class="st2" cx="40.2" cy="59.1" rx="5.7" ry="11.4" transform="translate(-14.1 12.7) rotate(-15.2)"/>
+  <ellipse class="st1" cx="17.7" cy="45.3" rx="14.6" ry="17.7" transform="translate(-11.1 6.1) rotate(-14.9)"/>
+  <ellipse class="st2" cx="62.9" cy="20.9" rx="5.7" ry="11.4" transform="translate(-3.3 17.2) rotate(-15.2)"/>
+  <ellipse class="st2" cx="40.2" cy="59.2" rx="5.7" ry="11.4" transform="translate(-14.1 12.6) rotate(-15.2)"/>
   <ellipse class="st2" cx="63" cy="52.9" rx="5.7" ry="11.4" transform="translate(-11.7 18.4) rotate(-15.2)"/>
   <ellipse class="st1" cx="34.4" cy="12.9" rx="18.4" ry="10"/>
   <ellipse class="st0" cx="45.5" cy="34.8" rx="9.9" ry="11.7" transform="translate(-9.9 49.4) rotate(-52.2)"/>
-  <path class="st4" d="M-64.5,16.5c0,.1,75.7-45.6,75.7-45.6L-55.4,28.6"/>
 </svg>

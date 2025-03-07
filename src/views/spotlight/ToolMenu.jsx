@@ -89,19 +89,15 @@ function ToolMenu(props) {
                         justifyContent: 'center',
                         width: '100%',
                         height: '100%',
+                        overflow: 'hidden',
                     }}
                 >
                     <img
                         src={outlineSelection ? DoNotOutlineSelectionIcon : OutlineSelectionIcon}
                         alt={'Outline Cells'}
                         style={{
-                            width: '22px',  // Set a specific size
-                            height: '22px', // Make it square
-                            margin: 'auto', // Center in flex container
-                            display: 'block', // Remove any inline spacing
-                            opacity: 0.75,
-                            border: '1px solid black',
-                            borderRadius: '5px'
+                            width: '100%',       
+
                         }}
                     />
                 </Icon>,
@@ -123,10 +119,8 @@ function ToolMenu(props) {
                     src={spotlightSelection ? DoNotSpotlightSelectionIcon : SpotlightSelectionIcon}
                     alt="Spotlight Cells"
                     style={{
-                        width: '24px',  // Set a specific size
-                        height: '24px', // Make it square
-                        margin: 'auto', // Center in flex container
-                        display: 'block' // Remove any inline spacing
+                        width: '100%',       
+
                     }}
                 />
             </Icon>,
@@ -141,19 +135,14 @@ function ToolMenu(props) {
                     justifyContent: 'center',
                     width: '100%',
                     height: '100%',
+                    overflow: 'hidden',
                 }}
             >
                 <img
                     src={selectedBackground === 'show' ? hideBackground : showBackground}
                     alt={selectedBackground === 'show' ? 'Show Background' : 'Hide Background'}
                     style={{
-                        width: '22px',  // Set a specific size
-                        height: '22px', // Make it square
-                        margin: 'auto', // Center in flex container
-                        display: 'block', // Remove any inline spacing
-                        opacity: 0.75,
-                        border: '1px solid black',
-                        borderRadius: '5px'
+                        width: '100%',       
                     }}
                 />
             </Icon>,
@@ -177,10 +166,8 @@ function ToolMenu(props) {
                     src={LabelClusterIcon}
                     alt="Label Selections"
                     style={{
-                        width: '24px',  // Set a specific size
-                        height: '24px', // Make it square
-                        margin: 'auto', // Center in flex container
-                        display: 'block' // Remove any inline spacing
+                      width: '90%',       
+
                     }}
                 />
             </Icon>,
@@ -202,10 +189,8 @@ function ToolMenu(props) {
                     src={OutlineClusterIcon}
                     alt="Outline Selections"
                     style={{
-                        width: '24px',  // Set a specific size
-                        height: '24px', // Make it square
-                        margin: 'auto', // Center in flex container
-                        display: 'block' // Remove any inline spacing
+                        width: '70%',       
+
                     }}
                 />
             </Icon>,
@@ -229,17 +214,12 @@ function ToolMenu(props) {
                     src={ContoursIcon}
                     alt="Outline Selections"
                     style={{
-                        width: '24px',  // Set a specific size
-                        height: '24px', // Make it square
-                        margin: 'auto', // Center in flex container
-                        display: 'block', // Remove any inline spacing
-                        // color based on showContours
-                        // if showContours is true, make black and white
+                        width: '70%',       
                         filter: showContours ? 'grayscale(100%)' : 'none',
                     }}
                 />
             </Icon>,
-            name: showContours ? 'Hide Contours' : 'Show Contours'
+            name: showContours ? 'Hide Density' : 'Show Density'
         },
         // { icon: <PrintIcon />, name: 'Print' },
         // { icon: <ShareIcon />, name: 'Share' },
@@ -359,7 +339,6 @@ function ToolMenu(props) {
                         icon={
                             <Layers style={{ color: 'black', width: '18px', height: '18px' }} />
                         }
-                        // open={true}
                         direction="right"
                         sx={{
                             '& .MuiSpeedDial-fab': {
@@ -369,13 +348,25 @@ function ToolMenu(props) {
                                 '&:hover': {
                                     backgroundColor: '#888888'
                                 },
+                                border: '2px solid white',
+                                borderRadius: '50%',
+                                overflow: 'hidden',
                             },
                             '& .MuiSpeedDialAction-fab': {
-                                width: '30px',
-                                height: '30px',
+                                width: '40px',
+                                height: '40px',
                                 minHeight: 'unset',
-                                marginTop: '-3px',
-
+                                margin: '0 4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            },
+                            '& .MuiSpeedDial-actions': {
+                                display: 'flex',
+                                alignItems: 'center',
+                                height: '40px',
+                                paddingRight: '8px',
+                                gap: '8px',
                             },
                             '& .MuiSpeedDialAction-staticTooltipLabel': {
                                 fontSize: '0.75rem'
@@ -389,13 +380,29 @@ function ToolMenu(props) {
                                 tooltipTitle={action.name}
                                 sx={{
                                     '& .MuiSvgIcon-root': {
-                                        fontSize: '18px',
+                                        fontSize: '20px',
                                         color: 'white'
                                     },
                                     backgroundColor: '#111111',
-                                    // border: '1px solid white',
-
-                                    // red background   
+                                    border: '2px solid white',
+                                    overflow: 'hidden',
+                                    borderRadius: '50%',
+                                    
+                                    '& .MuiIcon-root': {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: '100%',
+                                        height: '100%',
+                                    },
+                                    
+                                    '& img': {
+                                        // maxWidth: '65%',
+                                        // maxHeight: '65%',
+                                        objectFit: 'contain',
+                                        margin: 'auto',
+                                    },
+                                    
                                     '&:hover': {
                                         backgroundColor: '#333333'
                                     }
