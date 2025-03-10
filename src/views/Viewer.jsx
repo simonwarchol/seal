@@ -156,7 +156,18 @@ function Viewer({ value, setValue, height, config }) {
 
 
   };
-  let dataset = config || gregDataset;
+  const astroDataset = {
+    embeddingImageUrl: "http://127.0.0.1:8005/hybrid.ome.tif",
+    embeddingSegmentationUrl: "http://127.0.0.1:8005/hybrid.mask.ome.tif",
+    csvUrl: "http://127.0.0.1:8005/updated_astro.csv",
+    clusterColumns: ["cluster"],
+    imageUrl: "http://127.0.0.1:8005/astro.ome.tif",
+    segmentationUrl: "http://127.0.0.1:8005/astro_seg_masks.ome.tif",
+    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
+
+
+  };
+  let dataset = config || astroDataset;
 
 
   const vc = new VitessceConfig({

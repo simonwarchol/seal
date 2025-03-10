@@ -158,6 +158,8 @@ def get_potential_features(df):
         "DNA (10)",
         "PCNA",
         "Collagen",
+        'u', 'g', 'r', 'i', 'z',
+       'JPG_R', 'JPG_G', 'JPG_B'
     ]
 
     all_features = list(set(all_features))
@@ -193,7 +195,7 @@ def load(dataset="exemplar-001", df=None):
         # cut_cells = zarr.open("/Users/swarchol/Research/exemplar-001/cellcutter/cut")
         cut_cells = None
         parquet_path = None
-    else:
+    elif False:
         image_path = "/Volumes/Simon/Greg/WD-76845-097.ome.tif"
         segmentation_path = "/Volumes/Simon/Greg/WD-76845-097_mask_pyr.ome.tif"
         embedding_image_path = "/Volumes/Simon/Greg/tiled.ome.tif"
@@ -203,6 +205,16 @@ def load(dataset="exemplar-001", df=None):
         parquet_path = None
         cut_cells = None
         dataset_name = "greg"
+    elif True:
+        image_path = "/Users/swarchol/Research/seal/data/astro/astro.ome.tif"
+        segmentation_path = "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
+        embedding_image_path = "/Users/swarchol/Research/seal/data/astro/hybrid.ome.tif"
+        embedding_segmentation_path = "/Users/swarchol/Research/seal/data/astro/hybrid.mask.ome.tif"
+        csv_path = "/Users/swarchol/Research/seal/data/astro/updated_astro.csv"
+        dataset_name = "astro"
+        parquet_path = None
+        cut_cells = None
+        
     # shapes = get_shapes(image_path)
     # if path ends with .csv, read csv, if ends with .parquet, read parquet
     print("Reading csv", csv_path)
@@ -231,10 +243,10 @@ def load(dataset="exemplar-001", df=None):
             [csv_df["Y_centroid"].min(), csv_df["Y_centroid"].max()],
         ],
         "embedding_subsample": csv_df[["UMAP_X", "UMAP_Y"]]
-        .values[np.random.choice(csv_df.shape[0], 1000, replace=False)]
+        .values[np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)]
         .tolist(),
         "spatial_subsample": csv_df[["X_centroid", "Y_centroid"]]
-        .values[np.random.choice(csv_df.shape[0], 1000, replace=False)]
+        .values[np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)]
         .tolist(),
         "global_mean_features": mean_features.to_dict(),
     }

@@ -8,6 +8,7 @@ import NeighborhoodIcon from "../../public/NeighborhoodIcon.svg";
 import useStore from '../../store';
 
 function SelectionColumn(props) {
+    console.log('props', props)
     const [showNeighborhood, setShowNeighborhood] = useState(false);
     const [neighborhoodData, setNeighborhoodData] = useState(null);
     const maxSelectionSize = useStore((state) => state.maxSelectionSize);
