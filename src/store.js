@@ -41,7 +41,7 @@ const useStore = create((set) => ({
     setHoveredCluster: (cluster) => set({ hoveredCluster: cluster }),
     selectedBackground: 'hide',
     setSelectedBackground: (background) => set({ selectedBackground: background }),
-    outlineSelection: false,
+    outlineSelection: true,
     setOutlineSelection: (outline) => set({ outlineSelection: outline }),
     spotlightSelection: false,
     setSpotlightSelection: (spotlight) => set({ spotlightSelection: spotlight }),

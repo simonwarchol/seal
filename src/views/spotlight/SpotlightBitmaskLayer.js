@@ -540,7 +540,7 @@ bool isExteriorBorder(sampler2D dataTex, vec2 coord) {
     }
     
     // Check for selected cells in vertical and horizontal directions
-    for(int i=1; i<= 1; ++i) {
+    for(int i=1; i<= 3; ++i) {
       float dist = float(i) * pixelSize;
       
       // Sample neighboring pixels to get their cell IDs
@@ -632,22 +632,25 @@ vec4 sampleAndGetColor(sampler2D dataTex, vec2 coord, bool isOn) {
     vec4 sampledColor = vec4(texture(colorTex, colorTexCoord).rgb, 1.);
     vec4 resultColor = vec4(0.0);
     if (isCellInSelection(sampledColor)) {
-      if (outlineSelection) {
-        if (isInteriorBorder(dataTex, coord)) {
+      if (isInteriorBorder(dataTex, coord) && outlineSelection){
           resultColor = vec4(1.0);
-        }
-      } 
-    } 
-    else if (isCellOutOfSelection(sampledColor)) {
-      if (outlineSelection && isExteriorBorder(dataTex, coord)) {
-        resultColor = vec4(1.0);
-      } else if (spotlightSelection) {
-        resultColor = vec4(0.00000001, 0.0, 0.0, 1.0);
+      } else {
+        resultColor = vec4(0.0);
       }
-    } 
-    else if (selectedBackground) {
-      resultColor = vec4(0.00000001, 0.0, 0.0, 1.0);
     }
+    else if  ( outlineSelection && isExteriorBorder(dataTex, coord)) {
+      resultColor = vec4(1.0);
+    }  
+    else if (isCellOutOfSelection(sampledColor) && spotlightSelection) {
+      resultColor = vec4(0.0000001, 0.0, 0.0, 1.0);
+    } else if (selectedBackground) {
+      resultColor = vec4(0.00000001, 0.0, 0.0, 1.0);
+    } else if (spotlightSelection) {
+      resultColor = vec4(0.0,0.0,0.0,1.0);
+    } else {
+      resultColor = vec4(0.0,0.0,0.0,1.0);
+    }
+   
     
     return resultColor + hoveredColor;
 }
@@ -710,6 +713,10 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
     const spotlightSelection = this?.props?.spotlightSelection;
     const outlineSelection = this?.props?.outlineSelection;
     const selectedBackground = this?.props?.selectedBackground == 'show';
+
+    console.log('xx  spotlightSelection', spotlightSelection);
+    console.log('xx outlineSelection', outlineSelection);
+    console.log('xx selectedBackground', selectedBackground);
 
 
 

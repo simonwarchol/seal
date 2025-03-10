@@ -167,7 +167,7 @@ function Viewer({ value, setValue, height, config }) {
 
 
   };
-  let dataset = config || astroDataset;
+  let dataset = config || exemplarDataset;
 
 
   const vc = new VitessceConfig({

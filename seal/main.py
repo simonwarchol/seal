@@ -176,23 +176,23 @@ def load(dataset="exemplar-001", df=None):
     if csv_df is not None:
         return
     # if True
-    if False:
+    if True:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (
-            "/Users/swarchol/Research/exemplar-001/registration/exemplar-001.ome.tif"
+            "/Users/swarchol/Research/seal/data/exemplar-001/registration/exemplar-001.ome.tif"
         )
-        segmentation_path = "/Users/swarchol/Research/exemplar-001/segmentation/unmicst-exemplar-001/nuclei.ome.tif"
-        embedding_image_path = "/Users/swarchol/Research/exemplar-001/new/tiled.ome.tif"
+        segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/segmentation/unmicst-exemplar-001/nuclei.ome.tif"
+        embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled.ome.tif"
         embedding_segmentation_path = (
-            "/Users/swarchol/Research/exemplar-001/new/tiled-mask.ome.tif"
+            "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled-mask.ome.tif"
         )
-        csv_path = "/Users/swarchol/Research/exemplar-001/new/updated.csv"
+        csv_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/updated.csv"
 
         # cut_seg_cells = zarr.open(
-        #     "/Users/swarchol/Research/exemplar-001/cellcutter/cut_mask"
+        #     "/Users/swarchol/Research/seal/data/exemplar-001/cellcutter/cut_mask"
         # )
-        # cut_cells = zarr.open("/Users/swarchol/Research/exemplar-001/cellcutter/cut")
+        # cut_cells = zarr.open("/Users/swarchol/Research/seal/data/exemplar-001/cellcutter/cut")
         cut_cells = None
         parquet_path = None
     elif False:
@@ -445,6 +445,27 @@ async def set_compare(selection_data: CompareSet):
 async def contours():
     global contour_lines
     return {"message": "Complete", "data": contour_lines}
+
+@app.get("/data/{file_path:path}")
+async def serve_data_file(file_path: str):
+    """
+    Serve files from the /data directory.
+    
+    Parameters:
+    file_path (str): Path to the file within the data directory
+    
+    Returns:
+    FileResponse: The requested file if it exists
+    """
+    # Construct the full path to the file
+    full_path = os.path.join("/Users/swarchol/Research/seal/data", file_path)
+    
+    # Check if the file exists
+    if not os.path.exists(full_path) or not os.path.isfile(full_path):
+        raise HTTPException(status_code=404, detail=f"File {file_path} not found")
+    
+    # Return the file
+    return FileResponse(full_path)
 
 
 @app.post("/neighborhood")

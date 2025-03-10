@@ -93,10 +93,10 @@ function ToolMenu(props) {
                     }}
                 >
                     <img
-                        src={outlineSelection ? DoNotOutlineSelectionIcon : OutlineSelectionIcon}
+                        src={outlineSelection ? DoNotOutlineSelectionIcon:  OutlineSelectionIcon}
                         alt={'Outline Cells'}
                         style={{
-                            width: '100%',       
+                            width: '100%',
 
                         }}
                     />
@@ -119,7 +119,7 @@ function ToolMenu(props) {
                     src={spotlightSelection ? DoNotSpotlightSelectionIcon : SpotlightSelectionIcon}
                     alt="Spotlight Cells"
                     style={{
-                        width: '100%',       
+                        width: '100%',
 
                     }}
                 />
@@ -139,17 +139,17 @@ function ToolMenu(props) {
                 }}
             >
                 <img
-                    src={selectedBackground === 'show' ? hideBackground : showBackground}
+                    src={selectedBackground === 'show' ?  hideBackground: showBackground}
                     alt={selectedBackground === 'show' ? 'Show Background' : 'Hide Background'}
                     style={{
-                        width: '100%',       
+                        width: '100%',
                     }}
                 />
             </Icon>,
             name: selectedBackground === 'show' ? 'Show Background' : 'Hide Background',
         },
         // { icon: <TextFieldsOutlinedIcon color={showClusterTitles ? 'primary' : 'inherit'} onClick={() => setShowClusterTitles(!showClusterTitles)} />, name: 'Label Selections' },
-       
+
         {
             icon: <Icon
                 onClick={() => setShowClusterTitles(!showClusterTitles)}
@@ -166,7 +166,7 @@ function ToolMenu(props) {
                     src={LabelClusterIcon}
                     alt="Label Selections"
                     style={{
-                      width: '90%',       
+                        width: '90%',
 
                     }}
                 />
@@ -189,7 +189,7 @@ function ToolMenu(props) {
                     src={OutlineClusterIcon}
                     alt="Outline Selections"
                     style={{
-                        width: '70%',       
+                        width: '70%',
 
                     }}
                 />
@@ -214,7 +214,7 @@ function ToolMenu(props) {
                     src={ContoursIcon}
                     alt="Outline Selections"
                     style={{
-                        width: '70%',       
+                        width: '70%',
                         filter: showContours ? 'grayscale(100%)' : 'none',
                     }}
                 />
@@ -387,7 +387,7 @@ function ToolMenu(props) {
                                     border: '2px solid white',
                                     overflow: 'hidden',
                                     borderRadius: '50%',
-                                    
+
                                     '& .MuiIcon-root': {
                                         display: 'flex',
                                         alignItems: 'center',
@@ -395,14 +395,14 @@ function ToolMenu(props) {
                                         width: '100%',
                                         height: '100%',
                                     },
-                                    
+
                                     '& img': {
                                         // maxWidth: '65%',
                                         // maxHeight: '65%',
                                         objectFit: 'contain',
                                         margin: 'auto',
                                     },
-                                    
+
                                     '&:hover': {
                                         backgroundColor: '#333333'
                                     }
