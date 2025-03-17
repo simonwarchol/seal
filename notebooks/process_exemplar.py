@@ -1,7 +1,7 @@
 # %% [markdown]
 # ## Imports
 #
-# from line_profiler_pycharm import profile
+from line_profiler_pycharm import profile
 
 # %%
 from scipy.spatial import cKDTree
@@ -14,6 +14,9 @@ import shutil
 import zarr
 import numpy as np
 import pandas as pd
+from concurrent.futures import ProcessPoolExecutor
+import os
+import functools
 
 # %% [markdown]
 # ### Consts
@@ -125,6 +128,100 @@ SEG_STORE = zarr.DirectoryStore('/Users/swarchol/Research/seal/data/exemplar-001
 #         seg_zarr_tiled[z] = seg_level_data
 #     return im_zarr_tiled, seg_zarr_tiled
 
+# @profile
+def process_single_level(z, im_zarr_path, seg_zarr_path, cut_cells_path, cut_masks_path, 
+                         cell_indices, cell_locations, cell_ids):
+    """Process a single z-level in isolation for parallel execution"""
+    # Open zarr stores for this process
+    im_zarr_tiled = zarr.open(im_zarr_path)
+    seg_zarr_tiled = zarr.open(seg_zarr_path)
+    cut_cells = zarr.open(cut_cells_path)
+    cut_masks = zarr.open(cut_masks_path)
+    
+    height, width = im_zarr_tiled[z].shape[-2:]
+    scale_factor = 2 ** z
+    
+    # Initialize arrays
+    seg_level_data = np.zeros((height, width), dtype=np.uint32)
+    image_level_data = np.zeros((im_zarr_tiled[z].shape[0], height, width), dtype=np.uint16)
+    binary_mask = np.zeros((height, width), dtype=np.uint8)
+    
+    # For storing valid cells
+    valid_cells = []
+    valid_locations = []
+    
+    # First pass - determine valid cell placements
+    for i, cell_index in enumerate(cell_indices):
+        cell_location = cell_locations[i] / scale_factor
+        cell_id = cell_ids[i]
+        
+        cell_center_offset = (cut_masks.shape[-2] // 2, cut_masks.shape[-1] // 2)
+        cell_location = (cell_location - cell_center_offset).astype(int)
+        cell_location = np.maximum(cell_location, 0)
+        
+        cell_x_range = min(cell_location[0] + cut_masks.shape[-2], width)
+        cell_y_range = min(cell_location[1] + cut_masks.shape[-1], height)
+        
+        cell_slice_x = slice(cell_location[0], cell_x_range)
+        cell_slice_y = slice(cell_location[1], cell_y_range)
+        cut_cell_slice_x = slice(0, cell_x_range - cell_location[0])
+        cut_cell_slice_y = slice(0, cell_y_range - cell_location[1])
+        
+        mask = cut_masks[cell_index, cut_cell_slice_y, cut_cell_slice_x]
+        
+        # Check overlap
+        if np.any((binary_mask[cell_slice_y, cell_slice_x] + mask) > 1):
+            continue
+            
+        # Update the binary mask
+        binary_mask[cell_slice_y, cell_slice_x] += mask
+        
+        # Store cell info
+        valid_cells.append(cell_index)
+        valid_locations.append((cell_id, cell_slice_y, cell_slice_x, 
+                              cut_cell_slice_y, cut_cell_slice_x))
+    
+    # Process valid cells in parallel batches
+    def process_cell_batch(cell_batch):
+        """Process a batch of cells in parallel"""
+        batch_results = []
+        for i, cell_index in enumerate(cell_batch):
+            idx = valid_cells.index(cell_index)
+            cell_id, cell_slice_y, cell_slice_x, cut_cell_slice_y, cut_cell_slice_x = valid_locations[idx]
+            
+            # Get the mask
+            mask = cut_masks[cell_index, cut_cell_slice_y, cut_cell_slice_x]
+            
+            # Get masked cell data
+            masked_cell = cut_masks[cell_index] * cut_cells[:, cell_index, :, :]
+            
+            batch_results.append((
+                cell_id, cell_slice_y, cell_slice_x, cut_cell_slice_y, cut_cell_slice_x,
+                mask, masked_cell
+            ))
+        return batch_results
+    
+    # Split cells into batches for parallel processing
+    batch_size = 50  # Adjust based on number of CPUs and memory
+    valid_cell_batches = [valid_cells[i:i+batch_size] for i in range(0, len(valid_cells), batch_size)]
+    
+    # Process batches using ThreadPoolExecutor within this process
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+        batch_results = list(executor.map(process_cell_batch, valid_cell_batches))
+    
+    # Flatten results
+    all_results = [item for sublist in batch_results for item in sublist]
+    
+    # Apply all results to output arrays
+    for cell_id, cell_slice_y, cell_slice_x, cut_cell_slice_y, cut_cell_slice_x, mask, masked_cell in all_results:
+        # Update segmentation data
+        seg_level_data[cell_slice_y, cell_slice_x] += (mask * cell_id).astype(np.uint32)
+        
+        # Update image data
+        image_level_data[:, cell_slice_y, cell_slice_x] += masked_cell[:, cut_cell_slice_y, cut_cell_slice_x]
+    
+    return z, image_level_data, seg_level_data
 
 def create_non_occlusive_zarr(im_zarr_tiled, seg_zarr_tiled, cut_cells, cut_masks, csv_df):
     # Create list of all indices of cells in cut_cells
@@ -132,29 +229,32 @@ def create_non_occlusive_zarr(im_zarr_tiled, seg_zarr_tiled, cut_cells, cut_mask
     np.random.seed(0)
     np.random.shuffle(cell_indices)
     
+    # Create cell ID lookup dictionary for faster access
+    cell_id_dict = dict(zip(csv_df["CellID"], range(len(csv_df))))
+    
+    # For Jupyter compatibility, use sequential processing instead of multiprocessing
     for z in tqdm(range(len(im_zarr_tiled))):
         height, width = im_zarr_tiled[z].shape[-2:]
         scale_factor = 2 ** z
 
-        # Work with NumPy arrays in memory for speed, copy to Zarr only once at the end
+        # Work with NumPy arrays in memory for speed
         seg_level_data = np.zeros((height, width), dtype=np.uint32)
         image_level_data = np.zeros((im_zarr_tiled[z].shape[0], height, width), dtype=np.uint16)
         binary_mask = np.zeros((height, width), dtype=np.uint8)
         
-        # Pre-compute all cell masks that will be placed (batch process)
         valid_cells = []
-        valid_masks = []
         valid_locations = []
-        valid_slices = []
         
-        print('Finding valid cell placements', z)
+        print(f'Finding valid cell placements for level {z}')
         # First pass - determine valid cell placements
         for cell_index in tqdm(cell_indices):
-            cell_row = csv_df.loc[csv_df["CellID"] == cell_index]
-            if cell_row.empty:
+            if cell_index not in cell_id_dict:
                 continue
-                
+            
+            idx = cell_id_dict[cell_index]
+            cell_row = csv_df.iloc[idx]
             cell_location = cell_row[["UMAP_X", "UMAP_Y"]].values.flatten()
+            
             cell_center_offset = (cut_masks.shape[-2] // 2, cut_masks.shape[-1] // 2)
             cell_location = ((cell_location / scale_factor) - cell_center_offset).astype(int)
             cell_location = np.maximum(cell_location, 0)
@@ -167,40 +267,67 @@ def create_non_occlusive_zarr(im_zarr_tiled, seg_zarr_tiled, cut_cells, cut_mask
             cut_cell_slice_x = slice(0, cell_x_range - cell_location[0])
             cut_cell_slice_y = slice(0, cell_y_range - cell_location[1])
 
+            # Read the mask
             mask = cut_masks[cell_index, cut_cell_slice_y, cut_cell_slice_x]
             
-            # Check if placing this cell will overlap with existing cells
+            # Check overlap
             if np.any((binary_mask[cell_slice_y, cell_slice_x] + mask) > 1):
                 continue
                 
             # Update the binary mask
             binary_mask[cell_slice_y, cell_slice_x] += mask
             
-            # Store valid cell data for batch processing
+            # Store cell info
             valid_cells.append(cell_index)
-            valid_masks.append(mask)
-            valid_locations.append((cell_row["CellID"].values[0], cell_slice_y, cell_slice_x, 
+            valid_locations.append((cell_row["CellID"], cell_slice_y, cell_slice_x, 
                                   cut_cell_slice_y, cut_cell_slice_x))
         
-        # Second pass - place all valid cells in batch
-        print('Placing cells', z)
-        for i, cell_index in enumerate(tqdm(valid_cells)):
-            mask = valid_masks[i]
+        # Optimize the main bottleneck using thread-based parallelism
+        # which is safer in Jupyter environments than process-based parallelism
+        print(f'Placing {len(valid_cells)} cells for level {z}')
+        
+        # Use ThreadPoolExecutor for the bottleneck operation
+        from concurrent.futures import ThreadPoolExecutor
+        
+        def process_cell(args):
+            i, cell_index = args
             cell_id, cell_slice_y, cell_slice_x, cut_cell_slice_y, cut_cell_slice_x = valid_locations[i]
             
-            # Update segmentation data
-            seg_level_data[cell_slice_y, cell_slice_x] += (mask * cell_id).astype(np.uint32)
+            # Get the mask once
+            mask = cut_masks[cell_index, cut_cell_slice_y, cut_cell_slice_x]
             
-            # Pre-compute the masked cell once
+            # Get masked cell data - this is the main bottleneck (80%)
             masked_cell = cut_masks[cell_index] * cut_cells[:, cell_index, :, :]
             
-            # Update image data
-            image_level_data[:, cell_slice_y, cell_slice_x] += masked_cell[:, cut_cell_slice_y, cut_cell_slice_x]
+            return (i, mask, masked_cell)
+        
+        # MEMORY OPTIMIZATION: Process and apply results immediately
+        # Instead of accumulating all results in memory
+        with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+            cell_args = list(enumerate(valid_cells))
+            for result in tqdm(executor.map(process_cell, cell_args), total=len(valid_cells)):
+                # Unpack the result
+                i, mask, masked_cell = result
+                
+                # Get the cell location info
+                cell_id, cell_slice_y, cell_slice_x, cut_cell_slice_y, cut_cell_slice_x = valid_locations[i]
+                
+                # Update segmentation data immediately
+                seg_level_data[cell_slice_y, cell_slice_x] += (mask * cell_id).astype(np.uint32)
+                
+                # Update image data immediately
+                image_level_data[:, cell_slice_y, cell_slice_x] += masked_cell[:, cut_cell_slice_y, cut_cell_slice_x]
+                
+                # Explicitly release the large array
+                del masked_cell
         
         # Write to Zarr arrays only once per level
         im_zarr_tiled[z] = image_level_data
         seg_zarr_tiled[z] = seg_level_data
         
+        # Help manage memory between levels
+        del binary_mask, image_level_data, seg_level_data
+    
     return im_zarr_tiled, seg_zarr_tiled
 
 # %% [markdown]

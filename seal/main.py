@@ -160,6 +160,9 @@ def get_potential_features(df):
         "Collagen",
         'u', 'g', 'r', 'i', 'z',
        'JPG_R', 'JPG_G', 'JPG_B'
+       'DNA1', 'AF1', 'CD31', 'Ki67', 'CD68', 'CD163', 'CD20', 'CD4',
+       'CD8a', 'CD11c', 'PDL1', 'CD3e', 'ECAD', 'PD1', 'FOXP3', 'CD45',
+       'SOX10', 'EMPTY', 'pH3'
     ]
 
     all_features = list(set(all_features))
@@ -176,17 +179,17 @@ def load(dataset="exemplar-001", df=None):
     if csv_df is not None:
         return
     # if True
-    if True:
+    if False:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
         image_path = (
             "/Users/swarchol/Research/seal/data/exemplar-001/registration/exemplar-001.ome.tif"
         )
         segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/segmentation/unmicst-exemplar-001/nuclei.ome.tif"
-        embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled.ome.tif"
-        embedding_segmentation_path = (
-            "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled-mask.ome.tif"
-        )
+        # embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled.ome.tif"
+        embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled.ome.tif"
+        # embedding_segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled-mask.ome.tif"
+        embedding_segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled-mask.ome.tif"
         csv_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/updated.csv"
 
         # cut_seg_cells = zarr.open(
@@ -205,13 +208,22 @@ def load(dataset="exemplar-001", df=None):
         parquet_path = None
         cut_cells = None
         dataset_name = "greg"
-    elif True:
+    elif False:
         image_path = "/Users/swarchol/Research/seal/data/astro/astro.ome.tif"
         segmentation_path = "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
         embedding_image_path = "/Users/swarchol/Research/seal/data/astro/hybrid.ome.tif"
         embedding_segmentation_path = "/Users/swarchol/Research/seal/data/astro/hybrid.mask.ome.tif"
         csv_path = "/Users/swarchol/Research/seal/data/astro/updated_astro.csv"
         dataset_name = "astro"
+        parquet_path = None
+        cut_cells = None
+    elif True:
+        image_path = ""
+        segmentation_path = ""
+        embedding_image_path = ""
+        embedding_segmentation_path = ""
+        csv_path = "/Users/swarchol/Research/seal/data/dan1/merged_clustered.csv"
+        dataset_name = "dan1"
         parquet_path = None
         cut_cells = None
         

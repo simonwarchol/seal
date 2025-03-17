@@ -1175,7 +1175,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         return { hull: setFeature?.hulls?.spatial?.concave_hull, density: setFeature?.hulls?.spatial?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
       }
       return null;
-    }).filter(d => d && d.density > 0.0005)
+    }).filter(d => d && d.density > 0.00001)
 
 
 

@@ -157,17 +157,24 @@ function Viewer({ value, setValue, height, config }) {
 
   };
   const astroDataset = {
-    embeddingImageUrl: "http://127.0.0.1:8005/hybrid.ome.tif",
-    embeddingSegmentationUrl: "http://127.0.0.1:8005/hybrid.mask.ome.tif",
-    csvUrl: "http://127.0.0.1:8005/updated_astro.csv",
+    embeddingImageUrl: "http://localhost:8181/data/astro/hybrid.ome.tif",
+    embeddingSegmentationUrl: "http://localhost:8181/data/astro/hybrid.mask.ome.tif",
+    csvUrl: "http://localhost:8181/data/astro/updated_astro.csv",
     clusterColumns: ["cluster"],
-    imageUrl: "http://127.0.0.1:8005/astro.ome.tif",
-    segmentationUrl: "http://127.0.0.1:8005/astro_seg_masks.ome.tif",
+    imageUrl: "http://localhost:8181/data/astro/astro.ome.tif",
+    segmentationUrl: "http://localhost:8181/data/astro/astro_seg_masks.ome.tif",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
-
-
   };
-  let dataset = config || exemplarDataset;
+  const dan1Dataset = {
+    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan1.ome.tif",
+    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan1-mask.ome.tif",
+    csvUrl: "http://localhost:8181/data/dan1/merged_clustered.csv",
+    clusterColumns: ["cluster"],
+    imageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/combined.ome.tif",
+    segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/cellRing_from_mcmicro.ome.tif",
+    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
+  };
+  let dataset = config || dan1Dataset;
 
 
   const vc = new VitessceConfig({
