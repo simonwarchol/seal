@@ -956,9 +956,6 @@ function SetsManager(props) {
     });
   }
 
-  useEffect(() => {
-    console.log('cellSetSelection', cellSetSelection)
-  }, [cellSetSelection])
 
   const classes = useStyles();
 

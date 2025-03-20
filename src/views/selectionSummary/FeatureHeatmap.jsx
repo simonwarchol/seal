@@ -58,7 +58,7 @@ function FeatureHeatmap({
         .attr("x1", halfWidth)
         .attr("x2", d => {
           const diff = featureData.normalized_occurrence[d[0]];
-          return halfWidth + (diff * halfWidth * 0.4); // Use 40% of half width
+          return halfWidth + (diff * halfWidth * 0.8); // Use 40% of half width
         })
         .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
@@ -75,7 +75,7 @@ function FeatureHeatmap({
         .join("circle")
         .attr("cx", d => {
           const diff = featureData.normalized_occurrence[d[0]];
-          return halfWidth + (diff * halfWidth * 0.4);
+          return halfWidth + (diff * halfWidth * 0.8);
         })
         .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("r", rectHeight / 4)

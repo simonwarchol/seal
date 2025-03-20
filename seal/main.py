@@ -198,7 +198,7 @@ def load(dataset="exemplar-001", df=None):
         # cut_cells = zarr.open("/Users/swarchol/Research/seal/data/exemplar-001/cellcutter/cut")
         cut_cells = None
         parquet_path = None
-    elif False:
+    elif True:
         image_path = "/Volumes/Simon/Greg/WD-76845-097.ome.tif"
         segmentation_path = "/Volumes/Simon/Greg/WD-76845-097_mask_pyr.ome.tif"
         embedding_image_path = "/Volumes/Simon/Greg/tiled.ome.tif"
@@ -222,8 +222,9 @@ def load(dataset="exemplar-001", df=None):
         segmentation_path = ""
         embedding_image_path = ""
         embedding_segmentation_path = ""
-        csv_path = "/Users/swarchol/Research/seal/data/dan1/merged_clustered.csv"
-        dataset_name = "dan1"
+        csv_path = "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans.csv"
+        set_csv_path = "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans_small.csv"
+        dataset_name = "dan2"
         parquet_path = None
         cut_cells = None
         
@@ -322,7 +323,7 @@ def process_selection(selection_ids):
     global shap_store, summary
     selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
     selected_indices = selected_rows.index.tolist()
-    print(shap_store.shape)
+    print('max index', max(selected_indices))
 
     # Convert numpy values to Python native types
     absolute_shap_sums = np.sum(

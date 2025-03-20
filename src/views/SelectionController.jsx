@@ -29,7 +29,6 @@ export function MyCustomZoomControllerSubscriber(props) {
   const [featureImportance, setFeatureImportance] = useState([]);
 
   useEffect(() => {
-    console.log("New Obs Sets:", additionalObsSets, "hmm");
     const postSelection = async () => {
       setFeatureImportance([]);
       if (!additionalObsSets?.tree) return;

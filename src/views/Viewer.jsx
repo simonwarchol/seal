@@ -144,12 +144,14 @@ function Viewer({ value, setValue, height, config }) {
 
   };
   const gregDataset = {
-    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif",
+    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/greg_tiled.ome.tif",
+    // embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif",
     // embeddingImageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
-    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif",
+    // embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif",
+    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/greg_tiled-mask.ome.tif",
     csvUrl: "http://localhost:8181/files/set_csv.csv",
     // clusterColumns: ["kmeans", "cluster_2d"],
-    clusterColumns: ["kmeans"],
+    clusterColumns: ["cluster_2d"],
     imageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
@@ -166,10 +168,11 @@ function Viewer({ value, setValue, height, config }) {
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
   };
   const dan1Dataset = {
-    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan1.ome.tif",
-    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan1-mask.ome.tif",
-    csvUrl: "http://localhost:8181/data/dan1/merged_clustered.csv",
-    clusterColumns: ["cluster"],
+    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan2.ome.tif",
+    // embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan2.ome.tif",
+    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan2-mask.ome.tif",
+    csvUrl: "http://localhost:8181/files/set_csv.csv",
+    clusterColumns: ["kmeans"],
     imageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/combined.ome.tif",
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/cellRing_from_mcmicro.ome.tif",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",

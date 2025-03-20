@@ -1175,7 +1175,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
         return { hull: setFeature?.hulls?.spatial?.concave_hull, density: setFeature?.hulls?.spatial?.density, features: setFeature?.feat_imp, path: cellSet, centroid: setFeature?.hulls?.embedding?.centroid, selectionIds: setFeature?.selection_ids };
       }
       return null;
-    }).filter(d => d && d.density > 0.00001)
+    }).filter(d => d && d.density > 0.0002)
+    // }).filter(d => d && d.density > 0.00001) 
 
 
 
@@ -1234,7 +1235,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         data: showClusterTitles ? (concaveData || []) : [],
         coordinateSystem: deck.COORDINATE_SYSTEM.CARTESIAN,
         pickable: false,
-        useDevicePixels: 2,
+        useDevicePixels: true,
         getPosition: (d) => {
           if (d.centroid) return d.centroid;
           return d.hull[0];
@@ -1252,8 +1253,8 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
           return title + '\n' + featureNames;
         },
-        outlineWidth: 1,
-        outlineColor: [0, 0, 0, 255],
+        // outlineWidth: 1,
+        // outlineColor: [0, 0, 0, 255],
         getAlignmentBaseline: 'center',
         getColor: [255, 147, 1],
         fontFamily: "sans-serif",
