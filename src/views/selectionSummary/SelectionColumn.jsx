@@ -13,7 +13,8 @@ function SelectionColumn(props) {
     const [isHovered, setIsHovered] = useState(false);
     const maxSelectionSize = useStore((state) => state.maxSelectionSize);
     const setMaxSelectionSize = useStore((state) => state.setMaxSelectionSize);
-
+    const maxRelativeOccurance = useStore((state) => state.maxRelativeOccurance);
+    const setMaxRelativeOccurance = useStore((state) => state.setMaxRelativeOccurance);
     useEffect(() => {
         const getNeighborhoodData = async () => {
             try {
@@ -59,6 +60,17 @@ function SelectionColumn(props) {
     }, [props.setFeature?.selection_ids?.length, maxSelectionSize]);
 
 
+    useEffect(() => {
+        // Find maximum absolute value of normalized_occurrence
+        if (props.setFeature?.normalized_occurrence) {
+            const values = Object.values(props.setFeature.normalized_occurrence);
+            const maxAbsValue = Math.max(...values.map(Math.abs));
+            if (maxAbsValue > maxRelativeOccurance) {
+                setMaxRelativeOccurance(maxAbsValue);
+            }
+        }
+    }, [props.setFeature?.normalized_occurrence, maxRelativeOccurance]);
+    
     return (
         <>
             <SelectionColumnChild 

@@ -72,6 +72,8 @@ const useStore = create((set) => ({
     setShowContours: (show) => set({ showContours: show }),
     maxSelectionSize: 0,
     setMaxSelectionSize: (size) => set({ maxSelectionSize: size }),
+    maxRelativeOccurance: 0,
+    setMaxRelativeOccurance: (occurance) => set({ maxRelativeOccurance: occurance }),
 }))
 
 export default useStore;

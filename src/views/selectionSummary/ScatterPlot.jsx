@@ -97,7 +97,7 @@ function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, ti
         .attr('text-anchor', 'start')
         .attr('fill', 'white')
         .style('font-size', '10px')
-        .text(`${selectionIds?.length} cells`);
+        .text(`${selectionIds?.length} members`);
     }
 
   }, [data, width, height, ranges, backgroundData, title, selectionIds, maxSelectionSize, isHovered]);

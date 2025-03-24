@@ -13,7 +13,9 @@ function FeatureHeatmap({
 }) {
   const svgRef = useRef();
   const hiddenFeatures = useStore((state) => state.hiddenFeatures);
-
+  const maxRelativeOccurance = useStore((state) => state.maxRelativeOccurance);
+  const maxRelativeFeatureImportance = useStore((state) => state.maxRelativeFeatureImportance);
+  console.log('maxRelativeOccurance', maxRelativeOccurance)
   useEffect(() => {
     if (!featureData?.feat_imp || !width || !importanceColorScale || !occuranceColorScale) return;
 
@@ -58,7 +60,8 @@ function FeatureHeatmap({
         .attr("x1", halfWidth)
         .attr("x2", d => {
           const diff = featureData.normalized_occurrence[d[0]];
-          return halfWidth + (diff * halfWidth * 0.4); // Use 40% of half width
+          // Scale by maxRelativeOccurance
+          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.4);
         })
         .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
@@ -75,7 +78,8 @@ function FeatureHeatmap({
         .join("circle")
         .attr("cx", d => {
           const diff = featureData.normalized_occurrence[d[0]];
-          return halfWidth + (diff * halfWidth * 0.4);
+          // Scale by maxRelativeOccurance
+          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.4);
         })
         .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("r", rectHeight / 4)
@@ -93,17 +97,15 @@ function FeatureHeatmap({
         .attr("stroke-width", 1);
     } else {
       // Show importance lollipops
-      const maxImportance = d3.max(sortedFeatures, d => d[1]);
-
       const importanceScale = d3.scaleLinear()
-        .domain([0, maxImportance])
-        .range([0, width / 3]);
+        .domain([-maxRelativeFeatureImportance, maxRelativeFeatureImportance])  // Use symmetric domain
+        .range([0, width * 0.4]);  // Use 40% of total width
 
       g.selectAll(".importance-line")
         .data(sortedFeatures)
         .join("line")
-        .attr("x1", width * 0.1)
-        .attr("x2", d => width * 0.1 + importanceScale(d[1]))
+        .attr("x1", 0)
+        .attr("x2", d => importanceScale(d[1]))
         .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("stroke", "#000000")
@@ -116,7 +118,7 @@ function FeatureHeatmap({
       g.selectAll(".importance-circle")
         .data(sortedFeatures)
         .join("circle")
-        .attr("cx", d => width * 0.1 + importanceScale(d[1]))
+        .attr("cx", d => importanceScale(d[1]))
         .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("r", rectHeight / 6)
         .attr("fill", "#ffffff")
@@ -124,7 +126,7 @@ function FeatureHeatmap({
         .attr("stroke-width", 1);
     }
 
-  }, [featureData, width, importanceColorScale, occuranceColorScale, importanceInColor, hiddenFeatures]);
+  }, [featureData, width, importanceColorScale, occuranceColorScale, importanceInColor, hiddenFeatures, maxRelativeOccurance, maxRelativeFeatureImportance]);
 
   // Set initial dimensions
   return (
