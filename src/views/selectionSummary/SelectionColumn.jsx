@@ -10,6 +10,7 @@ import useStore from '../../store';
 function SelectionColumn(props) {
     const [showNeighborhood, setShowNeighborhood] = useState(false);
     const [neighborhoodData, setNeighborhoodData] = useState(null);
+    const [isHovered, setIsHovered] = useState(false);
     const maxSelectionSize = useStore((state) => state.maxSelectionSize);
     const setMaxSelectionSize = useStore((state) => state.setMaxSelectionSize);
 
@@ -48,8 +49,7 @@ function SelectionColumn(props) {
             getNeighborhoodData();
         }
     }, [showNeighborhood, props.setFeature, props.selection]);
-
-
+    
     // Add useEffect to handle maxSelectionSize updates
     useEffect(() => {
         const currentSelectionSize = props.setFeature?.selection_ids?.length;
@@ -61,12 +61,20 @@ function SelectionColumn(props) {
 
     return (
         <>
-            <SelectionColumnChild {...props} showNeighborhood={showNeighborhood} setShowNeighborhood={setShowNeighborhood} />
+            <SelectionColumnChild 
+                {...props} 
+                showNeighborhood={showNeighborhood} 
+                setShowNeighborhood={setShowNeighborhood}
+                isColumnHovered={isHovered}
+                setIsColumnHovered={setIsHovered}
+            />
             {showNeighborhood && neighborhoodData &&
                 <SelectionColumnChild
                     {...props}
                     backgroundColor={'#040'}
                     isNeighborhood={true}
+                    isColumnHovered={isHovered}
+                    setIsColumnHovered={setIsHovered}
                     setFeature={{
                         selection_ids: neighborhoodData.selection_ids,
                         embedding_coordinates: neighborhoodData.embedding_coordinates,
@@ -108,10 +116,13 @@ function SelectionColumnChild({
     borderColor = '#333333',
     showNeighborhood = false,
     setShowNeighborhood = () => { },
-    isNeighborhood = false
+    isNeighborhood = false,
+    isColumnHovered,
+    setIsColumnHovered
 }) {
     const columnRef = useRef(null);
     const [columnWidth, setColumnWidth] = useState(PLOT_SIZE * 2);
+    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         const updateWidth = () => {
@@ -139,9 +150,17 @@ function SelectionColumnChild({
         <>
             <Card
                 variant="outlined"
+                onMouseEnter={() => {
+                    setIsColumnHovered(true);
+                    setIsHovered(true);
+                }}
+                onMouseLeave={() => {
+                    setIsColumnHovered(false);
+                    setIsHovered(false);
+                }}
                 style={{
                     backgroundColor,
-                    borderColor,
+                    borderColor: isColumnHovered ? '#ffffff' : borderColor,
                     padding: 1,
                     marginRight: '2px',
                     display: 'inline-block',
@@ -151,6 +170,8 @@ function SelectionColumnChild({
                     minWidth: `${PLOT_SIZE * 2}px`,
                     maxWidth: `${PLOT_SIZE * 2}px`,
                     opacity,
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: isColumnHovered ? '0 0 10px rgba(255,255,255,0.2)' : 'none',
                     ...style
                 }}
             >
@@ -186,8 +207,14 @@ function SelectionColumnChild({
                                             <span style={{ color: titleColor }}>
                                                 {selection?.path?.[0]}
                                             </span>
-                                            {'-'}
-                                            <span>{selection?.path?.[1]}</span>
+                                            {selection?.path?.[1] && selection?.path?.[1] !== '' && (
+                                                <>
+                                                    {'-'}
+                                                    <span>
+                                                        {selection?.path?.[1].replace('Selection', '').trim()}
+                                                    </span>
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </Typography>
@@ -255,6 +282,8 @@ function SelectionColumnChild({
                                             width={plotWidth}
                                             title={viewMode === 'embedding' ? 'Embedding' : 'Spatial'}
                                             selectionSize={setFeature?.selection_ids?.length}
+                                            isHovered={isHovered}
+                                            setIsHovered={setIsHovered}
                                         />
                                     </div>
                                     <div

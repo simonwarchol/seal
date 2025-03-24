@@ -5,9 +5,16 @@ import { PopperMenu } from '@vitessce/vit-s';
 import { useSpanStyles } from './styles.js';
 import ColorPalette from './ColorPalette.jsx';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   menuButton: {
     backgroundColor: 'transparent',
+    color: '#ffffff',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    '& .MuiSvgIcon-root': {
+      color: '#ffffff',
+    },
   },
   colors: {
     '&:hover': {
@@ -15,6 +22,9 @@ const useStyles = makeStyles(() => ({
     },
     paddingLeft: '2px',
     paddingRight: '2px',
+  },
+  menuPaper: {
+    // Add any necessary styles for the menu paper
   },
 }));
 
@@ -48,9 +58,18 @@ function ChannelOptions({ handlePropertyChange, handleChannelRemove, handleIQRUp
     <PopperMenu
       open={open}
       setOpen={setOpen}
-      buttonIcon={<MoreVertIcon fontSize="small" />}
+      buttonIcon={<MoreVertIcon 
+        fontSize="small" 
+        style={{ 
+          color: '#ffffff',
+          fill: '#ffffff'
+        }} 
+      />}
       buttonClassName={classes.menuButton}
       aria-label="Open channel options menu"
+      PopperProps={{
+        className: classes.menuPaper
+      }}
     >
       <MenuItem dense disableGutters onClick={handleRemove} aria-label="Click to remove channel">
         <MuiSpan>Remove</MuiSpan>

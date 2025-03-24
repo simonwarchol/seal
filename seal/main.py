@@ -198,17 +198,17 @@ def load(dataset="exemplar-001", df=None):
         # cut_cells = zarr.open("/Users/swarchol/Research/seal/data/exemplar-001/cellcutter/cut")
         cut_cells = None
         parquet_path = None
-    elif True:
+    elif False:
         image_path = "/Volumes/Simon/Greg/WD-76845-097.ome.tif"
         segmentation_path = "/Volumes/Simon/Greg/WD-76845-097_mask_pyr.ome.tif"
         embedding_image_path = "/Volumes/Simon/Greg/tiled.ome.tif"
         embedding_segmentation_path = "/Volumes/Simon/Greg/tiled-mask.ome.tif"
-        csv_path = "/Users/swarchol/Research/seal/data/updated_renamed.csv"
+        csv_path = "/Users/swarchol/Research/seal/data/updated_renamed_with_hdbscan.csv"
         set_csv_path = "/Users/swarchol/Research/seal/data/small.csv"
         parquet_path = None
         cut_cells = None
         dataset_name = "greg"
-    elif False:
+    elif True:
         image_path = "/Users/swarchol/Research/seal/data/astro/astro.ome.tif"
         segmentation_path = "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
         embedding_image_path = "/Users/swarchol/Research/seal/data/astro/hybrid.ome.tif"
@@ -217,7 +217,7 @@ def load(dataset="exemplar-001", df=None):
         dataset_name = "astro"
         parquet_path = None
         cut_cells = None
-    elif True:
+    elif False:
         image_path = ""
         segmentation_path = ""
         embedding_image_path = ""
@@ -323,7 +323,6 @@ def process_selection(selection_ids):
     global shap_store, summary
     selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
     selected_indices = selected_rows.index.tolist()
-    print('max index', max(selected_indices))
 
     # Convert numpy values to Python native types
     absolute_shap_sums = np.sum(

@@ -4,14 +4,14 @@ import * as d3 from 'd3';
 import { IconButton } from '@mui/material';
 import { CameraswitchOutlined } from '@mui/icons-material';
 
-function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, title, selectionIds }) {
+function ScatterPlot({ data, width = 60, height = 60, ranges, backgroundData, title, selectionIds, isHovered, setIsHovered }) {
   const svgRef = useRef();
   const setHoverSelection = useStore((state) => state.setHoverSelection);
   const viewMode = useStore((state) => state.viewMode);
   const setViewMode = useStore((state) => state.setViewMode);
 
   const maxSelectionSize = useStore((state) => state.maxSelectionSize);
-  const [isHovered, setIsHovered] = useState(false);
+  
   const BAR_WIDTH = 10; // Width of the vertical bar
 
   useEffect(() => {

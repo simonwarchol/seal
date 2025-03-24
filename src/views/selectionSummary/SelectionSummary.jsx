@@ -507,7 +507,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                                 <SelectionColumn
                                                     key={`comparison-${i}`}
                                                     selection={{
-                                                        path: [`${OPERATION_NAMES[operation]}`, `${value.count} cells`]
+                                                        path: [`${OPERATION_NAMES[operation]}`, ``]
                                                     }}
                                                     setFeature={comparisonResults?.operations[operation].data}
                                                     viewMode={viewMode}

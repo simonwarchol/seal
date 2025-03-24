@@ -215,7 +215,7 @@ function RasterChannelController({
             {thisChannelIsLocked ? <LockIcon /> : <LockOpenIcon />}
           </IconButton>
         </Grid>
-        <Grid item xs={1} style={{ marginTop: "4px" }}>
+        <Grid item xs={1} style={{ marginTop: "4px" }} className={'poop'}>
           <ChannelOptions
             handlePropertyChange={handlePropertyChange}
             handleChannelRemove={handleChannelRemove}

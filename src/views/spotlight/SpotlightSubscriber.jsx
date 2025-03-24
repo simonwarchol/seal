@@ -1256,9 +1256,11 @@ class Spatial extends AbstractSpatialOrScatterplot {
         // outlineWidth: 1,
         // outlineColor: [0, 0, 0, 255],
         getAlignmentBaseline: 'center',
-        getColor: [255, 147, 1],
+        getColor: [255, 255, 255],
         fontFamily: "sans-serif",
         getSize: titleFontSize,
+        background: true,
+        backgroundColor: [0, 0, 0, 100],
         fontSettings: {
           sdf: true,
         },
