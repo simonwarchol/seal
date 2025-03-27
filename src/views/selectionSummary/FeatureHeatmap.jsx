@@ -61,7 +61,7 @@ function FeatureHeatmap({
         .attr("x2", d => {
           const diff = featureData.normalized_occurrence[d[0]];
           // Scale by maxRelativeOccurance
-          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.4);
+          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
         })
         .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
@@ -79,7 +79,7 @@ function FeatureHeatmap({
         .attr("cx", d => {
           const diff = featureData.normalized_occurrence[d[0]];
           // Scale by maxRelativeOccurance
-          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.4);
+          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
         })
         .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("r", rectHeight / 4)

@@ -540,7 +540,7 @@ bool isExteriorBorder(sampler2D dataTex, vec2 coord) {
     }
     
     // Check for selected cells in vertical and horizontal directions
-    for(int i=1; i<= 1; ++i) {
+    for(int i=1; i<= 2; ++i) {
       float dist = float(i) * pixelSize;
       
       // Sample neighboring pixels to get their cell IDs

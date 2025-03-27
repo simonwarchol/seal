@@ -9,7 +9,7 @@ const render = createRender(() => {
 	console.log('xxx', config)
 
 	return (
-		<div id="widget" style={{ height: '600px'}}>
+		<div id="widget" style={{ height: '600px', width: '100%'}}>
 			<Seal value={value} setValue={setValue} height={'600'} config={config} />
 		</div>
 	);

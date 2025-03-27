@@ -1501,12 +1501,12 @@ class Spatial extends AbstractSpatialOrScatterplot {
       getLineColor: () => [255, 255, 255],
       getPolygon: d => d,
       // opacity
-      opacity: 0.5,
+      opacity: 0.75,
       getFillColor: [255, 255, 255, 0],
       highlightColor: [255, 255, 255, 50],
       getLineWidth: barLength,  // Direct value instead of callback
       getLineWidth: () => {
-        return barLength;
+        return barLength * 1.5;
       },
       updateTriggers: {
         getLineWidth: barLength  // Add update trigger for barLength

@@ -158,11 +158,42 @@ def get_potential_features(df):
         "DNA (10)",
         "PCNA",
         "Collagen",
-        'u', 'g', 'r', 'i', 'z',
-       'JPG_R', 'JPG_G', 'JPG_B'
-       'DNA1', 'AF1', 'CD31', 'Ki67', 'CD68', 'CD163', 'CD20', 'CD4',
-       'CD8a', 'CD11c', 'PDL1', 'CD3e', 'ECAD', 'PD1', 'FOXP3', 'CD45',
-       'SOX10', 'EMPTY', 'pH3'
+        "u",
+        "g",
+        "r",
+        "i",
+        "z",
+        "JPG_R",
+        "JPG_G",
+        "JPG_B" "DNA1",
+        "AF1",
+        "CD31",
+        "Ki67",
+        "CD68",
+        "CD163",
+        "CD20",
+        "CD4",
+        "CD8a",
+        "CD11c",
+        "PDL1",
+        "CD3e",
+        "ECAD",
+        "PD1",
+        "FOXP3",
+        "CD45",
+        "SOX10",
+        "pH3",
+        "u",
+        "g",
+        "r",
+        "i",
+        "z",
+        "petroRad_r",
+        "cz",
+        "extinction_r",
+        "airmass_r",
+        "mCr4_r",
+
     ]
 
     all_features = list(set(all_features))
@@ -182,14 +213,16 @@ def load(dataset="exemplar-001", df=None):
     if False:
         print("Loading", dataset, df)
         dataset_name = "exemplar"
-        image_path = (
-            "/Users/swarchol/Research/seal/data/exemplar-001/registration/exemplar-001.ome.tif"
-        )
+        image_path = "/Users/swarchol/Research/seal/data/exemplar-001/registration/exemplar-001.ome.tif"
         segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/segmentation/unmicst-exemplar-001/nuclei.ome.tif"
         # embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled.ome.tif"
-        embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled.ome.tif"
+        embedding_image_path = (
+            "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled.ome.tif"
+        )
         # embedding_segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled-mask.ome.tif"
-        embedding_segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled-mask.ome.tif"
+        embedding_segmentation_path = (
+            "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled-mask.ome.tif"
+        )
         csv_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/updated.csv"
 
         # cut_seg_cells = zarr.open(
@@ -210,9 +243,13 @@ def load(dataset="exemplar-001", df=None):
         dataset_name = "greg"
     elif True:
         image_path = "/Users/swarchol/Research/seal/data/astro/astro.ome.tif"
-        segmentation_path = "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
+        segmentation_path = (
+            "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
+        )
         embedding_image_path = "/Users/swarchol/Research/seal/data/astro/hybrid.ome.tif"
-        embedding_segmentation_path = "/Users/swarchol/Research/seal/data/astro/hybrid.mask.ome.tif"
+        embedding_segmentation_path = (
+            "/Users/swarchol/Research/seal/data/astro/hybrid.mask.ome.tif"
+        )
         csv_path = "/Users/swarchol/Research/seal/data/astro/updated_astro.csv"
         dataset_name = "astro"
         parquet_path = None
@@ -223,11 +260,13 @@ def load(dataset="exemplar-001", df=None):
         embedding_image_path = ""
         embedding_segmentation_path = ""
         csv_path = "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans.csv"
-        set_csv_path = "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans_small.csv"
+        set_csv_path = (
+            "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans_small.csv"
+        )
         dataset_name = "dan2"
         parquet_path = None
         cut_cells = None
-        
+
     # shapes = get_shapes(image_path)
     # if path ends with .csv, read csv, if ends with .parquet, read parquet
     print("Reading csv", csv_path)
@@ -256,10 +295,14 @@ def load(dataset="exemplar-001", df=None):
             [csv_df["Y_centroid"].min(), csv_df["Y_centroid"].max()],
         ],
         "embedding_subsample": csv_df[["UMAP_X", "UMAP_Y"]]
-        .values[np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)]
+        .values[
+            np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)
+        ]
         .tolist(),
         "spatial_subsample": csv_df[["X_centroid", "Y_centroid"]]
-        .values[np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)]
+        .values[
+            np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)
+        ]
         .tolist(),
         "global_mean_features": mean_features.to_dict(),
     }
@@ -268,7 +311,9 @@ def load(dataset="exemplar-001", df=None):
     shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
     # with open(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.pkl", "rb") as f:
     #     shap_store = pickle.load(f)
-    with open(f"/Users/swarchol/Research/seal/data/{dataset_name}.contour.pkl", "rb") as f:
+    with open(
+        f"/Users/swarchol/Research/seal/data/{dataset_name}.contour.pkl", "rb"
+    ) as f:
         contour_lines = pickle.load(f)
 
 
@@ -315,8 +360,6 @@ def parse_id(_id):
         return int(_id[0])
     # If we get here, we have an unexpected input
     raise ValueError(f"Unexpected ID format: {_id}")
-
-
 
 
 def process_selection(selection_ids):
@@ -437,8 +480,8 @@ async def set_compare(selection_data: CompareSet):
             "data": process_selection(b_minus_intersection.tolist()),
         }
 
-    # Only include symmetric difference if it exists and there's no intersection
-    if len(symmetric_difference) > 0 and len(intersection_ids) == 0:
+    # Only include symmetric difference if it exists and there's an intersection
+    if len(symmetric_difference) > 0 and len(intersection_ids) > 0:
         results["operations"]["a_plus_b_minus_intersection"] = {
             "count": len(symmetric_difference),
             "data": process_selection(symmetric_difference.tolist()),
@@ -458,24 +501,25 @@ async def contours():
     global contour_lines
     return {"message": "Complete", "data": contour_lines}
 
+
 @app.get("/data/{file_path:path}")
 async def serve_data_file(file_path: str):
     """
     Serve files from the /data directory.
-    
+
     Parameters:
     file_path (str): Path to the file within the data directory
-    
+
     Returns:
     FileResponse: The requested file if it exists
     """
     # Construct the full path to the file
     full_path = os.path.join("/Users/swarchol/Research/seal/data", file_path)
-    
+
     # Check if the file exists
     if not os.path.exists(full_path) or not os.path.isfile(full_path):
         raise HTTPException(status_code=404, detail=f"File {file_path} not found")
-    
+
     # Return the file
     return FileResponse(full_path)
 

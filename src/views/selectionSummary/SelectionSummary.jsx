@@ -463,18 +463,30 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '4px',
-                                    justifyContent: 'center',
+                                    justifyContent: 'space-evenly',
                                     alignItems: 'center',
                                     marginLeft: '2px',
-                                    marginRight: '2px'
+                                    marginRight: '2px',
+                                    height: '100%',
+                                    width: `${PLOT_SIZE}px`,
+                                    flexShrink: 0
                                 }}>
                                     {Object.keys(OPERATION_NAMES).map((operation) => (
-                                        <SetOperationIcon
-                                            key={operation}
-                                            type={operation}
-                                            size={30}
-                                            disabled={!comparisonResults?.operations?.[operation]}
-                                        />
+                                        <div style={{
+                                            width: '100%',
+                                            height: `${100 / Object.keys(OPERATION_NAMES).length - 2}%`, // Distribute height evenly
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            padding: '2px'
+                                        }}>
+                                            <SetOperationIcon
+                                                key={operation}
+                                                type={operation}
+                                                size="100%"
+                                                disabled={!comparisonResults?.operations?.[operation]}
+                                            />
+                                        </div>
                                     ))}
                                 </div>
                             )}
@@ -517,13 +529,13 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                                     isVisible={true}
                                                     onVisibilityToggle={() => { }}
                                                     onClick={() => { }}
-                                                    titleColor={iconConfigs[operation]?.color}
+                                                    titleColor={operation === 'complement' ? '#e6ab03' : iconConfigs[operation]?.color}
                                                     compareMode={compareMode}
                                                     importanceColorScale={importanceColorScale}
                                                     occuranceColorScale={occuranceColorScale}
                                                     importanceInColor={importanceInColor}
                                                     setImportanceInColor={setImportanceInColor}
-                                                    backgroundColor={`${iconConfigs[operation]?.color}99`}
+                                                    backgroundColor={operation === 'complement' ? `${iconConfigs[operation]?.background}99` : `${iconConfigs[operation]?.color}99`}
                                                 />
                                             </Card>
                                         ))}

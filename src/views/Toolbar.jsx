@@ -51,7 +51,7 @@ const Toolbar = () => {
                     <img src={sealLogo} />
                 </Grid>
                 <Grid item style={{ display: 'flex', alignItems: 'center' }}>
-                    <span className="seal-text">SEAL</span>
+                    <span style={{ fontSize: '1.2em', fontFamily: 'Nunito, sans-serif', color: '#FFFFFF' }} className="seal-text">SEAL</span>
                     <Box ml={1}>
                         <ConstructionIcon 
                             className="settings-icon" 

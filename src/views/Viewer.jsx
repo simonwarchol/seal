@@ -176,7 +176,10 @@ function Viewer({ value, setValue, height, config }) {
     csvUrl: "http://localhost:8181/files/set_csv.csv",
     clusterColumns: ["kmeans"],
     imageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/combined.ome.tif",
-    segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/cellRing_from_mcmicro.ome.tif",
+    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/cellRing_from_mcmicro.ome.tif",
+    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask.ome.tif ",
+    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/nucleiRing.ome.tif",
+    segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask_nuclei.ome.tif",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
   };
   let dataset = config || astroDataset;

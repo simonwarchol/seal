@@ -15,7 +15,7 @@ export const iconConfigs = {
     'b_minus_intersection': { paths: ['rightOnly'], color: '#d62728' },
     'a_plus_b_minus_intersection': { paths: ['leftOnly', 'rightOnly'], color: '#ff7f0e' },
     'a_plus_b': { paths: ['leftOnly', 'rightOnly', 'intersection'], color: '#67a61f' },
-    'complement': { paths: ['leftOnly', 'rightOnly', 'intersection'], color: '#e6ab03' } // Changed this line
+    'complement': { paths: ['leftOnly', 'rightOnly', 'intersection'], color: '#121212', background: '#e6ab03' } // Changed this line
   };
 
 const SetOperationIcon = ({ type, size = 30, disabled = false }) => {
@@ -29,15 +29,15 @@ const SetOperationIcon = ({ type, size = 30, disabled = false }) => {
 
   return (
     <svg width={size} height={size} viewBox="0 0 374 221" style={baseStyle}>
-      <path d={basePaths.background} fill={config.background || 'none'} stroke="white" strokeWidth="2" />
+      <path d={basePaths.background} fill={config.background || 'none'} stroke="white" strokeWidth="5" />
       {config.paths?.map(path => (
         <path key={path} d={basePaths[path]} fill={config.color} stroke="none" />
       ))}
       {config.fills?.map(path => (
         <path key={path} d={basePaths[path]} fill={config.color} stroke="none" />
       ))}
-      <path d={basePaths.leftCircle} fill="none" stroke="white" strokeWidth="2" />
-      <path d={basePaths.rightCircle} fill="none" stroke="white" strokeWidth="2" />
+      <path d={basePaths.leftCircle} fill="none" stroke="white" strokeWidth="5" />
+      <path d={basePaths.rightCircle} fill="none" stroke="white" strokeWidth="5" />
     </svg>
   );
 };
