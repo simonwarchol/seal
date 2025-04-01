@@ -182,7 +182,7 @@ function Viewer({ value, setValue, height, config }) {
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask_nuclei.ome.tif",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
   };
-  let dataset = config || astroDataset;
+  let dataset = config || dan1Dataset;
 
 
   const vc = new VitessceConfig({

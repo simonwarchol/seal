@@ -21,6 +21,14 @@ const OPERATION_NAMES = {
     'complement': 'Complement'
 };
 
+const OPERATION_ORDER = [
+    'a_minus_intersection',
+    'b_minus_intersection',
+    'intersection',
+    'a_plus_b_minus_intersection',
+    'a_plus_b',
+    'complement'
+];
 
 function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rasterLayers, setRasterLayers, cellsLayer, setCellsLayer, imageLayerLoaders, imageLayerMeta, isReady, imageLayerCallbacks, setImageLayerCallbacks, areLoadingImageChannels, setAreLoadingImageChannels, handleRasterLayerChange, handleRasterLayerRemove, handleSegmentationLayerChange, handleSegmentationLayerRemove, layerControllerRef, moleculesLayer, setMoleculesLayer, closeButtonVisible, downloadButtonVisible, removeGridComponent, theme, title, disable3d, globalDisable3d, disableChannelsIfRgbDetected, enableLayerButtonsWithOneLayer, dataset, obsType, segmentationLayerLoaders, segmentationLayerMeta, segmentationLayerCallbacks, setSegmentationLayerCallbacks, areLoadingSegmentationChannels, setAreLoadingSegmentationChannels, componentHeight, componentWidth, spatialLayout, layerIs3DIndex, setZoom, setTargetX, setTargetY, setTargetZ, setRotationX, setRotationOrbit, obsSegmentationsType, additionalObsSets }) {
     // Move all useStore calls to the top of the component
@@ -471,10 +479,10 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                                     width: `${PLOT_SIZE}px`,
                                     flexShrink: 0
                                 }}>
-                                    {Object.keys(OPERATION_NAMES).map((operation) => (
+                                    {OPERATION_ORDER.map((operation) => (
                                         <div style={{
                                             width: '100%',
-                                            height: `${100 / Object.keys(OPERATION_NAMES).length - 2}%`, // Distribute height evenly
+                                            height: `${100 / OPERATION_ORDER.length - 2}%`, // Distribute height evenly
                                             display: 'flex',
                                             justifyContent: 'center',
                                             alignItems: 'center',

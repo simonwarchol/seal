@@ -188,12 +188,12 @@ def get_potential_features(df):
         "r",
         "i",
         "z",
-        "petroRad_r",
+        # "petroRad_r",  # Petrosian radius in the r-band – an estimate of the size of an object (usually a galaxy).
+        #  Probability the object is a point source (i.e., star-like) based on shape. High values suggest stars, while extended objects (like galaxies) have lower values.
         "cz",
         "extinction_r",
         "airmass_r",
         "mCr4_r",
-
     ]
 
     all_features = list(set(all_features))
@@ -241,7 +241,7 @@ def load(dataset="exemplar-001", df=None):
         parquet_path = None
         cut_cells = None
         dataset_name = "greg"
-    elif True:
+    elif False:
         image_path = "/Users/swarchol/Research/seal/data/astro/astro.ome.tif"
         segmentation_path = (
             "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
@@ -254,7 +254,7 @@ def load(dataset="exemplar-001", df=None):
         dataset_name = "astro"
         parquet_path = None
         cut_cells = None
-    elif False:
+    elif True:
         image_path = ""
         segmentation_path = ""
         embedding_image_path = ""
@@ -454,18 +454,19 @@ async def set_compare(selection_data: CompareSet):
         "operations": {},
     }
 
-    # Only include non-empty and non-trivial results
+    # Add intersection if not empty
     if len(intersection_ids) > 0:
         results["operations"]["intersection"] = {
             "count": len(intersection_ids),
             "data": process_selection(intersection_ids.tolist()),
         }
-        # Only include union if there's an intersection
-        if len(union_ids) > 0:
-            results["operations"]["a_plus_b"] = {
-                "count": len(union_ids),
-                "data": process_selection(union_ids.tolist()),
-            }
+
+    # Always include union if it's not empty
+    if len(union_ids) > 0:
+        results["operations"]["a_plus_b"] = {
+            "count": len(union_ids),
+            "data": process_selection(union_ids.tolist()),
+        }
 
     # Only include differences if they're not the same as original sets
     if len(a_minus_intersection) > 0 and len(a_minus_intersection) != len(set1_ids):
