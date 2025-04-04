@@ -15,7 +15,7 @@ import {
   FileType as ft,
   DataType as dt
 } from "@vitessce/constants";
-
+import useStore from "../store";
 
 import { ObsSetsManagerSubscriber } from "./setsManager/ObsSetsManagerSubscriber";
 import { LayerControllerSubscriber } from "./controller/LayerControllerSubscriber";
@@ -24,6 +24,8 @@ import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
 function Viewer({ value, setValue, height, config }) {
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  const datasetId = useStore((state) => state.datasetId);
+  
   useEffect(() => {
     const handleResize = () => {
       setWindowHeight(window.innerHeight);
@@ -35,6 +37,25 @@ function Viewer({ value, setValue, height, config }) {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+
+  const getDatasetConfig = (datasetId) => {
+    const baseUrl = `https://seal-vis.s3.us-east-1.amazonaws.com/${datasetId}`;
+    return {
+      embeddingImageUrl: `${baseUrl}/hybrid.ome.tif`,
+      embeddingSegmentationUrl: `${baseUrl}/hybrid-mask.ome.tif`,
+      parquetUrl: `${baseUrl}/df.parquet`,
+      csvUrl: `${baseUrl}/df.csv`,
+      clusterColumns: ["cluster"],
+      imageUrl: `${baseUrl}/image.ome.tif`,
+      segmentationUrl: `${baseUrl}/mask.ome.tif`,
+      contourUrl: `${baseUrl}/contour.json`,
+      shapUrl: `${baseUrl}/shap.parquet`
+    };
+  };
+
+  let dataset = config || getDatasetConfig(datasetId);
+  console.log('dataset', dataset);
 
   const pluginViewTypes = [
     new PluginViewType("spotlight", SpotlightSubscriber, [
@@ -182,7 +203,6 @@ function Viewer({ value, setValue, height, config }) {
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask_nuclei.ome.tif",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
   };
-  let dataset = config || dan1Dataset;
 
 
   const vc = new VitessceConfig({

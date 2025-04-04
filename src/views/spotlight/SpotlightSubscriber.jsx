@@ -2169,7 +2169,6 @@ export function SpotlightSubscriber(props) {
       featureValueColormapRange: geneExpressionColormapRange,
       tooltipsVisible,
       spatialImageLayer: rasterLayers,
-
     },
     {
       setSpatialZoom: setZoom,
@@ -2409,23 +2408,43 @@ export function SpotlightSubscriber(props) {
   const setHoverSelection = useStore((state) => state.setHoverSelection)
   const channelSelection = useStore((state) => state.channelSelection)
   const setChannelSelection = useStore((state) => state.setChannelSelection)
+  const datasetId = useStore((state) => state.datasetId)
 
   const contours = useStore((state) => state.contours)
   const setContours = useStore((state) => state.setContours)
   const showContours = useStore((state) => state.showContours)
+  const [isLoadingContours, setIsLoadingContours] = useState(false);
+  const [contoursError, setContoursError] = useState(null);
 
   useEffect(() => {
     const fetchContours = async () => {
-      const contoursUrl = "http://localhost:8181/contours";
-      const contoursPost = await fetch(contoursUrl);
-      const contoursData = await contoursPost.json();
-      setContours(contoursData?.data);
-    }
-    fetchContours()
-  }, [])
+      if (!dataset) {
+        setContours(null);
+        return;
+      }
 
+      setIsLoadingContours(true);
+      setContoursError(null);
 
+      try {
+        const contoursUrl = `https://seal-vis.s3.us-east-1.amazonaws.com/${datasetId}/contour.json`;
+        const response = await fetch(contoursUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch contours: ${response.statusText}`);
+        }
+        const contoursData = await response.json();
+        setContours(contoursData);
+      } catch (error) {
+        console.error('Error fetching contours:', error);
+        setContoursError(error.message);
+        setContours(null);
+      } finally {
+        setIsLoadingContours(false);
+      }
+    };
 
+    fetchContours();
+  }, [dataset, setContours]);
 
   const reverseLocationsIndex = useMemo(() => {
     return obsLocationsIndex?.reduce((acc, val, i) => {
@@ -2534,7 +2553,7 @@ export function SpotlightSubscriber(props) {
     const set = treeFindNodeByNamePath(mergedCellSets, path)
     if (!set) return;
     const fetchNeighborhoodData = async (path, setSelection) => {
-      const neighborhoodUrl = "http://localhost:8181/neighborhood";
+      const neighborhoodUrl = `${import.meta.env.BASE_URL}/neighborhood/${datasetId}`;
       const neighborhoodPost = await fetch(neighborhoodUrl, {
         method: "POST",
         headers: {
@@ -2578,7 +2597,7 @@ export function SpotlightSubscriber(props) {
       if (!path || path?.length === 0) return null;
 
       try {
-        const selectionUrl = "http://localhost:8181/selection";
+        const selectionUrl = `${import.meta.env.BASE_URL}/selection/${datasetId}`;
         const selectionPost = await fetch(selectionUrl, {
           method: "POST",
           headers: {
@@ -2587,9 +2606,10 @@ export function SpotlightSubscriber(props) {
           body: JSON.stringify({ ...setSelection, path }),
         });
 
+        if (!selectionPost.ok) {
+          throw new Error(`Failed to fetch selection data: ${selectionPost.statusText}`);
+        }
         const selectionData = await selectionPost.json();
-
-        // Return the new data structure instead of directly setting state
         return {
           [path[0]]: {
             ...setFeatures[path[0]],
@@ -2946,8 +2966,9 @@ export function SpotlightSubscriber(props) {
   }, [channelNames, channelColors])
 
   return (
+
     <TitleInfo
-      title={title}
+      title={dataset == 'A' ? 'Hybrid Embedding' : 'Spatial Image'}
       info={subtitle}
       isSpatial
       urls={urls}
@@ -2958,6 +2979,7 @@ export function SpotlightSubscriber(props) {
       isReady={isReady}
       options={options}
     >
+      <span></span>
       <div
         style={{
           position: "absolute",

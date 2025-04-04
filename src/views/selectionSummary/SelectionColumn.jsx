@@ -19,8 +19,7 @@ function SelectionColumn(props) {
         const getNeighborhoodData = async () => {
             try {
                 if (!props?.setFeature?.selection_ids || !props.selection?.path) return;
-
-                const response = await fetch('http://localhost:8181/neighborhood', {
+                const response = await fetch(`${import.meta.env.BASE_URL}/neighborhood`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

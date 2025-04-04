@@ -189,7 +189,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
 
         const fetchComparisonResults = async () => {
             try {
-                const response = await fetch("http://localhost:8181/set-compare", {
+                const response = await fetch(`${import.meta.env.BASE_URL}/set-compare`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

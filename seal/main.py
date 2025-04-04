@@ -1,4 +1,3 @@
-import io
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -8,26 +7,21 @@ from PIL import Image
 from pydantic import BaseModel
 from fastapi.responses import FileResponse
 from scipy.spatial import KDTree
-from concave_hull import concave_hull
 from matplotlib import pyplot as plt
 from scipy.spatial import ConvexHull
-import xgboost as xgb
 from typing import List, Dict, Any, Optional
 import numpy as np
 import pandas as pd
-import zarr
 from scipy.spatial import cKDTree
 import os
 import tifffile as tf
-import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
 from sklearn.model_selection import train_test_split
-
 # from line_profiler_pycharm import profile
 from pathlib import Path
-import time
-import shap
+
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
 origins = ["*"]
@@ -40,38 +34,114 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize global variables
+CURRENT_DATASET = {
+    "name": None,
+    "csv_df": None,
+    "summary": None,
+    "shap_store": None,
+    "contour_lines": None,
+    "tree": None,
+    "paths": None
+}
 
-# Paths to data exemplar
+def get_dataset_paths(dataset_name):
+    """Return the paths for a given dataset"""
+    if dataset_name == "exemplar-001":
+        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/exemplar-001"
+        return {
+            "csv_path": f"{base_url}/df.parquet",
+            "set_csv_path": None,
+            "parquet_path": f"{base_url}/df.parquet",
+            "image_path": f"{base_url}/image.ome.tif",
+            "segmentation_path": f"{base_url}/mask.ome.tif",
+            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
+            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
+            "shap_path": f"{base_url}/shap.parquet"
+        }
+    else:
+        base_path = "/Users/swarchol/Research/seal/data"
+        return {
+            "csv_path": f"{base_path}/{dataset_name}/updated.csv",
+            "set_csv_path": None,
+            "parquet_path": None,
+            "image_path": f"{base_path}/{dataset_name}/image.ome.tif",
+            "segmentation_path": f"{base_path}/{dataset_name}/segmentation.ome.tif",
+            "embedding_image_path": f"{base_path}/{dataset_name}/hybrid.ome.tif",
+            "embedding_segmentation_path": f"{base_path}/{dataset_name}/hybrid-mask.ome.tif",
+            "shap_path": f"{base_path}/{dataset_name}/shap.parquet"
+        }
 
-shapes = None
-csv_df = None
-set_csv_path = None
-tree = None
-tile_size = None
-image_io = None
-image_zarr = None
-seg_io = None
-seg_zarr = None
-segmentation_path = None
-csv_path = None
-parquet_path = None
-image_path = None
-embedding_image_path = None
-embedding_segmentation_path = None
-cut_seg_cells = None
-cut_cells = None
-shap_store = None
-dataset_name = None
-summary = None
-contour_lines = None
+def load_dataset(dataset_name, df=None):
+    """Load a specific dataset, replacing any currently loaded dataset"""
+    global CURRENT_DATASET
+    
+    # If the requested dataset is already loaded, return
+    if CURRENT_DATASET["name"] == dataset_name:
+        return CURRENT_DATASET
+    
+    # Clear current dataset from memory
+    CURRENT_DATASET = {
+        "name": None,
+        "csv_df": None,
+        "summary": None,
+        "shap_store": None,
+        "tree": None,
+        "paths": None
+    }
+    
+    paths = get_dataset_paths(dataset_name)
+    
+    # Load the data
+    if df is not None:
+        CURRENT_DATASET["csv_df"] = df
+    elif paths["parquet_path"]:
+        CURRENT_DATASET["csv_df"] = pd.read_parquet(paths["parquet_path"])
+    elif paths["csv_path"].endswith(".csv"):
+        CURRENT_DATASET["csv_df"] = pd.read_csv(paths["csv_path"])
+    else:
+        raise ValueError("Invalid file format")
 
+    # Calculate features and summary
+    potential_features = get_potential_features(CURRENT_DATASET["csv_df"])
+    mean_features = CURRENT_DATASET["csv_df"][potential_features].mean()
+    
+    summary = {
+        "embedding_ranges": [
+            [float(CURRENT_DATASET["csv_df"]["UMAP_X"].min()), float(CURRENT_DATASET["csv_df"]["UMAP_X"].max())],
+            [float(CURRENT_DATASET["csv_df"]["UMAP_Y"].min()), float(CURRENT_DATASET["csv_df"]["UMAP_Y"].max())],
+        ],
+        "spatial_ranges": [
+            [float(CURRENT_DATASET["csv_df"]["X_centroid"].min()), float(CURRENT_DATASET["csv_df"]["X_centroid"].max())],
+            [float(CURRENT_DATASET["csv_df"]["Y_centroid"].min()), float(CURRENT_DATASET["csv_df"]["Y_centroid"].max())],
+        ],
+        "embedding_subsample": CURRENT_DATASET["csv_df"][["UMAP_X", "UMAP_Y"]]
+        .values[np.random.choice(CURRENT_DATASET["csv_df"].shape[0], min(1000, CURRENT_DATASET["csv_df"].shape[0]), replace=False)]
+        .tolist(),
+        "spatial_subsample": CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]]
+        .values[np.random.choice(CURRENT_DATASET["csv_df"].shape[0], min(1000, CURRENT_DATASET["csv_df"].shape[0]), replace=False)]
+        .tolist(),
+        "global_mean_features": mean_features.to_dict(),
+    }
 
-def get_shapes(path):
-    with tf.TiffFile(path, is_ome=False) as imgio:
-        img = zarr.open(imgio.series[0].aszarr())
-        shapes = [img[i].shape for i in range(len(img))]
-    return shapes
+    # Load SHAP values
+    if dataset_name == "exemplar-001":
+        # Read from S3
+        shap_store = pd.read_parquet(paths["shap_path"])
+    else:
+        # Read from local files
+        shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
 
+    # Update CURRENT_DATASET
+    CURRENT_DATASET.update({
+        "name": dataset_name,
+        "summary": summary,
+        "shap_store": shap_store,
+        "paths": paths,
+        "tree": cKDTree(CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]].values)
+    })
+    
+    return CURRENT_DATASET
 
 def get_potential_features(df):
     # Check which of the potential features are in the csv_df
@@ -194,128 +264,12 @@ def get_potential_features(df):
         "extinction_r",
         "airmass_r",
         "mCr4_r",
+        'CD11B', 'CD16', 'CD45', 'CD57', 'DNA_6', 'DNA_7', 'DNA_8', 'ECAD', 'ELANE', 'FOXP3', 'NCAM', 'SMA'
     ]
 
     all_features = list(set(all_features))
     potential_features = [feature for feature in all_features if feature in df.columns]
     return sorted(potential_features)
-
-
-# @profile
-def load(dataset="exemplar-001", df=None):
-    global shapes, csv_df, tree, tile_size, image_io, image_zarr, seg_io, seg_zarr, set_csv_path
-    global segmentation_path, csv_path, image_path, cut_seg_cells, cut_cells, embedding_image_path, embedding_segmentation_path
-    global shap_store, dataset_name, summary, contour_lines
-
-    if csv_df is not None:
-        return
-    # if True
-    if False:
-        print("Loading", dataset, df)
-        dataset_name = "exemplar"
-        image_path = "/Users/swarchol/Research/seal/data/exemplar-001/registration/exemplar-001.ome.tif"
-        segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/segmentation/unmicst-exemplar-001/nuclei.ome.tif"
-        # embedding_image_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled.ome.tif"
-        embedding_image_path = (
-            "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled.ome.tif"
-        )
-        # embedding_segmentation_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/tiled-mask.ome.tif"
-        embedding_segmentation_path = (
-            "/Users/swarchol/Research/seal/data/exemplar-001/test/tiled-mask.ome.tif"
-        )
-        csv_path = "/Users/swarchol/Research/seal/data/exemplar-001/new/updated.csv"
-
-        # cut_seg_cells = zarr.open(
-        #     "/Users/swarchol/Research/seal/data/exemplar-001/cellcutter/cut_mask"
-        # )
-        # cut_cells = zarr.open("/Users/swarchol/Research/seal/data/exemplar-001/cellcutter/cut")
-        cut_cells = None
-        parquet_path = None
-    elif False:
-        image_path = "/Volumes/Simon/Greg/WD-76845-097.ome.tif"
-        segmentation_path = "/Volumes/Simon/Greg/WD-76845-097_mask_pyr.ome.tif"
-        embedding_image_path = "/Volumes/Simon/Greg/tiled.ome.tif"
-        embedding_segmentation_path = "/Volumes/Simon/Greg/tiled-mask.ome.tif"
-        csv_path = "/Users/swarchol/Research/seal/data/updated_renamed_with_hdbscan.csv"
-        set_csv_path = "/Users/swarchol/Research/seal/data/small.csv"
-        parquet_path = None
-        cut_cells = None
-        dataset_name = "greg"
-    elif False:
-        image_path = "/Users/swarchol/Research/seal/data/astro/astro.ome.tif"
-        segmentation_path = (
-            "/Users/swarchol/Research/seal/data/astro/astro_seg_masks.ome.tif"
-        )
-        embedding_image_path = "/Users/swarchol/Research/seal/data/astro/hybrid.ome.tif"
-        embedding_segmentation_path = (
-            "/Users/swarchol/Research/seal/data/astro/hybrid.mask.ome.tif"
-        )
-        csv_path = "/Users/swarchol/Research/seal/data/astro/updated_astro.csv"
-        dataset_name = "astro"
-        parquet_path = None
-        cut_cells = None
-    elif True:
-        image_path = ""
-        segmentation_path = ""
-        embedding_image_path = ""
-        embedding_segmentation_path = ""
-        csv_path = "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans.csv"
-        set_csv_path = (
-            "/Users/swarchol/Research/seal/data/dan2/updated_best_kmeans_small.csv"
-        )
-        dataset_name = "dan2"
-        parquet_path = None
-        cut_cells = None
-
-    # shapes = get_shapes(image_path)
-    # if path ends with .csv, read csv, if ends with .parquet, read parquet
-    print("Reading csv", csv_path)
-
-    if df is not None:
-        csv_df = df
-    elif parquet_path is not None:
-        csv_df = pd.read_parquet(parquet_path)
-    elif csv_path.endswith(".csv"):
-        csv_df = pd.read_csv(csv_path)
-    else:
-        raise ValueError("Invalid file format")
-
-    # calculate the mean value of all of the features
-    potential_features = get_potential_features(csv_df)
-    mean_features = csv_df[potential_features].mean()
-
-    # Ranges is dict of {embedding: [min, max], spatial: [min, max], "embedding_subsample": a 10000x2 numpy array of the embedding coordinates}
-    summary = {
-        "embedding_ranges": [
-            [csv_df["UMAP_X"].min(), csv_df["UMAP_X"].max()],
-            [csv_df["UMAP_Y"].min(), csv_df["UMAP_Y"].max()],
-        ],
-        "spatial_ranges": [
-            [csv_df["X_centroid"].min(), csv_df["X_centroid"].max()],
-            [csv_df["Y_centroid"].min(), csv_df["Y_centroid"].max()],
-        ],
-        "embedding_subsample": csv_df[["UMAP_X", "UMAP_Y"]]
-        .values[
-            np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)
-        ]
-        .tolist(),
-        "spatial_subsample": csv_df[["X_centroid", "Y_centroid"]]
-        .values[
-            np.random.choice(csv_df.shape[0], min(1000, csv_df.shape[0]), replace=False)
-        ]
-        .tolist(),
-        "global_mean_features": mean_features.to_dict(),
-    }
-    #
-    tile_size = 1024
-    shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
-    # with open(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.pkl", "rb") as f:
-    #     shap_store = pickle.load(f)
-    with open(
-        f"/Users/swarchol/Research/seal/data/{dataset_name}.contour.pkl", "rb"
-    ) as f:
-        contour_lines = pickle.load(f)
-
 
 @app.get("/")
 def read_root():
@@ -363,16 +317,17 @@ def parse_id(_id):
 
 
 def process_selection(selection_ids):
-    global shap_store, summary
-    selected_rows = csv_df[csv_df["CellID"].isin(selection_ids)]
+    """Process selection using current dataset"""
+    selected_rows = CURRENT_DATASET["csv_df"][CURRENT_DATASET["csv_df"]["CellID"].isin(selection_ids)]
     selected_indices = selected_rows.index.tolist()
 
     # Convert numpy values to Python native types
-    absolute_shap_sums = np.sum(
-        np.mean(np.abs(shap_store[selected_indices]), axis=(0)), axis=1
-    ).tolist()  # Convert to list
-    potential_features = get_potential_features(csv_df)
-    feat_imp = list(zip(potential_features, absolute_shap_sums))
+    # shap iloc
+    absolute_shap_sums =  CURRENT_DATASET["shap_store"].iloc[selected_indices].mean(axis=0)
+    feat_imp = absolute_shap_sums.to_dict()
+    # Create list of key,value sorted by key
+    feat_imp = sorted(feat_imp.items(), key=lambda item: item[1], reverse=True)
+    potential_features = CURRENT_DATASET["shap_store"].columns.tolist()
 
     # Convert numpy arrays to Python lists
     embedding_coordinates = selected_rows[["UMAP_X", "UMAP_Y"]].values.tolist()
@@ -394,43 +349,40 @@ def process_selection(selection_ids):
     for feature in potential_features:
         if (
             pd.isna(selection_mean_features[feature])
-            or pd.isna(summary["global_mean_features"][feature])
-            or summary["global_mean_features"][feature] == 0
+            or pd.isna(CURRENT_DATASET["summary"]["global_mean_features"][feature])
+            or CURRENT_DATASET["summary"]["global_mean_features"][feature] == 0
         ):
             normalized_occurrence[feature] = 0
         else:
             normalized_occurrence[feature] = (
                 selection_mean_features[feature]
-                - summary["global_mean_features"][feature]
-            ) / summary["global_mean_features"][feature]
+                - CURRENT_DATASET["summary"]["global_mean_features"][feature]
+            ) / CURRENT_DATASET["summary"]["global_mean_features"][feature]
 
     return {
         "feat_imp": feat_imp,
         "hulls": hull_results,
         "spatial_coordinates": spatial_coordinates,
         "embedding_coordinates": embedding_coordinates,
-        "summary": summary,
+        "summary": CURRENT_DATASET["summary"],
         "selection_mean_features": selection_mean_features,
         "selection_ids": [int(id) for id in selection_ids],
         "normalized_occurrence": normalized_occurrence,
     }
 
 
-@app.post("/selection")
-async def selection(selection_data: SelectionSet):
-    global dataset_name, csv_df
-
+@app.post("/selection/{dataset_name}")
+async def selection(dataset_name: str, selection_data: SelectionSet):
+    dataset = load_dataset(dataset_name)
     selection_ids = [parse_id(_) for _ in selection_data.set]
-
     response_data = process_selection(selection_ids)
     return {"message": "Complete", "data": response_data}
 
 
-@app.post("/set-compare")
-async def set_compare(selection_data: CompareSet):
-    global dataset_name, csv_df
-
-    # Extract the two sets of selection IDs
+@app.post("/set-compare/{dataset_name}")
+async def set_compare(dataset_name: str, selection_data: CompareSet):
+    dataset = load_dataset(dataset_name)
+    # Use CURRENT_DATASET in the existing function logic
     set1_ids = np.array([parse_id(_) for _ in selection_data.sets[0]["selection_ids"]])
     set2_ids = np.array([parse_id(_) for _ in selection_data.sets[1]["selection_ids"]])
 
@@ -444,7 +396,7 @@ async def set_compare(selection_data: CompareSet):
     symmetric_difference = np.setxor1d(set1_ids, set2_ids)  # (A∪B) - (A∩B)
 
     # Get universe (all cell IDs)
-    universe = np.array(csv_df["CellID"].values)
+    universe = np.array(dataset["csv_df"]["CellID"].values)
     complement = np.setdiff1d(universe, union_ids)
 
     # Initialize results dictionary
@@ -525,20 +477,21 @@ async def serve_data_file(file_path: str):
     return FileResponse(full_path)
 
 
-@app.post("/neighborhood")
-async def neighbors(selection_data: SelectionSet):
-    global tree, csv_df
+@app.post("/neighborhood/{dataset_name}")
+async def neighbors(dataset_name: str, selection_data: SelectionSet):
+    dataset = load_dataset(dataset_name)
     selection_ids = [parse_id(_) for _ in selection_data.set]
-    if tree is None:
-        tree = cKDTree(csv_df[["X_centroid", "Y_centroid"]].values)
+    # Use CURRENT_DATASET.tree instead of global tree
+    if dataset["tree"] is None:
+        dataset["tree"] = cKDTree(dataset["csv_df"][["X_centroid", "Y_centroid"]].values)
 
-    indices = csv_df[csv_df["CellID"].isin(selection_ids)].index.values
+    indices = dataset["csv_df"][dataset["csv_df"]["CellID"].isin(selection_ids)].index.values
     # find nearest neighbor to each index
-    neighbors = tree.query(
-        csv_df.iloc[indices][["X_centroid", "Y_centroid"]].values, k=2
+    neighbors = dataset["tree"].query(
+        dataset["csv_df"].iloc[indices][["X_centroid", "Y_centroid"]].values, k=2
     )
     neighbor_indices = neighbors[1][:, 1]
-    neighbor_cellids = csv_df.iloc[neighbor_indices]["CellID"].values
+    neighbor_cellids = dataset["csv_df"].iloc[neighbor_indices]["CellID"].values
     # remove indices that are in selection_ids
     neighbor_cellids = np.setdiff1d(neighbor_cellids, selection_ids)
 
@@ -604,44 +557,55 @@ def process_coordinates(spatial_coords, embedding_coords, k=100, length_threshol
 @app.get("/files/image.ome.tif")
 async def serve_image():
     global image_path
+    if image_path.startswith("http"):
+        return RedirectResponse(url=image_path)
     return FileResponse(image_path)
 
 
 @app.get("/files/embedding_image.ome.tif")
 async def serve_embedding_image():
     global embedding_image_path
+    if embedding_image_path.startswith("http"):
+        return RedirectResponse(url=embedding_image_path)
     return FileResponse(embedding_image_path)
 
 
 @app.get("/files/embedding_segmentation.ome.tif")
 async def serve_embedding_segmentation():
     global embedding_segmentation_path
+    if embedding_segmentation_path.startswith("http"):
+        return RedirectResponse(url=embedding_segmentation_path)
     return FileResponse(embedding_segmentation_path)
 
 
 @app.get("/files/segmentation.ome.tif")
 async def serve_segmentation():
     global segmentation_path
+    if segmentation_path.startswith("http"):
+        return RedirectResponse(url=segmentation_path)
     return FileResponse(segmentation_path)
 
 
 @app.get("/files/csv.csv")
 async def serve_csv():
     global csv_path
+    if csv_path.startswith("http"):
+        return RedirectResponse(url=csv_path)
     return FileResponse(csv_path)
 
 
 @app.get("/files/set_csv.csv")
 async def serve_set_csv():
     global set_csv_path
+    if set_csv_path.startswith("http"):
+        return RedirectResponse(url=set_csv_path)
     return FileResponse(set_csv_path)
 
 
-load()
+# load()
 if __name__ == "__main__":
-    load()
-
-    uvicorn.run("main:app", host="localhost", port=8181, reload=True, workers=8)
+#     load()
+    uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=True, workers=8)
 #     # get_tile_raster(5, 2, 0)
 # get_tile_raster(2, 2, 0)
 # get_tile_raster(7, 2, 0)

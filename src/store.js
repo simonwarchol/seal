@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 
 const useStore = create((set) => ({
+    datasetId: null,
+    setDatasetId: (id) => set({ datasetId: id }),
     lockedChannels: [true],
     setLockedChannels: (channels) => set({ lockedChannels: channels }),
     showSpatialSignatures: false,
@@ -74,6 +76,8 @@ const useStore = create((set) => ({
     setMaxSelectionSize: (size) => set({ maxSelectionSize: size }),
     maxRelativeOccurance: 0,
     setMaxRelativeOccurance: (occurance) => set({ maxRelativeOccurance: occurance }),
+    currentDataset: null,
+    setDataset: (datasetId) => set({ currentDataset: datasetId }),
 }))
 
 export default useStore;

@@ -1,0 +1,15 @@
+fastapi==0.115.11
+uvicorn==0.34.0
+tqdm==4.67.1
+pillow==11.1.0
+pydantic==2.10.5
+scipy==1.15.1
+concave_hull==0.0.9
+matplotlib==3.10.0
+typing-extensions==4.12.2
+numpy==2.0.2
+pandas==2.2.3
+tifffile==2025.1.10
+scikit-learn==1.5.2
+anywidget==0.9.13
+fastparquet==2024.11.0

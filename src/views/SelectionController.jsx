@@ -33,7 +33,7 @@ export function MyCustomZoomControllerSubscriber(props) {
       setFeatureImportance([]);
       if (!additionalObsSets?.tree) return;
 
-      const selectionUrl = "http://localhost:8181/selection";
+      const selectionUrl = getApiUrl("selection");
       // console.log("Simon Payload", JSON.stringify(additionalObsSets.tree));
       const payload = {
         selections: additionalObsSets.tree,
