@@ -3,25 +3,26 @@ import { Card, Typography } from '@material-ui/core';
 import { useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 import LogoBox from '../public/LogoBox.svg';
+import ColabIcon from '../public/colab.svg';
 import { BrowserView, MobileView, isBrowser, isMobile } from 'react-device-detect';
 
 const datasets = [
     {
         id: 'exemplar-001',
         name: 'Lung Adenocarcinoma Specimen',
-        description: "From a larger tissue microarray (TMA), imaged using CyCIF with three cycles. Each cycle consists of six four-channel image tiles, for a total of 12 channels.",
+        description: "From a larger tissue microarray (TMA), imaged using CyCIF with three cycles. Each cycle consists of six four-channel image tiles.",
+        colabLink: "https://colab.research.google.com/drive/your-exemplar-notebook"
     },
     {
         id: 'astro',
         name: 'Sloan Digital Sky Survey',
-        description: 'SDSS celestial object classification dataset'
-    },
+        description: "Multi-spectral SDSS imaging of galaxies NGC 450 and UGC 807, capturing structural and spectral features across five filters",
+        colabLink: "https://colab.research.google.com/drive/your-astro-notebook"
+    }
 ];
 
 function LandingPage() {
     const navigate = useNavigate();
-
-
 
     return (
         <section>
@@ -122,9 +123,7 @@ function LandingPage() {
                             The SEAL demos are designed for desktop viewing. For the best experience, please access them on a computer.
                         </Typography>
                     </div>
-
                 </MobileView>
-
 
                 {/* Dataset Grid */}
                 <div style={{
@@ -135,21 +134,54 @@ function LandingPage() {
                     {datasets.map((dataset) => (
                         <Card
                             key={dataset.id}
-                            onClick={() => {
-                                navigate(`/${dataset.id}`);
-                            }}
                             style={{
                                 backgroundColor: 'rgba(44, 62, 80, 0.8)',
                                 padding: '20px',
                                 cursor: 'pointer'
                             }}
                         >
-                            <Typography variant="h5" style={{ color: '#ffffff' }}>
-                                {dataset.name}
-                            </Typography>
-                            <Typography style={{ color: '#cccccc' }}>
-                                {dataset.description}
-                            </Typography>
+                            <div onClick={() => navigate(`/${dataset.id}`)}>
+                                <Typography variant="h5" style={{ color: '#ffffff' }}>
+                                    {dataset.name}
+                                </Typography>
+                                <Typography style={{ color: '#cccccc' }}>
+                                    {dataset.description}
+                                </Typography>
+                            </div>
+                            {dataset.colabLink && (
+                                <div style={{
+                                    marginTop: '15px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px'
+                                }}>
+                                    <img 
+                                        src={ColabIcon} 
+                                        alt="Google Colab" 
+                                        style={{ 
+                                            width: '20px', 
+                                            height: '20px',
+                                            filter: 'invert(1)'
+                                        }} 
+                                    />
+                                    <Typography
+                                        component="a"
+                                        href={dataset.colabLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                            color: '#ffffff',
+                                            textDecoration: 'none',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Open in Colab
+                                    </Typography>
+                                </div>
+                            )}
                         </Card>
                     ))}
                 </div>
