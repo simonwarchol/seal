@@ -59,6 +59,13 @@ def get_dataset_paths(dataset_name):
             "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
             "shap_path": f"{base_url}/shap.parquet"
         }
+    elif dataset_name == "WD-76845-097":
+        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097"
+        return {
+            "csv_path": f"{base_url}/small.csv",
+            "set_csv_path": f"{base_url}/small.csv",
+            "parquet_path": f"{base_url}/df.parquet",
+        }
     else:
         base_path = "/Users/swarchol/Research/seal/data"
         return {

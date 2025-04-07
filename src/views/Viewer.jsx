@@ -23,6 +23,7 @@ import { SelectionsSummarySubscriber } from "./selectionSummary/SelectionSummary
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
 function Viewer({ value, setValue, height, config }) {
+  console.log('xxx',import.meta.env.BASE_URL)
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const datasetId = useStore((state) => state.datasetId);
   
@@ -39,23 +40,7 @@ function Viewer({ value, setValue, height, config }) {
   }, []);
 
 
-  const getDatasetConfig = (datasetId) => {
-    const baseUrl = `https://seal-vis.s3.us-east-1.amazonaws.com/${datasetId}`;
-    return {
-      embeddingImageUrl: `${baseUrl}/hybrid.ome.tif`,
-      embeddingSegmentationUrl: `${baseUrl}/hybrid-mask.ome.tif`,
-      parquetUrl: `${baseUrl}/df.parquet`,
-      csvUrl: `${baseUrl}/df.csv`,
-      clusterColumns: ["cluster"],
-      imageUrl: `${baseUrl}/image.ome.tif`,
-      segmentationUrl: `${baseUrl}/mask.ome.tif`,
-      contourUrl: `${baseUrl}/contour.json`,
-      shapUrl: `${baseUrl}/shap.parquet`
-    };
-  };
 
-  let dataset = config || getDatasetConfig(datasetId);
-  console.log('dataset', dataset);
 
   const pluginViewTypes = [
     new PluginViewType("spotlight", SpotlightSubscriber, [
@@ -172,10 +157,15 @@ function Viewer({ value, setValue, height, config }) {
     // embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif",
     embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/test-mask.ome.tif",
     // embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/greg_tiled-mask.ome.tif",
-    csvUrl: "http://localhost:8181/files/set_csv.csv",
+    // csvUrl: "http://localhost:8181/files/set_csv.csv",
+    csvUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.csv",
+    parquetUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.parquet",
+    // parquetUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.parquet",
+    contourUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/contour.json",
     // clusterColumns: ["kmeans", "cluster_2d"],
     clusterColumns: ["hdbscan"],
     imageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
+    shapUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/shap.parquet",
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
 
@@ -203,6 +193,33 @@ function Viewer({ value, setValue, height, config }) {
     segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask_nuclei.ome.tif",
     // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
   };
+
+  const getDatasetConfig = (datasetId) => {
+    const baseUrl = `https://seal-vis.s3.us-east-1.amazonaws.com/${datasetId}`;
+    const conf = {
+      embeddingImageUrl: `${baseUrl}/hybrid.ome.tif`,
+      embeddingSegmentationUrl: `${baseUrl}/hybrid-mask.ome.tif`,
+      parquetUrl: `${baseUrl}/df.parquet`,
+      csvUrl: `${baseUrl}/df.csv`,
+      clusterColumns: ["cluster"],
+      imageUrl: `${baseUrl}/image.ome.tif`,
+      segmentationUrl: `${baseUrl}/mask.ome.tif`,
+      contourUrl: `${baseUrl}/contour.json`,
+      shapUrl: `${baseUrl}/shap.parquet`
+    };
+    if (datasetId === 'WD-76845-097') {
+      conf.embeddingImageUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif";
+      conf.embeddingSegmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif";
+      conf.clusterColumns = ["hdbscan"];
+      conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
+      conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
+    }
+    console.log('conf', conf);
+    return conf;
+  };
+
+  let dataset = gregDataset || getDatasetConfig(datasetId);
+  console.log('dataset', dataset);
 
 
   const vc = new VitessceConfig({

@@ -1,0 +1,12 @@
+{
+  "ServiceArn": "arn:aws:apprunner:us-east-1:337392631707:service/seal-app/5e9d128ab4c64f969705de2b593d9ea3",
+  "SourceConfiguration": {
+    "ImageRepository": {
+      "ImageIdentifier": "337392631707.dkr.ecr.us-east-1.amazonaws.com/seal:latest",
+      "ImageRepositoryType": "ECR",
+      "ImageConfiguration": {
+        "Port": "80"
+      }
+    }
+  }
+}
