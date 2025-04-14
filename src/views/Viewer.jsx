@@ -198,27 +198,27 @@ function Viewer({ value, setValue, height, config }) {
     const baseUrl = `https://seal-vis.s3.us-east-1.amazonaws.com/${datasetId}`;
     const conf = {
       embeddingImageUrl: `${baseUrl}/hybrid.ome.tif`,
-      embeddingSegmentationUrl: `${baseUrl}/hybrid-mask.ome.tif`,
+      embeddingSegmentationUrl: `${baseUrl}/hybrid.mask.ome.tif`,
       parquetUrl: `${baseUrl}/df.parquet`,
       csvUrl: `${baseUrl}/df.csv`,
       clusterColumns: ["cluster"],
       imageUrl: `${baseUrl}/image.ome.tif`,
-      segmentationUrl: `${baseUrl}/mask.ome.tif`,
+      segmentationUrl: `${baseUrl}/image.mask.ome.tif`,
       contourUrl: `${baseUrl}/contour.json`,
       shapUrl: `${baseUrl}/shap.parquet`
     };
-    if (datasetId === 'WD-76845-097') {
-      conf.embeddingImageUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif";
-      conf.embeddingSegmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif";
-      conf.clusterColumns = ["hdbscan"];
-      conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
-      conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
-    }
+    // if (datasetId === 'WD-76845-097') {
+    //   conf.embeddingImageUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif";
+    //   conf.embeddingSegmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif";
+    //   conf.clusterColumns = ["hdbscan"];
+    //   conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
+    //   conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
+    // }
     console.log('conf', conf);
     return conf;
   };
 
-  let dataset = gregDataset || getDatasetConfig(datasetId);
+  let dataset = getDatasetConfig(datasetId) || gregDataset;
   console.log('dataset', dataset);
 
 

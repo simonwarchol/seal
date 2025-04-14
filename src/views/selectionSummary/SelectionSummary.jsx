@@ -112,6 +112,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
     // Update the sortedSelections useMemo to ensure we're not including empty sets
     const sortedSelections = useMemo(() => {
         if (!allSelections || !setFeatures) return allSelections;
+        console.log('setFeatures', setFeatures);
 
         return [...allSelections]
             .filter(selection => {
@@ -149,7 +150,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                 return 0;
             });
     }, [allSelections, setFeatures, sortBy, sortDirection, compareMode, selections]);
-
+    console.log('sortedSelections', sortedSelections);
     // Handle visibility toggle
     const handleVisibilityToggle = (selectionPath, hideOthers = false) => {
         const isVisible = isSelectionVisible(selectionPath);

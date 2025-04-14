@@ -47,8 +47,22 @@ CURRENT_DATASET = {
 
 def get_dataset_paths(dataset_name):
     """Return the paths for a given dataset"""
+    # Check if bucket for dataset exists    
+    
     if dataset_name == "exemplar-001":
         base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/exemplar-001"
+        return {
+            "csv_path": f"{base_url}/df.parquet",
+            "set_csv_path": None,
+            "parquet_path": f"{base_url}/df.parquet",
+            "image_path": f"{base_url}/image.ome.tif",
+            "segmentation_path": f"{base_url}/mask.ome.tif",
+            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
+            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
+            "shap_path": f"{base_url}/shap.parquet"
+        }
+    elif dataset_name == "SDSS":
+        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/SDSS"
         return {
             "csv_path": f"{base_url}/df.parquet",
             "set_csv_path": None,
@@ -131,11 +145,11 @@ def load_dataset(dataset_name, df=None):
         "global_mean_features": mean_features.to_dict(),
     }
 
-    # Load SHAP values
-    if dataset_name == "exemplar-001":
-        # Read from S3
+    try:
         shap_store = pd.read_parquet(paths["shap_path"])
-    else:
+    except:
+        # Read from local files
+
         # Read from local files
         shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
 
