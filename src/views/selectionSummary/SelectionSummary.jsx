@@ -379,8 +379,8 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         setTargetZ={setTargetZ}
                         setRotationX={setRotationX}
                         setRotationOrbit={setRotationOrbit}
-                        componentHeight={componentHeight || windowHeight}
-                        componentWidth={componentWidth || windowWidth}
+                        componentHeight={componentHeight}
+                        componentWidth={componentWidth}
                         spatialLayout={spatialLayout}
                         handleImageAdd={handleImageAdd}
                         additionalObsSets={additionalObsSets}
@@ -619,7 +619,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         ))
                     )}
                 </div>
-              
+
             </div>
         </div>
     );
