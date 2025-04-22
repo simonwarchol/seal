@@ -1,6 +1,7 @@
 {
   "scripts": {
     "widget": "rsbuild build --environment=widget",
+    "widget-dev": "rsbuild build --environment=widget-dev",
     "dev": "rsbuild dev --open --environment=web",
     "build": "rsbuild build --environment=web",
     "preview": "rsbuild preview --environment=web"

@@ -32,7 +32,8 @@ class Seal(anywidget.AnyWidget):
 
     def _start_server(self):
         # Import and run the FastAPI server
-        from seal.main import load, app
+        from seal.main import app, load_dataset
         import uvicorn
-        # load(df=self.df)
+        
+        load_dataset(self.df)
         uvicorn.run(app, host="localhost", port=8181)

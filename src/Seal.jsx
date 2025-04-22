@@ -7,27 +7,38 @@ import Toolbar from "./views/Toolbar";
 import useStore from "./store";
 
 // Separate component for the dataset viewer to access URL params
-function DatasetViewer() {
-	const { datasetId } = useParams();
+function DatasetViewer({ isWidget, config,  height }) {
+	console.log('config x', isWidget, config)
 	const setDatasetId = useStore((state) => state.setDatasetId);
-	setDatasetId(datasetId);
+	if (isWidget) {
+		setDatasetId(config.datasetId);
+	} else {
+		const { datasetId } = useParams();
+		setDatasetId(datasetId);
+	}
+
 	return (
 		<>
 			<Toolbar />
-			<Viewer />
+			<Viewer config={config} height={height}/>
 
 		</>
 	);
 }
-const Seal = ({ value, setValue, height, config }) => {
+const Seal = ({ value, setValue, height, config, isWidget }) => {
+	console.log('config x', isWidget)
 	return (
 		<div className="Seal">
-			<Router>
-				<Routes>
-					<Route path="/" element={<LandingPage />} />
-					<Route path="/:datasetId" element={<DatasetViewer />} />
-				</Routes>
-			</Router>
+			{isWidget ? (
+				<DatasetViewer isWidget={isWidget} config={config} height={height} />
+			) : (
+				<Router>
+					<Routes>
+						<Route path="/" element={<LandingPage />} />
+						<Route path="/:datasetId" element={<DatasetViewer />} />
+					</Routes>
+				</Router>
+			)}
 		</div>
 	);
 };

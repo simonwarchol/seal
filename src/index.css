@@ -68,3 +68,9 @@ body {
 	gap: 2px;
 	height: 100%;
 }
+
+.vitessce-container,
+.vitessce-container>div.react-grid-layout {
+	width: 100% !important;
+	background-color: rgb(32, 30, 67) !important;
+}

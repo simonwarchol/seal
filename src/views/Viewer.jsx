@@ -22,11 +22,11 @@ import { LayerControllerSubscriber } from "./controller/LayerControllerSubscribe
 import { SelectionsSummarySubscriber } from "./selectionSummary/SelectionSummarySubscriber"
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
-function Viewer({ value, setValue, height, config }) {
-  console.log('xxx',import.meta.env.BASE_URL)
+function Viewer({ value, setValue, height, config, width }) {
+  console.log('xxx', import.meta.env.BASE_URL)
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const datasetId = useStore((state) => state.datasetId);
-  
+
   useEffect(() => {
     const handleResize = () => {
       setWindowHeight(window.innerHeight);
@@ -218,7 +218,7 @@ function Viewer({ value, setValue, height, config }) {
     return conf;
   };
 
-  let dataset = getDatasetConfig(datasetId) || gregDataset;
+  let dataset = config || getDatasetConfig(datasetId) || gregDataset;
   console.log('dataset', dataset);
 
 
@@ -357,14 +357,14 @@ function Viewer({ value, setValue, height, config }) {
   // const v4 = vc.addView(ds1, "myCustomZoomController");
   vc.layout(vconcat(hconcat(v1, v3), v5));
   // vc.layout(hconcat(v1));
+  console.log('WindowHeight', windowHeight)
 
 
   return (
-    <div id={"main-container"} style={{ width: '100%', height: '100%' }}>
+    <div id={"main-container"} style={{ width: '100%', height: windowHeight || '100%' }}>
       <Vitessce
         config={vc.toJSON()}
         height={height || windowHeight}
-        width="100%"
         pluginViewTypes={pluginViewTypes}
         theme="light"
       />

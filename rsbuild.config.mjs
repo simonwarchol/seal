@@ -8,6 +8,7 @@ const ReactCompilerConfig = {
 };
 
 const isDev = process.env.NODE_ENV === 'development';
+console.log('isDev', isDev)
 const apiUrl = isDev ? 'http://0.0.0.0:8181' : '/api';
 
 export default defineConfig({
@@ -52,11 +53,12 @@ export default defineConfig({
           index: './src/widget.jsx',
         },
         define: {
-          'process.env.BASE_URL': JSON.stringify(apiUrl),
-          'import.meta.env.BASE_URL': JSON.stringify(apiUrl),
+          'process.env.BASE_URL': JSON.stringify('http://0.0.0.0:8181'),
+          'import.meta.env.BASE_URL': JSON.stringify('http://0.0.0.0:8181'),
         },
       },
     },
+  
     web: {
       html: {
         title: 'SEAL',
