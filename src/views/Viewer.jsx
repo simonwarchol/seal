@@ -360,7 +360,7 @@ function Viewer({ value, setValue, height, config, width }) {
 
 
   return (
-    <div id={"main-container"} style={{ width: '100%', height: windowHeight || '100%' }}>
+    <div id={"main-container"} style={{ width: '100%', height: height || windowHeight || '100%' }}>
       <Vitessce
         config={vc.toJSON()}
         height={height || windowHeight}

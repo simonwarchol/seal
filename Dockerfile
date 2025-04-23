@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY --from=builder /build/build/dist ./dist
 
 # Copy seal directory
-COPY seal ./seal
+COPY seal_widget ./seal_widget
 
 # Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf

@@ -11,13 +11,12 @@ const datasets = [
         id: 'exemplar-001',
         name: 'Lung Adenocarcinoma Specimen',
         description: "From a larger tissue microarray (TMA), imaged using CyCIF with three cycles. Each cycle consists of six four-channel image tiles.",
-        // colabLink: "https://colab.research.google.com/drive/your-exemplar-notebook"
+        colabLink: "https://colab.research.google.com/drive/19R40QsP7f5ZRu6L3BRfc3317_66yRL7S#scrollTo=q1CVlvWXjCKo"
     },
     {
         id: 'SDSS',
         name: 'Sloan Digital Sky Survey',
         description: "Multi-spectral SDSS imaging of galaxies NGC 450 and UGC 807, capturing structural and spectral features across five filters",
-        // colabLink: "https://colab.research.google.com/drive/your-astro-notebook"
     }
 ];
 

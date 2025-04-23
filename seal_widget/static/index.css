@@ -505,7 +505,6 @@ section .wave span:nth-child(3) {
   z-index: 10000;
   height: 40px;
   position: absolute;
-  top: 0;
   left: 10px;
 }
 

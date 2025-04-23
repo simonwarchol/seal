@@ -32,6 +32,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Initialize global variables
@@ -294,7 +296,7 @@ def get_potential_features(df):
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "Seal"}
 
 
 class SelectionIDs(BaseModel):

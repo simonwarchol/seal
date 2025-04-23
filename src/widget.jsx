@@ -13,7 +13,7 @@ const render = createRender(() => {
 
 	return (
 		<div id="widget">
-			<Seal value={value} setValue={setValue} config={config} isWidget={true} />
+			<Seal value={value} setValue={setValue} config={config} isWidget={true} height={600} />
 		</div>
 	);
 });
