@@ -10,6 +10,7 @@ import { iconConfigs } from './SetOperationIcon';
 import { LayerControllerMemoized } from '../controller/LayerControllerSubscriber';
 import { DEFAULT_RASTER_LAYER_PROPS } from "@vitessce/spatial-utils";
 import SelectionColumn from './SelectionColumn';
+import { getApiUrl } from '../../config/api';
 import '../../index.css';
 
 const OPERATION_NAMES = {
@@ -172,7 +173,8 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
 
 
     const [comparisonResults, setComparisonResults] = useState(null);
-
+    const serverUrl = useStore((state) => state.serverUrl);
+    const datasetId = useStore((state) => state.datasetId);
     useEffect(() => {
         console.log('comparisonResults', comparisonResults);
     }, [comparisonResults]);
@@ -190,7 +192,8 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
 
         const fetchComparisonResults = async () => {
             try {
-                const response = await fetch(`${import.meta.env.BASE_URL}/set-compare`, {
+                const comparisonUrl = serverUrl ? `${serverUrl}/set-compare` : getApiUrl("set-compare");
+                const response = await fetch(`${comparisonUrl}/${datasetId}`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -231,7 +234,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
         return () => {
             mounted = false;
         };
-    }, [compareSelections, cellSets]);
+    }, [compareSelections, cellSets, serverUrl, datasetId]);
 
     // Clear comparison results and selections when exiting compare mode
     useEffect(() => {

@@ -23,7 +23,6 @@ import { SelectionsSummarySubscriber } from "./selectionSummary/SelectionSummary
 import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 
 function Viewer({ value, setValue, height, config, width }) {
-  console.log('xxx', import.meta.env.BASE_URL)
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const datasetId = useStore((state) => state.datasetId);
 

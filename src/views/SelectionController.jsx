@@ -8,7 +8,8 @@ import React, { useEffect, useState } from "react";
 import { CoordinationType } from "@vitessce/constants";
 import { TitleInfo } from "@vitessce/vit-s";
 import { useCoordination } from "@vitessce/vit-s";
-
+import { getApiUrl } from '../config/api'
+import useStore from "../store";
 export function MyCustomZoomControllerSubscriber(props) {
   const {
     coordinationScopes,
@@ -27,18 +28,18 @@ export function MyCustomZoomControllerSubscriber(props) {
   );
 
   const [featureImportance, setFeatureImportance] = useState([]);
-
+  const serverUrl = useStore((state) => state.serverUrl);
+  const datasetId = useStore((state) => state.datasetId);
   useEffect(() => {
     const postSelection = async () => {
       setFeatureImportance([]);
       if (!additionalObsSets?.tree) return;
 
-      const selectionUrl = getApiUrl("selection");
-      // console.log("Simon Payload", JSON.stringify(additionalObsSets.tree));
+      const selectionUrl = serverUrl ? `${serverUrl}/selection` : getApiUrl("selection");
       const payload = {
         selections: additionalObsSets.tree,
       };
-      const selectionPost = await fetch(selectionUrl, {
+      const selectionPost = await fetch(`${selectionUrl}/${datasetId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,7 +55,7 @@ export function MyCustomZoomControllerSubscriber(props) {
     postSelection();
 
     // Make a post request to http://localhost:8181/selection with the new additionalObsSets
-  }, [additionalObsSets]);
+  }, [additionalObsSets, serverUrl, datasetId]);
 
   return (
     <TitleInfo

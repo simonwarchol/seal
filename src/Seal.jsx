@@ -7,7 +7,7 @@ import Toolbar from "./views/Toolbar";
 import useStore from "./store";
 
 // Separate component for the dataset viewer to access URL params
-function DatasetViewer({ isWidget, config,  height }) {
+function DatasetViewer({ isWidget, config,  height, }) {
 	console.log('config x', isWidget, config)
 	const setDatasetId = useStore((state) => state.setDatasetId);
 	if (isWidget) {
@@ -30,7 +30,7 @@ const Seal = ({ value, setValue, height, config, isWidget }) => {
 	return (
 		<div className="Seal">
 			{isWidget ? (
-				<DatasetViewer isWidget={isWidget} config={config} height={height} />
+				<DatasetViewer isWidget={isWidget} config={config} height={height}  />
 			) : (
 				<Router>
 					<Routes>

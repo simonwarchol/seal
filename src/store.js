@@ -78,6 +78,8 @@ const useStore = create((set) => ({
     setMaxRelativeOccurance: (occurance) => set({ maxRelativeOccurance: occurance }),
     currentDataset: null,
     setDataset: (datasetId) => set({ currentDataset: datasetId }),
+    serverUrl: null,
+    setServerUrl: (url) => set({ serverUrl: url }),
 }))
 
 export default useStore;

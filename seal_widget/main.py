@@ -627,21 +627,3 @@ async def serve_set_csv():
 if __name__ == "__main__":
 #     load()
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=True, workers=8)
-#     # get_tile_raster(5, 2, 0)
-# get_tile_raster(2, 2, 0)
-# get_tile_raster(7, 2, 0)
-# get_tile_raster(2, 2, 0)
-
-# # timer = time.time()
-# # for _ in range(20):
-# #     get_tile_raster(2, 2, 0)
-# #     get_tile_raster(3, 2, 0)
-# #     get_tile_raster(1, 2, 0)
-# #     get_tile_raster(0, 2, 0)
-# # print(time.time() - timer)
-# get_tile( 5, 0, 0, np.array([1024,1024]), 2, False)
-
-# get_tile( 4, 0, 0, np.array([1024,1024]), None, True)
-# # get_tile( 8, 0, 0, np.array([512,512]), True)
-
-#     print('Getting tile', z, x, y, c, is_seg)

@@ -13,6 +13,7 @@ import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
 import { Title as TitleIcon } from '@material-ui/icons';
 import ToolMenu from "./ToolMenu";
 import { makeBoundingBox } from "@vivjs/layers";
+import { getApiUrl } from '../../config/api.js'
 
 import {
   TitleInfo,
@@ -2409,6 +2410,8 @@ export function SpotlightSubscriber(props) {
   const channelSelection = useStore((state) => state.channelSelection)
   const setChannelSelection = useStore((state) => state.setChannelSelection)
   const datasetId = useStore((state) => state.datasetId)
+  const serverUrl = useStore((state) => state.serverUrl);
+
 
   const contours = useStore((state) => state.contours)
   const setContours = useStore((state) => state.setContours)
@@ -2553,7 +2556,8 @@ export function SpotlightSubscriber(props) {
     const set = treeFindNodeByNamePath(mergedCellSets, path)
     if (!set) return;
     const fetchNeighborhoodData = async (path, setSelection) => {
-      const neighborhoodUrl = `${import.meta.env.BASE_URL}/neighborhood/${datasetId}`;
+      const baseNeighborhoodUrl = serverUrl ? `${serverUrl}/neighborhood` : getApiUrl("neighborhood");
+      const neighborhoodUrl = `${baseNeighborhoodUrl}/${datasetId}`;
       const neighborhoodPost = await fetch(neighborhoodUrl, {
         method: "POST",
         headers: {
@@ -2576,7 +2580,7 @@ export function SpotlightSubscriber(props) {
 
   }, [mergedCellSets, cellSetColor,
     setCellSetSelection, setAdditionalCellSets, setCellSetColor,
-    setCellColorEncoding])
+    setCellColorEncoding, serverUrl])
 
 
 
@@ -2592,13 +2596,16 @@ export function SpotlightSubscriber(props) {
 
 
 
+
+
   useEffect(() => {
     const fetchSelectionData = async (sets, path, setSelection) => {
       if (!path || path?.length === 0) return null;
 
       try {
-        const selectionUrl = `${import.meta.env.BASE_URL}/selection/${datasetId}`;
-        const selectionPost = await fetch(selectionUrl, {
+        const selectionUrl = serverUrl ? `${serverUrl}/selection` : getApiUrl("selection");
+        console.log("Selection Earl", selectionUrl);
+        const selectionPost = await fetch(`${selectionUrl}/${datasetId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -2657,7 +2664,7 @@ export function SpotlightSubscriber(props) {
     };
 
     fetchAllSelectionData();
-  }, [cellSetSelection, additionalCellSets, cellSets, selectionPath]);
+  }, [cellSetSelection, additionalCellSets, cellSets, selectionPath, serverUrl]);
 
   const setCellSelectionProp = useCallback(
     (v) => {

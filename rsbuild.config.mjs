@@ -17,7 +17,7 @@ export default defineConfig({
       mode: 'production',
       output: {
         distPath: {
-          root: 'seal/static',
+          root: 'seal_widget/static',
           js: '',
           css: '',
         },

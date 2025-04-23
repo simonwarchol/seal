@@ -15,11 +15,15 @@ function SelectionColumn(props) {
     const setMaxSelectionSize = useStore((state) => state.setMaxSelectionSize);
     const maxRelativeOccurance = useStore((state) => state.maxRelativeOccurance);
     const setMaxRelativeOccurance = useStore((state) => state.setMaxRelativeOccurance);
+    const datasetId = useStore((state) => state.datasetId)
+
+    const serverUrl = useStore((state) => state.serverUrl);
     useEffect(() => {
         const getNeighborhoodData = async () => {
             try {
                 if (!props?.setFeature?.selection_ids || !props.selection?.path) return;
-                const response = await fetch(`${import.meta.env.BASE_URL}/neighborhood`, {
+                const baseNeighborhoodUrl = serverUrl ? `${serverUrl}/neighborhood` : getApiUrl("neighborhood");
+                const response = await fetch(`${baseNeighborhoodUrl}/${datasetId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -48,8 +52,8 @@ function SelectionColumn(props) {
         if (showNeighborhood && !neighborhoodData) {
             getNeighborhoodData();
         }
-    }, [showNeighborhood, props.setFeature, props.selection]);
-    
+    }, [showNeighborhood, props.setFeature, props.selection, serverUrl, datasetId]);
+
     // Add useEffect to handle maxSelectionSize updates
     useEffect(() => {
         const currentSelectionSize = props.setFeature?.selection_ids?.length;
@@ -69,12 +73,12 @@ function SelectionColumn(props) {
             }
         }
     }, [props.setFeature?.normalized_occurrence, maxRelativeOccurance]);
-    
+
     return (
         <>
-            <SelectionColumnChild 
-                {...props} 
-                showNeighborhood={showNeighborhood} 
+            <SelectionColumnChild
+                {...props}
+                showNeighborhood={showNeighborhood}
                 setShowNeighborhood={setShowNeighborhood}
                 isColumnHovered={isHovered}
                 setIsColumnHovered={setIsHovered}

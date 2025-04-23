@@ -21,12 +21,15 @@ class Seal(anywidget.AnyWidget):
     _css = build_dir / "index.css"
     value = traitlets.Int(0).tag(sync=True)
     config = traitlets.Dict().tag(sync=True)
-    
-    def __init__(self, df, config, **kwargs):
+    server_url = traitlets.Unicode("http://localhost:8181").tag(sync=True)
+
+    def __init__(self, df, config, server_url="http://localhost:8181", **kwargs):
         super().__init__(**kwargs)
         # Start the FastAPI server in a separate thread
         self.df = df
         self.config = config
+        self.server_url = server_url
+        print("Starting server", server_url)
         self.server_thread = threading.Thread(target=self._start_server, daemon=True)
         self.server_thread.start()
 
@@ -34,6 +37,6 @@ class Seal(anywidget.AnyWidget):
         # Import and run the FastAPI server
         from seal_widget.main import app, load_dataset
         import uvicorn
-        
+
         load_dataset(self.df)
         uvicorn.run(app, host="localhost", port=8181)

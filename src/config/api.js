@@ -1,5 +1,5 @@
 // API base URL configuration based on environment
-export const API_BASE_URL = process.env.RSBUILD_API_URL || '/api';
+export const API_BASE_URL = import.meta.env.BASE_URL || '/api';
 
 // Helper function to construct API URLs
 export const getApiUrl = (endpoint) => {
