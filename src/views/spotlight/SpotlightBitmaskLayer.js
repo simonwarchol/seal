@@ -741,7 +741,7 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
     const spotlightSelection = this?.props?.spotlightSelection ?? false;
     const outlineSelection = this?.props?.outlineSelection ?? false;
     const selectedBackground = this?.props?.selectedBackground === 'show';
-    const currentBackgroundColorWhite = this?.props?.backgroundColorWhite ?? true;
+    const currentBackgroundColorWhite = this?.props?.backgroundColorWhite ?? false;
 
     // Update state if needed
     if (currentBackgroundColorWhite !== backgroundColorWhite) {
