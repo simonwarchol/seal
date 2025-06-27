@@ -11,7 +11,7 @@ const datasets = [
         id: 'exemplar-001',
         name: 'Lung Adenocarcinoma Specimen',
         description: "From a larger tissue microarray (TMA), imaged using CyCIF with three cycles. Each cycle consists of six four-channel image tiles.",
-        colabLink: "https://colab.research.google.com/drive/19R40QsP7f5ZRu6L3BRfc3317_66yRL7S#scrollTo=q1CVlvWXjCKo"
+        colabLink: "https://colab.research.google.com/drive/19R40QsP7f5ZRu6L3BRfc3317_66yRL7S"
     },
     {
         id: 'SDSS',

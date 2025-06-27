@@ -80,6 +80,8 @@ const useStore = create((set) => ({
     setDataset: (datasetId) => set({ currentDataset: datasetId }),
     serverUrl: null,
     setServerUrl: (url) => set({ serverUrl: url }),
+    backgroundColorWhite: null,
+    setBackgroundColorWhite: (color) => set({ backgroundColorWhite: color }),
 }))
 
 export default useStore;

@@ -26,8 +26,7 @@ const Toolbar = () => {
     const setCompareMode = useStore((state) => state.setCompareMode);
     const neighborhoodPointerMode = useStore((state) => state.neighborhoodPointerMode);
     const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
-    const viewMode = useStore((state) => state.viewMode);
-    const setViewMode = useStore((state) => state.setViewMode);
+
 
     const handleFeatureCountChange = (event) => {
         setFeatureCount(event.target.value);
@@ -78,7 +77,7 @@ const Toolbar = () => {
                         },
                     }}
                 >
-                    <MenuItem onClick={() => setCompareMode(!compareMode)}>
+                    {/* <MenuItem onClick={() => setCompareMode(!compareMode)}>
                         <Grid container alignItems="center" spacing={2}>
                             <Grid item>
                                 <CompareArrowsIcon color={compareMode ? 'primary' : 'inherit'} />
@@ -123,8 +122,8 @@ const Toolbar = () => {
                                 <span>Neighborhood Pointer</span>
                             </Grid>
                         </Grid>
-                    </MenuItem>setViewMode
-                    <MenuItem onClick={() => (viewMode === 'embedding' ? 'spatial' : 'embedding')}>
+                    </MenuItem> */}
+                    {/* <MenuItem onClick={() => (viewMode === 'embedding' ? 'spatial' : 'embedding')}>
                         <Grid container alignItems="center" spacing={2}>
                             <Grid item>
                                 <Icon style={{ textAlign: 'center' }}>
@@ -138,7 +137,7 @@ const Toolbar = () => {
                                 <span>{viewMode === 'embedding' ? 'Switch to Image' : 'Switch to Embedding'}</span>
                             </Grid>
                         </Grid>
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem>
                         <Grid container alignItems="center" spacing={2}>
                             <Grid item xs={6}>

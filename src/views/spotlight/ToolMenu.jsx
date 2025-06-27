@@ -26,6 +26,7 @@ import OutlineSelectionIcon from "../../public/OutlineSelection.svg";
 import DoNotOutlineSelectionIcon from "../../public/DoNotOutlineSelection.svg";
 import ContoursIcon from "../../public/ContourIcon.svg";
 import ChannelSettingsIcon from "../../public/ChannelSettings.svg";
+import BackgroundIcon from "../../public/BackgroundColor.svg";
 
 import {
 
@@ -76,6 +77,8 @@ function ToolMenu(props) {
     const settingsPanelOpen = useStore((state) => state.settingsPanelOpen)
     const showContours = useStore((state) => state.showContours)
     const setShowContours = useStore((state) => state.setShowContours)
+    const backgroundColorWhite = useStore((state) => state.backgroundColorWhite)
+    const setBackgroundColorWhite = useStore((state) => state.setBackgroundColorWhite)
     const actions = [
         {
             icon:
@@ -93,7 +96,7 @@ function ToolMenu(props) {
                     }}
                 >
                     <img
-                        src={outlineSelection ? DoNotOutlineSelectionIcon:  OutlineSelectionIcon}
+                        src={outlineSelection ? DoNotOutlineSelectionIcon : OutlineSelectionIcon}
                         alt={'Outline Cells'}
                         style={{
                             width: '100%',
@@ -139,7 +142,7 @@ function ToolMenu(props) {
                 }}
             >
                 <img
-                    src={selectedBackground === 'show' ?  hideBackground: showBackground}
+                    src={selectedBackground === 'show' ? hideBackground : showBackground}
                     alt={selectedBackground === 'show' ? 'Show Background' : 'Hide Background'}
                     style={{
                         width: '100%',
@@ -221,6 +224,31 @@ function ToolMenu(props) {
             </Icon>,
             name: showContours ? 'Hide Density' : 'Show Density'
         },
+        {
+            icon: <Icon
+                onClick={() => setBackgroundColorWhite(!backgroundColorWhite)}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    // color based on showContours
+                }}
+            >
+                <img
+                    src={BackgroundIcon}
+                    alt="Outline Selections"
+                    style={{
+                        width: '70%',
+                        filter: backgroundColorWhite ? 'brightness(0) invert(1)' : 'none',
+                    }}
+                />
+            </Icon>,
+            name: 'Background Color'
+        },
+
+       
         // { icon: <PrintIcon />, name: 'Print' },
         // { icon: <ShareIcon />, name: 'Share' },
     ];

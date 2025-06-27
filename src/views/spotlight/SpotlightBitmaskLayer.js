@@ -415,6 +415,7 @@ uniform float opacity;
 
 // test
 uniform bool selectedBackground;
+uniform bool backgroundColorWhite;
 uniform bool spotlightSelection;
 uniform bool outlineSelection;
 
@@ -650,35 +651,50 @@ vec4 sampleAndGetColor(sampler2D dataTex, vec2 coord, bool isOn) {
     } else {
       resultColor = vec4(0.0,0.0,0.0,1.0);
     }
-   
     
+    // Only apply background color if we have valid data
+    if (sampledData == 0.0 && isBackground(sampledColor)) {
+      resultColor = !backgroundColorWhite ? vec4(0.0) : vec4(1.0, 1.0, 1.0, 1.0);
+    }
+   
     return resultColor + hoveredColor;
 }
 
 void main() {
-    gl_FragColor = sampleAndGetColor(channel0, vTexCoord, channelsVisible[0]);
-
-    // If the sampled color and the currently stored color (gl_FragColor) are identical, don't blend and use the sampled color,
-    // otherwise just use the currently stored color. Repeat this for all channels.
-    vec4 sampledColor = sampleAndGetColor(channel1, vTexCoord, channelsVisible[1]);
-    gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
-    sampledColor = sampleAndGetColor(channel2, vTexCoord, channelsVisible[2]);
-    gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
-    sampledColor = sampleAndGetColor(channel3, vTexCoord, channelsVisible[3]);
-    gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
-    sampledColor = sampleAndGetColor(channel4, vTexCoord, channelsVisible[4]);
-    gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
-    sampledColor = sampleAndGetColor(channel5, vTexCoord, channelsVisible[5]);
-    gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
-
-    // Apply opacity
-    float alpha = opacity;
-    if (channelsVisible[0] || channelsVisible[1] || channelsVisible[2] || 
-        channelsVisible[3] || channelsVisible[4] || channelsVisible[5]) {
-        alpha = (gl_FragColor.rgb == vec3(0., 0., 0.)) ? 0.0 : opacity;
+    // Initialize with transparent black
+    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+    
+    bool hasVisibleChannel = false;
+    for (int i = 0; i < 6; i++) {
+        if (channelsVisible[i]) {
+            hasVisibleChannel = true;
+            break;
+        }
     }
+    
+    // Only process if we have visible channels
+    if (hasVisibleChannel) {
+        gl_FragColor = sampleAndGetColor(channel0, vTexCoord, channelsVisible[0]);
 
-    gl_FragColor = vec4(gl_FragColor.rgb, alpha);
+        vec4 sampledColor;
+        sampledColor = sampleAndGetColor(channel1, vTexCoord, channelsVisible[1]);
+        gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
+        sampledColor = sampleAndGetColor(channel2, vTexCoord, channelsVisible[2]);
+        gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
+        sampledColor = sampleAndGetColor(channel3, vTexCoord, channelsVisible[3]);
+        gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
+        sampledColor = sampleAndGetColor(channel4, vTexCoord, channelsVisible[4]);
+        gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
+        sampledColor = sampleAndGetColor(channel5, vTexCoord, channelsVisible[5]);
+        gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
+
+        // Apply opacity
+        float alpha = opacity;
+        if (gl_FragColor.rgb == vec3(0., 0., 0.)) {
+            alpha = 0.0;
+        }
+        gl_FragColor = vec4(gl_FragColor.rgb, alpha);
+    }
 
     geometry.uv = vTexCoord;
     DECKGL_FILTER_COLOR(gl_FragColor, geometry);
@@ -686,14 +702,21 @@ void main() {
 `;
 
 export class SpotlightBitmaskLayer extends BitmaskLayer {
-  // static defaultProps = {
-  //   ...BitmaskLayer.defaultProps,
-  //   test: true,
-  // };
+  initializeState() {
+    super.initializeState();
+    const { gl } = this.context;
+    
+    // Set initial state
+    this.setState({
+      model: this._getModel(gl),
+      channelsVisible: new Array(6).fill(false),
+      backgroundColorWhite: true,
+      opacity: 1.0
+    });
+  }
 
   getShaders() {
     const { colormap } = this.props;
-    // console.log('spotlight bitmask layer', this.props);
     return {
       fs,
       vs,
@@ -705,34 +728,53 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
       },
     };
   }
+
   draw(opts) {
-    super.draw(opts);
-
     const { uniforms } = opts;
-
-    const spotlightSelection = this?.props?.spotlightSelection;
-    const outlineSelection = this?.props?.outlineSelection;
-    const selectedBackground = this?.props?.selectedBackground == 'show';
-
-    console.log('xx  spotlightSelection', spotlightSelection);
-    console.log('xx outlineSelection', outlineSelection);
-    console.log('xx selectedBackground', selectedBackground);
-
-
-
     const {
-      model
+      model,
+      channelsVisible,
+      backgroundColorWhite,
+      opacity
     } = this.state;
-    // Render the image
+
+    const spotlightSelection = this?.props?.spotlightSelection ?? false;
+    const outlineSelection = this?.props?.outlineSelection ?? false;
+    const selectedBackground = this?.props?.selectedBackground === 'show';
+    const currentBackgroundColorWhite = this?.props?.backgroundColorWhite ?? true;
+
+    // Update state if needed
+    if (currentBackgroundColorWhite !== backgroundColorWhite) {
+      this.setState({ backgroundColorWhite: currentBackgroundColorWhite });
+    }
+
+    // Call parent class draw first
+    super.draw(opts);
+    
+    // Render with our uniforms
     model
       .setUniforms(
         Object.assign({}, uniforms, {
           selectedBackground,
-          spotlightSelection: spotlightSelection,
-          outlineSelection: outlineSelection
+          spotlightSelection,
+          outlineSelection,
+          backgroundColorWhite: currentBackgroundColorWhite,
+          opacity
         })
       )
       .draw();
+  }
+
+  // Override updateState to handle state changes
+  updateState({ props, oldProps, changeFlags }) {
+    super.updateState({ props, oldProps, changeFlags });
+    
+    if (changeFlags.propsChanged) {
+      const { backgroundColorWhite } = props;
+      if (backgroundColorWhite !== oldProps.backgroundColorWhite) {
+        this.setState({ backgroundColorWhite });
+      }
+    }
   }
 }
 

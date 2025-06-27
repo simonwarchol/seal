@@ -2758,7 +2758,7 @@ wheels = [
 
 [[package]]
 name = "seal-widget"
-version = "0.0.13"
+version = "0.0.21"
 source = { editable = "." }
 dependencies = [
     { name = "anywidget" },
