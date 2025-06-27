@@ -5,7 +5,7 @@ import { Icon } from '@material-ui/core';
 
 import SettingsIcon from '@mui/icons-material/Settings';
 import ConstructionIcon from '@mui/icons-material/Construction';
-import { Menu, MenuItem, Grid, Box, Select } from '@mui/material';
+import { Menu, MenuItem, Grid, Box, Select, ToggleButtonGroup, ToggleButton, Slider, Typography, Divider } from '@mui/material';
 import { BorderOuter as BorderOuterIcon } from '@material-ui/icons';
 import { Title as TitleIcon } from '@material-ui/icons';
 import { CompareArrows as CompareArrowsIcon } from '@mui/icons-material';
@@ -26,7 +26,12 @@ const Toolbar = () => {
     const setCompareMode = useStore((state) => state.setCompareMode);
     const neighborhoodPointerMode = useStore((state) => state.neighborhoodPointerMode);
     const setNeighborhoodPointerMode = useStore((state) => state.setNeighborhoodPointerMode);
-
+    const neighborhoodMode = useStore((state) => state.neighborhoodMode);
+    const setNeighborhoodMode = useStore((state) => state.setNeighborhoodMode);
+    const neighborhoodKnn = useStore((state) => state.neighborhoodKnn);
+    const setNeighborhoodKnn = useStore((state) => state.setNeighborhoodKnn);
+    const neighborhoodRadius = useStore((state) => state.neighborhoodRadius);
+    const setNeighborhoodRadius = useStore((state) => state.setNeighborhoodRadius);
 
     const handleFeatureCountChange = (event) => {
         setFeatureCount(event.target.value);
@@ -34,6 +39,12 @@ const Toolbar = () => {
 
     const handleTitleFontSizeChange = (event) => {
         setTitleFontSize(event.target.value);
+    };
+
+    const handleNeighborhoodModeChange = (event, newMode) => {
+        if (newMode !== null) {
+            setNeighborhoodMode(newMode);
+        }
     };
 
     return (
@@ -77,67 +88,6 @@ const Toolbar = () => {
                         },
                     }}
                 >
-                    {/* <MenuItem onClick={() => setCompareMode(!compareMode)}>
-                        <Grid container alignItems="center" spacing={2}>
-                            <Grid item>
-                                <CompareArrowsIcon color={compareMode ? 'primary' : 'inherit'} />
-                            </Grid>
-                            <Grid item>
-                                <span>Compare Mode</span>
-                            </Grid>
-                        </Grid>
-                    </MenuItem>
-                    <MenuItem onClick={() => setShowClusterOutlines(!showClusterOutlines)}>
-                        <Grid container alignItems="center" spacing={2}>
-                            <Grid item>
-                                <BorderOuterIcon color={showClusterOutlines ? 'primary' : 'inherit'} />
-                            </Grid>
-                            <Grid item>
-                                <span>Outline Clusters</span>
-                            </Grid>
-                        </Grid>
-                    </MenuItem>
-                    <MenuItem onClick={() => setShowClusterTitles(!showClusterTitles)}>
-                        <Grid container alignItems="center" spacing={2}>
-                            <Grid item>
-                                <TitleIcon color={showClusterTitles ? 'primary' : 'inherit'} />
-                            </Grid>
-                            <Grid item>
-                                <span>Show Titles</span>
-                            </Grid>
-                        </Grid>
-                    </MenuItem>
-                    <MenuItem onClick={() => setNeighborhoodPointerMode(!neighborhoodPointerMode)}>
-                        <Grid container alignItems="center" spacing={2}>
-                            <Grid item>
-                                <Icon style={{ textAlign: 'center' }}>
-                                    <img 
-                                        src={housePointer} 
-                                        style={{ height: 24, width: 24 }}
-                                        alt="Neighborhood pointer"
-                                    />
-                                </Icon>
-                            </Grid>
-                            <Grid item>
-                                <span>Neighborhood Pointer</span>
-                            </Grid>
-                        </Grid>
-                    </MenuItem> */}
-                    {/* <MenuItem onClick={() => (viewMode === 'embedding' ? 'spatial' : 'embedding')}>
-                        <Grid container alignItems="center" spacing={2}>
-                            <Grid item>
-                                <Icon style={{ textAlign: 'center' }}>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M3 3h18v18H3V3m1 1v16h16V4H4z"/>
-                                        <path d="M12 8l-4 4 4 4 4-4z"/>
-                                    </svg>
-                                </Icon>
-                            </Grid>
-                            <Grid item>
-                                <span>{viewMode === 'embedding' ? 'Switch to Image' : 'Switch to Embedding'}</span>
-                            </Grid>
-                        </Grid>
-                    </MenuItem> */}
                     <MenuItem>
                         <Grid container alignItems="center" spacing={2}>
                             <Grid item xs={6}>
@@ -176,7 +126,64 @@ const Toolbar = () => {
                             </Grid>
                         </Grid>
                     </MenuItem>
-                    
+                    <Divider />
+                    <MenuItem>
+                        <Grid container direction="column" spacing={1}>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2">Neighborhood Settings</Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <ToggleButtonGroup
+                                    value={neighborhoodMode}
+                                    exclusive
+                                    onChange={handleNeighborhoodModeChange}
+                                    className="neighborhood-toggle-group"
+                                    size="small"
+                                    fullWidth
+                                >
+                                    <ToggleButton value="knn">KNN</ToggleButton>
+                                    <ToggleButton value="distance">Distance</ToggleButton>
+                                </ToggleButtonGroup>
+                            </Grid>
+                            {neighborhoodMode === 'knn' ? (
+                                <Grid item container alignItems="center" spacing={1}>
+                                    <Grid item xs={8}>
+                                        <span>Neighbors</span>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Select
+                                            value={neighborhoodKnn}
+                                            onChange={(e) => setNeighborhoodKnn(e.target.value)}
+                                            size="small"
+                                            className="neighborhood-select"
+                                        >
+                                            {[5, 10, 15, 20, 25, 30].map((n) => (
+                                                <MenuItem key={n} value={n}>{n}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </Grid>
+                                </Grid>
+                            ) : (
+                                <Grid item container alignItems="center" spacing={1}>
+                                    <Grid item xs={8}>
+                                        <span>Radius (pixels)</span>
+                                    </Grid>
+                                    <Grid item xs={4}>
+                                        <Select
+                                            value={neighborhoodRadius}
+                                            onChange={(e) => setNeighborhoodRadius(e.target.value)}
+                                            size="small"
+                                            className="neighborhood-select"
+                                        >
+                                            {[10, 25, 50, 75, 100, 150, 200].map((n) => (
+                                                <MenuItem key={n} value={n}>{n}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </Grid>
+                                </Grid>
+                            )}
+                        </Grid>
+                    </MenuItem>
                 </Menu>
             </Grid>
         </div>

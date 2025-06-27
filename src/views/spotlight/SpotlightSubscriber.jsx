@@ -2412,6 +2412,9 @@ export function SpotlightSubscriber(props) {
   const setHoverSelection = useStore((state) => state.setHoverSelection)
   const channelSelection = useStore((state) => state.channelSelection)
   const setChannelSelection = useStore((state) => state.setChannelSelection)
+  const neighborhoodMode = useStore((state) => state.neighborhoodMode);
+  const neighborhoodKnn = useStore((state) => state.neighborhoodKnn);
+  const neighborhoodRadius = useStore((state) => state.neighborhoodRadius);
   const datasetId = useStore((state) => state.datasetId)
   const serverUrl = useStore((state) => state.serverUrl);
 
@@ -2566,7 +2569,7 @@ export function SpotlightSubscriber(props) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...setSelection, path }),
+        body: JSON.stringify({ ...setSelection, path, mode: neighborhoodMode, knn: neighborhoodKnn, radius: neighborhoodRadius }),
       });
       const neighborhoodData = await neighborhoodPost.json();
       console.log('neighborhoodData', neighborhoodData, info)
@@ -2583,7 +2586,7 @@ export function SpotlightSubscriber(props) {
 
   }, [mergedCellSets, cellSetColor,
     setCellSetSelection, setAdditionalCellSets, setCellSetColor,
-    setCellColorEncoding, serverUrl])
+    setCellColorEncoding, serverUrl, neighborhoodMode, neighborhoodKnn, neighborhoodRadius])
 
 
 

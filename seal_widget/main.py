@@ -306,9 +306,10 @@ class SelectionIDs(BaseModel):
 class SelectionSet(BaseModel):
     name: str
     path: List[str]
-    set: List[
-        List[Optional[Any]]
-    ]  # Assuming the inner lists can contain any type, including None
+    set: List[List[Optional[Any]]]  # Assuming the inner lists can contain any type, including None
+    mode: Optional[str] = 'knn'  # 'knn' or 'distance'
+    knn: Optional[int] = 10
+    radius: Optional[float] = 50.0
 
 
 class CompareSet(BaseModel):
@@ -509,11 +510,25 @@ async def neighbors(dataset_name: str, selection_data: SelectionSet):
         dataset["tree"] = cKDTree(dataset["csv_df"][["X_centroid", "Y_centroid"]].values)
 
     indices = dataset["csv_df"][dataset["csv_df"]["CellID"].isin(selection_ids)].index.values
-    # find nearest neighbor to each index
-    neighbors = dataset["tree"].query(
-        dataset["csv_df"].iloc[indices][["X_centroid", "Y_centroid"]].values, k=2
-    )
-    neighbor_indices = neighbors[1][:, 1]
+    points = dataset["csv_df"].iloc[indices][["X_centroid", "Y_centroid"]].values
+
+    # Get mode and parameters from request
+    mode = selection_data.mode if hasattr(selection_data, 'mode') else 'knn'
+    knn = selection_data.knn if hasattr(selection_data, 'knn') else 10
+    radius = selection_data.radius if hasattr(selection_data, 'radius') else 50
+
+    if mode == 'knn':
+        # KNN mode - find k nearest neighbors
+        neighbors = dataset["tree"].query(points, k=knn + 1)  # +1 because first neighbor is self
+        neighbor_indices = neighbors[1][:, 1:]  # exclude self from neighbors
+        # Flatten and get unique indices
+        neighbor_indices = np.unique(neighbor_indices.flatten())
+    else:
+        # Distance mode - find all points within radius
+        neighbors = dataset["tree"].query_ball_point(points, radius)
+        # Flatten and get unique indices
+        neighbor_indices = np.unique([idx for sublist in neighbors for idx in sublist])
+
     neighbor_cellids = dataset["csv_df"].iloc[neighbor_indices]["CellID"].values
     # remove indices that are in selection_ids
     neighbor_cellids = np.setdiff1d(neighbor_cellids, selection_ids)

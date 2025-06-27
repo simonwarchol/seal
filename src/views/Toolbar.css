@@ -11,8 +11,6 @@
     z-index: 1000;
 }
 
-
-
 .seal-text {
     font-family: 'Nunito', sans-serif;
     font-size: 2em;
@@ -23,10 +21,7 @@
     font-size: 0.8em;
 }
 
-
-
 .settings-icon {
     z-index: 1200;
     color: #FFA500;
-
 }

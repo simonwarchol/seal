@@ -6,6 +6,7 @@ import { VisibilityOutlined, VisibilityOffOutlined } from '@mui/icons-material';
 import IconButton from '@mui/material/IconButton';
 import NeighborhoodIcon from "../../public/NeighborhoodIcon.svg";
 import useStore from '../../store';
+import { getApiUrl } from '../../config/api';
 
 function SelectionColumn(props) {
     const [showNeighborhood, setShowNeighborhood] = useState(false);
@@ -15,6 +16,9 @@ function SelectionColumn(props) {
     const setMaxSelectionSize = useStore((state) => state.setMaxSelectionSize);
     const maxRelativeOccurance = useStore((state) => state.maxRelativeOccurance);
     const setMaxRelativeOccurance = useStore((state) => state.setMaxRelativeOccurance);
+    const neighborhoodMode = useStore((state) => state.neighborhoodMode);
+    const neighborhoodKnn = useStore((state) => state.neighborhoodKnn);
+    const neighborhoodRadius = useStore((state) => state.neighborhoodRadius);
     const datasetId = useStore((state) => state.datasetId)
 
     const serverUrl = useStore((state) => state.serverUrl);
@@ -31,8 +35,10 @@ function SelectionColumn(props) {
                     body: JSON.stringify({
                         name: props.selection.path[0] + ' Neighbors',
                         path: props.selection.path,
-                        set: props?.setFeature?.selection_ids?.map(id => [id])
-
+                        set: props?.setFeature?.selection_ids?.map(id => [id]),
+                        mode: neighborhoodMode,
+                        knn: neighborhoodKnn,
+                        radius: neighborhoodRadius
                     })
                 });
 
@@ -49,10 +55,12 @@ function SelectionColumn(props) {
             }
         };
 
-        if (showNeighborhood && !neighborhoodData) {
+        if (showNeighborhood) {
             getNeighborhoodData();
+        } else {
+            setNeighborhoodData(null);
         }
-    }, [showNeighborhood, props.setFeature, props.selection, serverUrl, datasetId]);
+    }, [showNeighborhood, props.setFeature, props.selection, serverUrl, datasetId, neighborhoodMode, neighborhoodKnn, neighborhoodRadius]);
 
     // Add useEffect to handle maxSelectionSize updates
     useEffect(() => {

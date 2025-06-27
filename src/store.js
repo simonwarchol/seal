@@ -57,6 +57,12 @@ const useStore = create((set) => ({
     setCompareMode: (mode) => set({ compareMode: mode }),
     neighborhoodPointerMode: false,
     setNeighborhoodPointerMode: (mode) => set({ neighborhoodPointerMode: mode }),
+    neighborhoodMode: 'knn', // 'knn' or 'distance'
+    setNeighborhoodMode: (mode) => set({ neighborhoodMode: mode }),
+    neighborhoodKnn: 10,
+    setNeighborhoodKnn: (knn) => set({ neighborhoodKnn: knn }),
+    neighborhoodRadius: 50,
+    setNeighborhoodRadius: (radius) => set({ neighborhoodRadius: radius }),
     importanceInColor: true,
     setImportanceInColor: (value) => set({ importanceInColor: value }),
     viewMode: 'embedding',
