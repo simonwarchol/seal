@@ -710,7 +710,7 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
     this.setState({
       model: this._getModel(gl),
       channelsVisible: new Array(6).fill(false),
-      backgroundColorWhite: true,
+      backgroundColorWhite: false,
       opacity: 1.0
     });
   }
