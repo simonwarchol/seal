@@ -2562,26 +2562,35 @@ export function SpotlightSubscriber(props) {
     const set = treeFindNodeByNamePath(mergedCellSets, path)
     if (!set) return;
     const fetchNeighborhoodData = async (path, setSelection) => {
-      const baseNeighborhoodUrl = serverUrl ? `${serverUrl}/neighborhood` : getApiUrl("neighborhood");
-      const neighborhoodUrl = `${baseNeighborhoodUrl}/${datasetId}`;
-      const neighborhoodPost = await fetch(neighborhoodUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...setSelection, path, mode: neighborhoodMode, knn: neighborhoodKnn, radius: neighborhoodRadius }),
-      });
-      const neighborhoodData = await neighborhoodPost.json();
-      console.log('neighborhoodData', neighborhoodData, info)
-      // join path, which is list of strings, into a single string
-      setObsSelection(
-        neighborhoodData?.neighbors || [], additionalCellSets, cellSetColor,
-        setCellSetSelection, setAdditionalCellSets, setCellSetColor,
-        setCellColorEncoding,
-        `Neighborhood ${path?.join('-') || ''}`,
-      );
+        const neighborhoodMode = useStore.getState().neighborhoodMode;
+        const neighborhoodKnn = useStore.getState().neighborhoodKnn;
+        const neighborhoodRadius = useStore.getState().neighborhoodRadius;
+        const neighborhoodCoordinateSpace = useStore.getState().neighborhoodCoordinateSpace;
 
-    }
+        const baseNeighborhoodUrl = serverUrl ? `${serverUrl}/neighborhood` : getApiUrl("neighborhood");
+        const response = await fetch(`${baseNeighborhoodUrl}/${datasetId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: path[0] + ' Neighbors',
+                path: path,
+                set: setSelection.map(id => [id]),
+                mode: neighborhoodMode,
+                knn: neighborhoodKnn,
+                radius: neighborhoodRadius,
+                coordinate_space: neighborhoodCoordinateSpace
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        return data.data;
+    };
     fetchNeighborhoodData(path, set)
 
   }, [mergedCellSets, cellSetColor,

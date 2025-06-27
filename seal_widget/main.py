@@ -43,7 +43,8 @@ CURRENT_DATASET = {
     "summary": None,
     "shap_store": None,
     "contour_lines": None,
-    "tree": None,
+    "spatial_tree": None,  # KD-tree for spatial coordinates
+    "embedding_tree": None,  # KD-tree for UMAP coordinates
     "paths": None
 }
 
@@ -109,7 +110,8 @@ def load_dataset(dataset_name, df=None):
         "csv_df": None,
         "summary": None,
         "shap_store": None,
-        "tree": None,
+        "spatial_tree": None,
+        "embedding_tree": None,
         "paths": None
     }
     
@@ -150,9 +152,6 @@ def load_dataset(dataset_name, df=None):
     try:
         shap_store = pd.read_parquet(paths["shap_path"])
     except:
-        # Read from local files
-
-        # Read from local files
         shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
 
     # Update CURRENT_DATASET
@@ -161,7 +160,8 @@ def load_dataset(dataset_name, df=None):
         "summary": summary,
         "shap_store": shap_store,
         "paths": paths,
-        "tree": cKDTree(CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]].values)
+        "spatial_tree": cKDTree(CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]].values),
+        "embedding_tree": cKDTree(CURRENT_DATASET["csv_df"][["UMAP_X", "UMAP_Y"]].values)
     })
     
     return CURRENT_DATASET
@@ -310,6 +310,7 @@ class SelectionSet(BaseModel):
     mode: Optional[str] = 'knn'  # 'knn' or 'distance'
     knn: Optional[int] = 10
     radius: Optional[float] = 50.0
+    coordinate_space: Optional[str] = 'spatial'  # 'spatial' or 'embedding'
 
 
 class CompareSet(BaseModel):
@@ -505,12 +506,27 @@ async def serve_data_file(file_path: str):
 async def neighbors(dataset_name: str, selection_data: SelectionSet):
     dataset = load_dataset(dataset_name)
     selection_ids = [parse_id(_) for _ in selection_data.set]
-    # Use CURRENT_DATASET.tree instead of global tree
-    if dataset["tree"] is None:
-        dataset["tree"] = cKDTree(dataset["csv_df"][["X_centroid", "Y_centroid"]].values)
+
+    # Determine which tree and coordinates to use based on coordinate_space
+    coordinate_space = selection_data.coordinate_space if hasattr(selection_data, 'coordinate_space') else 'spatial'
+    
+    if coordinate_space == 'spatial':
+        tree = dataset["spatial_tree"]
+        coord_columns = ["X_centroid", "Y_centroid"]
+    else:  # embedding
+        tree = dataset["embedding_tree"]
+        coord_columns = ["UMAP_X", "UMAP_Y"]
+
+    # Ensure the tree exists
+    if tree is None:
+        tree = cKDTree(dataset["csv_df"][coord_columns].values)
+        if coordinate_space == 'spatial':
+            dataset["spatial_tree"] = tree
+        else:
+            dataset["embedding_tree"] = tree
 
     indices = dataset["csv_df"][dataset["csv_df"]["CellID"].isin(selection_ids)].index.values
-    points = dataset["csv_df"].iloc[indices][["X_centroid", "Y_centroid"]].values
+    points = dataset["csv_df"].iloc[indices][coord_columns].values
 
     # Get mode and parameters from request
     mode = selection_data.mode if hasattr(selection_data, 'mode') else 'knn'
@@ -519,13 +535,13 @@ async def neighbors(dataset_name: str, selection_data: SelectionSet):
 
     if mode == 'knn':
         # KNN mode - find k nearest neighbors
-        neighbors = dataset["tree"].query(points, k=knn + 1)  # +1 because first neighbor is self
+        neighbors = tree.query(points, k=knn + 1)  # +1 because first neighbor is self
         neighbor_indices = neighbors[1][:, 1:]  # exclude self from neighbors
         # Flatten and get unique indices
         neighbor_indices = np.unique(neighbor_indices.flatten())
     else:
         # Distance mode - find all points within radius
-        neighbors = dataset["tree"].query_ball_point(points, radius)
+        neighbors = tree.query_ball_point(points, radius)
         # Flatten and get unique indices
         neighbor_indices = np.unique([idx for sublist in neighbors for idx in sublist])
 

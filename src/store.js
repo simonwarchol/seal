@@ -63,6 +63,8 @@ const useStore = create((set) => ({
     setNeighborhoodKnn: (knn) => set({ neighborhoodKnn: knn }),
     neighborhoodRadius: 50,
     setNeighborhoodRadius: (radius) => set({ neighborhoodRadius: radius }),
+    neighborhoodCoordinateSpace: 'spatial', // 'spatial' or 'embedding'
+    setNeighborhoodCoordinateSpace: (space) => set({ neighborhoodCoordinateSpace: space }),
     importanceInColor: true,
     setImportanceInColor: (value) => set({ importanceInColor: value }),
     viewMode: 'embedding',

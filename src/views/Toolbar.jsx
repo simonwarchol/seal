@@ -32,6 +32,8 @@ const Toolbar = () => {
     const setNeighborhoodKnn = useStore((state) => state.setNeighborhoodKnn);
     const neighborhoodRadius = useStore((state) => state.neighborhoodRadius);
     const setNeighborhoodRadius = useStore((state) => state.setNeighborhoodRadius);
+    const neighborhoodCoordinateSpace = useStore((state) => state.neighborhoodCoordinateSpace);
+    const setNeighborhoodCoordinateSpace = useStore((state) => state.setNeighborhoodCoordinateSpace);
 
     const handleFeatureCountChange = (event) => {
         setFeatureCount(event.target.value);
@@ -44,6 +46,12 @@ const Toolbar = () => {
     const handleNeighborhoodModeChange = (event, newMode) => {
         if (newMode !== null) {
             setNeighborhoodMode(newMode);
+        }
+    };
+
+    const handleCoordinateSpaceChange = (event, newSpace) => {
+        if (newSpace !== null) {
+            setNeighborhoodCoordinateSpace(newSpace);
         }
     };
 
@@ -131,6 +139,19 @@ const Toolbar = () => {
                         <Grid container direction="column" spacing={1}>
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2">Neighborhood Settings</Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <ToggleButtonGroup
+                                    value={neighborhoodCoordinateSpace}
+                                    exclusive
+                                    onChange={handleCoordinateSpaceChange}
+                                    className="neighborhood-toggle-group"
+                                    size="small"
+                                    fullWidth
+                                >
+                                    <ToggleButton value="spatial">Spatial</ToggleButton>
+                                    <ToggleButton value="embedding">Embedding</ToggleButton>
+                                </ToggleButtonGroup>
                             </Grid>
                             <Grid item xs={12}>
                                 <ToggleButtonGroup

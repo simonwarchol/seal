@@ -19,6 +19,7 @@ function SelectionColumn(props) {
     const neighborhoodMode = useStore((state) => state.neighborhoodMode);
     const neighborhoodKnn = useStore((state) => state.neighborhoodKnn);
     const neighborhoodRadius = useStore((state) => state.neighborhoodRadius);
+    const neighborhoodCoordinateSpace = useStore((state) => state.neighborhoodCoordinateSpace);
     const datasetId = useStore((state) => state.datasetId)
 
     const serverUrl = useStore((state) => state.serverUrl);
@@ -38,7 +39,8 @@ function SelectionColumn(props) {
                         set: props?.setFeature?.selection_ids?.map(id => [id]),
                         mode: neighborhoodMode,
                         knn: neighborhoodKnn,
-                        radius: neighborhoodRadius
+                        radius: neighborhoodRadius,
+                        coordinate_space: neighborhoodCoordinateSpace
                     })
                 });
 
@@ -60,7 +62,7 @@ function SelectionColumn(props) {
         } else {
             setNeighborhoodData(null);
         }
-    }, [showNeighborhood, props.setFeature, props.selection, serverUrl, datasetId, neighborhoodMode, neighborhoodKnn, neighborhoodRadius]);
+    }, [showNeighborhood, props.setFeature, props.selection, serverUrl, datasetId, neighborhoodMode, neighborhoodKnn, neighborhoodRadius, neighborhoodCoordinateSpace]);
 
     // Add useEffect to handle maxSelectionSize updates
     useEffect(() => {
