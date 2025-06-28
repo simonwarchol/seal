@@ -1,5 +1,5 @@
 import React, {
-    useState,
+    useState, useRef
 } from "react";
 import clsx from "clsx";
 
@@ -27,7 +27,7 @@ import DoNotOutlineSelectionIcon from "../../public/DoNotOutlineSelection.svg";
 import ContoursIcon from "../../public/ContourIcon.svg";
 import ChannelSettingsIcon from "../../public/ChannelSettings.svg";
 import BackgroundIcon from "../../public/BackgroundColor.svg";
-
+import DotsOnIcon from "../../public/DotsOn.svg";
 import {
 
     Menu,
@@ -79,6 +79,22 @@ function ToolMenu(props) {
     const setShowContours = useStore((state) => state.setShowContours)
     const backgroundColorWhite = useStore((state) => state.backgroundColorWhite)
     const setBackgroundColorWhite = useStore((state) => state.setBackgroundColorWhite)
+    const [open, setOpen] = useState(false);
+    const timeoutRef = useRef(null);
+    const handleOpen = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        timeoutRef.current = setTimeout(() => {
+            setOpen(false);
+        }, 600); // 300ms delay before closing
+    };
+
+
     const actions = [
         {
             icon:
@@ -247,8 +263,31 @@ function ToolMenu(props) {
             </Icon>,
             name: 'Background Color'
         },
+        {
+            icon: <Icon
+                // onClick={() => setBackgroundColorWhite(!backgroundColorWhite)}
+                style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    // color based on showContours
+                }}
+            >
+                <img
+                    src={DotsOnIcon}
+                    alt="Outline Selections"
+                    style={{
+                        width: '70%',
+                        filter: 'none',
+                    }}
+                />
+            </Icon>,
+            name: 'Show Points'
+        },
 
-       
+
         // { icon: <PrintIcon />, name: 'Print' },
         // { icon: <ShareIcon />, name: 'Share' },
     ];
@@ -368,6 +407,9 @@ function ToolMenu(props) {
                             <Layers style={{ color: 'black', width: '18px', height: '18px' }} />
                         }
                         direction="right"
+                        open={open}
+                        onOpen={handleOpen}
+                        onClose={handleClose}
                         sx={{
                             '& .MuiSpeedDial-fab': {
                                 width: '40px',
@@ -405,6 +447,7 @@ function ToolMenu(props) {
                             <SpeedDialAction
                                 key={action.name}
                                 icon={action.icon}
+                                onMouseEnter={handleOpen}
                                 tooltipTitle={action.name}
                                 sx={{
                                     '& .MuiSvgIcon-root': {
