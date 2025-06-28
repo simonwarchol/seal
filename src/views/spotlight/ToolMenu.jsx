@@ -79,6 +79,8 @@ function ToolMenu(props) {
     const setShowContours = useStore((state) => state.setShowContours)
     const backgroundColorWhite = useStore((state) => state.backgroundColorWhite)
     const setBackgroundColorWhite = useStore((state) => state.setBackgroundColorWhite)
+    const showPoints = useStore((state) => state.showPoints)
+    const setShowPoints = useStore((state) => state.setShowPoints)
     const [open, setOpen] = useState(false);
     const timeoutRef = useRef(null);
     const handleOpen = () => {
@@ -265,14 +267,13 @@ function ToolMenu(props) {
         },
         {
             icon: <Icon
-                // onClick={() => setBackgroundColorWhite(!backgroundColorWhite)}
+                onClick={() => setShowPoints(!showPoints)}
                 style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     width: '100%',
                     height: '100%',
-                    // color based on showContours
                 }}
             >
                 <img
@@ -280,7 +281,7 @@ function ToolMenu(props) {
                     alt="Outline Selections"
                     style={{
                         width: '70%',
-                        filter: 'none',
+                        filter: showPoints ? 'none' : 'opacity(0.3)',
                     }}
                 />
             </Icon>,

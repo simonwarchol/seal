@@ -1351,14 +1351,18 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
   createMoleculesLayer(layerDef) {
     const {
-      obsLocations,
-      obsLocationsFeatureIndex: obsLabelsTypes,
-      setMoleculeHighlight,
+      obsCentroids,
+      obsCentroidsIndex,
+      cellColors,
+      theme,
+      setCellHighlight,
     } = this.props;
-    const getMoleculeColor = (object, { data, index }) => {
-      const i = data.src.obsLabelsTypes.indexOf(data.src.obsLabels[index]);
-      return data.src.PALETTE[i % data.src.PALETTE.length];
+
+    const getCentroidColor = (object, { data, index }) => {
+      const cellId = data.src.obsCentroidsIndex[index];
+      return (cellColors && cellColors.get(cellId)) || getDefaultColor(theme);
     };
+
     return new deck.ScatterplotLayer({
       id: MOLECULES_LAYER_ID,
       data: this.obsLocationsData,
@@ -1366,38 +1370,33 @@ class Spatial extends AbstractSpatialOrScatterplot {
       pickable: true,
       autoHighlight: true,
       radiusMaxPixels: 3,
-      // opacity: layerDef.opacity,
       opacity: 1,
-      // visible: layerDef.visible,
       visible: true,
-      // getRadius: layerDef.radius,
       getRadius: 100,
       getPosition: (object, { data, index, target }) => {
         // eslint-disable-next-line no-param-reassign
-        target[0] = data.src.obsLocations.data[0][index];
+        target[0] = data.src.obsCentroids.data[0][index];
         // eslint-disable-next-line no-param-reassign
-        target[1] = data.src.obsLocations.data[1][index];
+        target[1] = data.src.obsCentroids.data[1][index];
         // eslint-disable-next-line no-param-reassign
         target[2] = 0;
         return target;
       },
-      getLineColor: getMoleculeColor,
-      getFillColor: getMoleculeColor,
+      getLineColor: getCentroidColor,
+      getFillColor: getCentroidColor,
       onHover: (info) => {
-        if (setMoleculeHighlight) {
-          if (info.object) {
-            setMoleculeHighlight(info.object[3]);
-          } else {
-            setMoleculeHighlight(null);
-          }
+        if (info.object) {
+          const cellId = this.obsLocationsData.src.obsCentroidsIndex[info.index];
+          setCellHighlight(cellId);
+        } else {
+          setCellHighlight(null);
         }
       },
       updateTriggers: {
-        // getRadius: [layerDef],
-        getRadius: 10,
-        getPosition: [obsLabelsTypes],
-        getLineColor: [obsLabelsTypes],
-        getFillColor: [obsLabelsTypes],
+        getRadius: [layerDef],
+        getPosition: [obsCentroidsIndex],
+        getLineColor: [cellColors, theme],
+        getFillColor: [cellColors, theme],
       },
     });
   }
@@ -1764,18 +1763,22 @@ class Spatial extends AbstractSpatialOrScatterplot {
       obsLocationsLayer,
       obsSegmentationsBitmaskLayers,
     } = this;
+
+    console.log('XXX getLayers obsLocationsLayer:', obsLocationsLayer);
+
     const layers = [
       ...imageLayers,
       ...obsSegmentationsBitmaskLayers,
       ...obsSegmentationsPolygonLayer,
       neighborhoodsLayer,
       obsLocationsLayer,
-      // this.createFeatureLabelLayer(),
       this.createScaleBarLayer(),
       this.createInfoLayer(),
       this.createContoursLayer(),
       this.createSelectionLayer(),
     ];
+
+    console.log('XXX getLayers final layers:', layers.map(l => l?.id));
     return layers;
   }
 
@@ -1884,44 +1887,43 @@ class Spatial extends AbstractSpatialOrScatterplot {
 
   onUpdateMoleculesData() {
     const {
-      obsLocations,
-      obsLocationsLabels: obsLabels,
-      obsLocationsFeatureIndex: obsLabelsTypes,
+      obsCentroids,
+      obsCentroidsIndex,
     } = this.props;
-    if (obsLocations && obsLabels && obsLabelsTypes) {
+
+    console.log('XXX onUpdateMoleculesData props:', { obsCentroids, obsCentroidsIndex });
+
+    if (obsCentroids && obsCentroidsIndex) {
       this.obsLocationsData = {
         src: {
-          obsLabels,
-          obsLocations,
-          obsLabelsTypes,
-          PALETTE,
+          obsCentroids,
+          obsCentroidsIndex,
         },
-        length: obsLocations.shape[1],
+        length: obsCentroids.shape[1],
       };
+      console.log('XXX onUpdateMoleculesData set data:', this.obsLocationsData);
     }
   }
 
   onUpdateMoleculesLayer() {
     const {
       obsLocationsLayerDefs: obsLocationsLayerDef,
-      obsLocations,
-      obsLocationsIndex,
-      obsLocationsLabels,
-      obsLocationsFeatureIndex,
+      obsCentroids,
+      obsCentroidsIndex,
     } = this.props;
-    if (
-      // this.showScatterplot() &&
 
-      // obsLocationsLayerDef &&
-      obsLocations?.data &&
-      obsLocationsIndex &&
-      obsLocationsLabels &&
-      obsLocationsFeatureIndex
-    ) {
+    console.log('XXX onUpdateMoleculesLayer props:', { 
+      obsLocationsLayerDef, 
+      obsCentroids: obsCentroids?.data, 
+      obsCentroidsIndex 
+    });
 
+    if (obsCentroids?.data && obsCentroidsIndex) {
       this.obsLocationsLayer = this.createMoleculesLayer(obsLocationsLayerDef);
+      console.log('XXX onUpdateMoleculesLayer created layer:', this.obsLocationsLayer);
     } else {
       this.obsLocationsLayer = null;
+      console.log('XXX onUpdateMoleculesLayer layer set to null - missing data');
     }
   }
 
@@ -2089,6 +2091,29 @@ class Spatial extends AbstractSpatialOrScatterplot {
       this.onUpdateImages();
       forceUpdate = true;
     }
+
+    if (
+      ["obsCentroids", "obsCentroidsIndex"].some(
+        shallowDiff
+      )
+    ) {
+      // Centroids data props changed.
+      this.onUpdateMoleculesData();
+      forceUpdate = true;
+    }
+
+    if (
+      [
+        "obsLocationsLayerDefs",
+        "obsCentroids",
+        "obsCentroidsIndex",
+      ].some(shallowDiff)
+    ) {
+      // Centroids layer props changed.
+      this.onUpdateMoleculesLayer();
+      forceUpdate = true;
+    }
+
     if (forceUpdate) {
       this.forceUpdate();
     }
@@ -2562,34 +2587,34 @@ export function SpotlightSubscriber(props) {
     const set = treeFindNodeByNamePath(mergedCellSets, path)
     if (!set) return;
     const fetchNeighborhoodData = async (path, setSelection) => {
-        const neighborhoodMode = useStore.getState().neighborhoodMode;
-        const neighborhoodKnn = useStore.getState().neighborhoodKnn;
-        const neighborhoodRadius = useStore.getState().neighborhoodRadius;
-        const neighborhoodCoordinateSpace = useStore.getState().neighborhoodCoordinateSpace;
+      const neighborhoodMode = useStore.getState().neighborhoodMode;
+      const neighborhoodKnn = useStore.getState().neighborhoodKnn;
+      const neighborhoodRadius = useStore.getState().neighborhoodRadius;
+      const neighborhoodCoordinateSpace = useStore.getState().neighborhoodCoordinateSpace;
 
-        const baseNeighborhoodUrl = serverUrl ? `${serverUrl}/neighborhood` : getApiUrl("neighborhood");
-        const response = await fetch(`${baseNeighborhoodUrl}/${datasetId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: path[0] + ' Neighbors',
-                path: path,
-                set: setSelection.map(id => [id]),
-                mode: neighborhoodMode,
-                knn: neighborhoodKnn,
-                radius: neighborhoodRadius,
-                coordinate_space: neighborhoodCoordinateSpace
-            })
-        });
+      const baseNeighborhoodUrl = serverUrl ? `${serverUrl}/neighborhood` : getApiUrl("neighborhood");
+      const response = await fetch(`${baseNeighborhoodUrl}/${datasetId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: path[0] + ' Neighbors',
+          path: path,
+          set: setSelection.map(id => [id]),
+          mode: neighborhoodMode,
+          knn: neighborhoodKnn,
+          radius: neighborhoodRadius,
+          coordinate_space: neighborhoodCoordinateSpace
+        })
+      });
 
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
 
-        const data = await response.json();
-        return data.data;
+      const data = await response.json();
+      return data.data;
     };
     fetchNeighborhoodData(path, set)
 

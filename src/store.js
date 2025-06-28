@@ -90,6 +90,8 @@ const useStore = create((set) => ({
     setServerUrl: (url) => set({ serverUrl: url }),
     backgroundColorWhite: null,
     setBackgroundColorWhite: (color) => set({ backgroundColorWhite: color }),
+    showPoints: false,
+    setShowPoints: (show) => set({ showPoints: show }),
 }))
 
 export default useStore;
