@@ -64,6 +64,18 @@ def get_dataset_paths(dataset_name):
             "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
             "shap_path": f"{base_url}/shap.parquet"
         }
+    elif dataset_name == "exemplar-001v2":
+        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/exemplar-001v2"
+        return {
+            "csv_path": f"{base_url}/df.parquet",
+            "set_csv_path": None,
+            "parquet_path": f"{base_url}/df.parquet",
+            "image_path": f"{base_url}/image.ome.tif",
+            "segmentation_path": f"{base_url}/mask.ome.tif",
+            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
+            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
+            "shap_path": f"{base_url}/shap.parquet"
+        }
     elif dataset_name == "SDSS":
         base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/SDSS"
         return {
