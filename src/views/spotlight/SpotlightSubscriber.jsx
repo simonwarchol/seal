@@ -1356,6 +1356,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       cellColors,
       theme,
       setCellHighlight,
+      showPoints,
     } = this.props;
 
     const getCentroidColor = (object, { data, index }) => {
@@ -1371,7 +1372,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       autoHighlight: true,
       radiusMaxPixels: 3,
       opacity: 1,
-      visible: true,
+      visible: showPoints,
       getRadius: 100,
       getPosition: (object, { data, index, target }) => {
         // eslint-disable-next-line no-param-reassign
@@ -1397,6 +1398,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         getPosition: [obsCentroidsIndex],
         getLineColor: [cellColors, theme],
         getFillColor: [cellColors, theme],
+        visible: [showPoints],
       },
     });
   }
@@ -1764,7 +1766,6 @@ class Spatial extends AbstractSpatialOrScatterplot {
       obsSegmentationsBitmaskLayers,
     } = this;
 
-    console.log('XXX getLayers obsLocationsLayer:', obsLocationsLayer);
 
     const layers = [
       ...imageLayers,
@@ -1778,7 +1779,6 @@ class Spatial extends AbstractSpatialOrScatterplot {
       this.createSelectionLayer(),
     ];
 
-    console.log('XXX getLayers final layers:', layers.map(l => l?.id));
     return layers;
   }
 
@@ -1891,7 +1891,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       obsCentroidsIndex,
     } = this.props;
 
-    console.log('XXX onUpdateMoleculesData props:', { obsCentroids, obsCentroidsIndex });
+    console.log('XXX onUpdateMoleculesData props:', { obsCentroids, obsCentroidsIndex, cellSelection: this.props.cellSelection });
 
     if (obsCentroids && obsCentroidsIndex) {
       this.obsLocationsData = {
@@ -2036,6 +2036,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     ) {
       // Cells layer props changed.
       this.onUpdateCellsLayer();
+      this.onUpdateMoleculesLayer();
       forceUpdate = true;
     }
 
@@ -2107,6 +2108,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         "obsLocationsLayerDefs",
         "obsCentroids",
         "obsCentroidsIndex",
+        "showPoints",
       ].some(shallowDiff)
     ) {
       // Centroids layer props changed.
@@ -2442,6 +2444,7 @@ export function SpotlightSubscriber(props) {
   const neighborhoodRadius = useStore((state) => state.neighborhoodRadius);
   const datasetId = useStore((state) => state.datasetId)
   const serverUrl = useStore((state) => state.serverUrl);
+  const showPoints = useStore((state) => state.showPoints);
 
 
   const contours = useStore((state) => state.contours)
@@ -3129,6 +3132,7 @@ export function SpotlightSubscriber(props) {
         channelNames={channelNames}
         channelColors={channelColors}
         contours={contours}
+        showPoints={showPoints}
       />
       {tooltipsVisible && (
         <SpatialTooltipSubscriber
