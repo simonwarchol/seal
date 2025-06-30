@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
-import IconButton from '@mui/material/IconButton';
 import * as d3 from 'd3';
 import { ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { Box, Typography } from '@mui/material';
 import useStore from '../../store';
+import DensityPlotIcon from "../../public/DensityPlot.svg";
+import LolipopPlotIcon from "../../public/LolipopPlot.svg";
 
 function StickyHeader({
   featureData,
@@ -75,11 +76,9 @@ function StickyHeader({
             flexDirection: 'column',
             alignItems: 'flex-start',
             position: 'relative',
-            cursor: 'pointer'
           }}
           onMouseEnter={() => setHoveredLegend('legend')}
           onMouseLeave={() => setHoveredLegend(null)}
-          onClick={() => setImportanceInColor(!importanceInColor)}
         >
           {/* Importance Legend (Always on top) */}
           <Box sx={{
@@ -256,13 +255,60 @@ function StickyHeader({
                 alignItems: 'center',
                 justifyContent: 'center',
                 background: 'rgba(0, 0, 0, 0.7)',
-                cursor: 'pointer',
-                pointerEvents: 'none', // This ensures mouse events pass through to parent
+                pointerEvents: 'none',
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff">
-                <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
-              </svg>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div 
+                  style={{ 
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                  }}
+                  onClick={() => setImportanceInColor(!importanceInColor)}
+                  onMouseEnter={(e) => e.currentTarget.querySelector('svg').style.fill = '#ffa500'}
+                  onMouseLeave={(e) => e.currentTarget.querySelector('svg').style.fill = '#ffffff'}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff">
+                    <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
+                  </svg>
+                </div>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  pointerEvents: 'auto',
+                  gap: '4px'
+                }}>
+                  <img 
+                    src={LolipopPlotIcon} 
+                    alt="Lolipop Plot"
+                    style={{ 
+                      width: '24px', 
+                      height: '24px',
+                      filter: `brightness(0) invert(1) ${viewMode === 'lolipop' ? 'brightness(1)' : 'brightness(0.9)'}`,
+                      cursor: 'pointer'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewChange(null, 'lolipop');
+                    }}
+                  />
+                  <img 
+                    src={DensityPlotIcon} 
+                    alt="Density Plot"
+                    style={{ 
+                      width: '24px', 
+                      height: '24px',
+                      filter: `brightness(0) invert(1) ${viewMode === 'density' ? 'brightness(1)' : 'brightness(0.9)'}`,
+                      cursor: 'pointer'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewChange(null, 'density');
+                    }}
+                  />
+                </Box>
+              </div>
             </div>
           )}
         </Box>

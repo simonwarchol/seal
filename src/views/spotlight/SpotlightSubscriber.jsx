@@ -1891,7 +1891,6 @@ class Spatial extends AbstractSpatialOrScatterplot {
       obsCentroidsIndex,
     } = this.props;
 
-    console.log('XXX onUpdateMoleculesData props:', { obsCentroids, obsCentroidsIndex, cellSelection: this.props.cellSelection });
 
     if (obsCentroids && obsCentroidsIndex) {
       this.obsLocationsData = {
@@ -1901,7 +1900,6 @@ class Spatial extends AbstractSpatialOrScatterplot {
         },
         length: obsCentroids.shape[1],
       };
-      console.log('XXX onUpdateMoleculesData set data:', this.obsLocationsData);
     }
   }
 
@@ -1912,18 +1910,10 @@ class Spatial extends AbstractSpatialOrScatterplot {
       obsCentroidsIndex,
     } = this.props;
 
-    console.log('XXX onUpdateMoleculesLayer props:', { 
-      obsLocationsLayerDef, 
-      obsCentroids: obsCentroids?.data, 
-      obsCentroidsIndex 
-    });
-
     if (obsCentroids?.data && obsCentroidsIndex) {
       this.obsLocationsLayer = this.createMoleculesLayer(obsLocationsLayerDef);
-      console.log('XXX onUpdateMoleculesLayer created layer:', this.obsLocationsLayer);
     } else {
       this.obsLocationsLayer = null;
-      console.log('XXX onUpdateMoleculesLayer layer set to null - missing data');
     }
   }
 

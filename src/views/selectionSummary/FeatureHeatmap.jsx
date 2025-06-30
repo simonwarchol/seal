@@ -32,12 +32,20 @@ function FeatureHeatmap({
       .filter(([feature]) => !hiddenFeatures.includes(feature))
       .sort((a, b) => a[0].localeCompare(b[0]));
 
+    const maxFeatureImportance = Math.max(...sortedFeatures.map(d => d[1]));
+
+    // const sortedRelativeOccurance = [...featureData.normalized_occurrence]
+    //   .filter(([feature]) => !hiddenFeatures.includes(feature))
+    //   .sort((a, b) => a[0].localeCompare(b[0]));
+
+
     // Adjust height based on visible features
     const rectHeight = height / sortedFeatures.length;
     const halfWidth = width / 2;
 
     // Create a group for the rectangles
     const g = svg.append("g");
+    console.log('xxx', JSON.stringify(sortedFeatures))
 
     // Add background rectangles with colors
     g.selectAll(".background-rect")
@@ -98,14 +106,17 @@ function FeatureHeatmap({
     } else {
       // Show importance lollipops
       const importanceScale = d3.scaleLinear()
-        .domain([-maxRelativeFeatureImportance, maxRelativeFeatureImportance])  // Use symmetric domain
-        .range([0, width * 0.4]);  // Use 40% of total width
+        .domain([0, maxFeatureImportance])  // Feature importance values are always positive
+        .range([0, width * 0.9]);  // Use 90% of total width for better visibility
 
       g.selectAll(".importance-line")
         .data(sortedFeatures)
         .join("line")
         .attr("x1", 0)
-        .attr("x2", d => importanceScale(d[1]))
+        .attr("x2", d => {
+          console.log('xxx', d[1])
+          return importanceScale(d[1])
+        })
         .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
         .attr("stroke", "#000000")
