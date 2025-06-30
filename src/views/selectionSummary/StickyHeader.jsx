@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState } from 'react';
 import * as d3 from 'd3';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { Box, Typography } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Box, Typography, IconButton } from '@mui/material';
 import useStore from '../../store';
 import DensityPlotIcon from "../../public/DensityPlot.svg";
 import LolipopPlotIcon from "../../public/LolipopPlot.svg";
@@ -29,6 +28,8 @@ function StickyHeader({
   const setSettingsPanelOpen = useStore((state) => state.setSettingsPanelOpen);
   const compareMode = useStore((state) => state.compareMode);
   const setCompareMode = useStore((state) => state.setCompareMode);
+  const showLolipops = useStore((state) => state.showLolipops);
+  const setShowLolipops = useStore((state) => state.setShowLolipops);
   // Sort features alphabetically and filter out hidden features
   const sortedFeatures = featureData?.feat_imp
     ? [...featureData.feat_imp]
@@ -44,6 +45,8 @@ function StickyHeader({
   }, [importanceColorScale]);
 
   const [hoveredLegend, setHoveredLegend] = React.useState(null);
+  const [hoveredLolipop, setHoveredLolipop] = React.useState(false);
+  const [hoveredDensity, setHoveredDensity] = React.useState(false);
   const channelSelection = useStore((state) => state.channelSelection);
 
 
@@ -268,7 +271,7 @@ function StickyHeader({
                   onMouseEnter={(e) => e.currentTarget.querySelector('svg').style.fill = '#ffa500'}
                   onMouseLeave={(e) => e.currentTarget.querySelector('svg').style.fill = '#ffffff'}
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="#ffffff">
                     <path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z" />
                   </svg>
                 </div>
@@ -277,36 +280,62 @@ function StickyHeader({
                   flexDirection: 'column',
                   alignItems: 'center',
                   pointerEvents: 'auto',
-                  gap: '4px'
+                  gap: '0px'
                 }}>
-                  <img 
-                    src={LolipopPlotIcon} 
-                    alt="Lolipop Plot"
-                    style={{ 
-                      width: '24px', 
-                      height: '24px',
-                      filter: `brightness(0) invert(1) ${viewMode === 'lolipop' ? 'brightness(1)' : 'brightness(0.9)'}`,
-                      cursor: 'pointer'
+                  <IconButton
+                    onClick={() => setShowLolipops(true)}
+                    sx={{
+                      padding: 0,
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
+                      '& img': {
+                        width: '32px',
+                        height: '32px',
+                        filter: showLolipops 
+                          ? 'brightness(0) invert(1)' // white when true
+                          : 'brightness(0) saturate(0) invert(0.2)', // dark gray when false
+                        transition: 'filter 0.2s ease-in-out'
+                      },
+                      '&:hover img': {
+                        filter: !showLolipops 
+                          ? 'brightness(0) saturate(100%) invert(71%) sepia(81%) saturate(4160%) hue-rotate(360deg) brightness(103%) contrast(105%)' // orange #ffa500
+                          : 'brightness(0) invert(1)' // keep white if active
+                      }
                     }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewChange(null, 'lolipop');
+                  >
+                    <img 
+                      src={LolipopPlotIcon} 
+                      alt="Lolipop Plot"
+                    />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setShowLolipops(false)}
+                    sx={{
+                      padding: 0,
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
+                      '& img': {
+                        width: '32px',
+                        height: '32px',
+                        filter: !showLolipops 
+                          ? 'brightness(0) invert(1)' // white when true
+                          : 'brightness(0) saturate(0) invert(0.2)', // dark gray when false
+                        transition: 'filter 0.2s ease-in-out'
+                      },
+                      '&:hover img': {
+                        filter: showLolipops 
+                          ? 'brightness(0) saturate(100%) invert(71%) sepia(81%) saturate(4160%) hue-rotate(360deg) brightness(103%) contrast(105%)' // orange #ffa500
+                          : 'brightness(0) invert(1)' // keep white if active
+                      }
                     }}
-                  />
-                  <img 
-                    src={DensityPlotIcon} 
-                    alt="Density Plot"
-                    style={{ 
-                      width: '24px', 
-                      height: '24px',
-                      filter: `brightness(0) invert(1) ${viewMode === 'density' ? 'brightness(1)' : 'brightness(0.9)'}`,
-                      cursor: 'pointer'
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleViewChange(null, 'density');
-                    }}
-                  />
+                  >
+                    <img 
+                      src={DensityPlotIcon} 
+                      alt="Density Plot"
+                    />
+                  </IconButton>
                 </Box>
               </div>
             </div>

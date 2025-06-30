@@ -92,6 +92,8 @@ const useStore = create((set) => ({
     setBackgroundColorWhite: (color) => set({ backgroundColorWhite: color }),
     showPoints: false,
     setShowPoints: (show) => set({ showPoints: show }),
+    showLolipops: true,
+    setShowLolipops: (show) => set({ showLolipops: show }),
 }))
 
 export default useStore;
