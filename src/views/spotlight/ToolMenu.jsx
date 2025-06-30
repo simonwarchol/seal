@@ -281,11 +281,11 @@ function ToolMenu(props) {
                     alt="Outline Selections"
                     style={{
                         width: '70%',
-                        filter: showPoints ? 'none' : 'opacity(0.3)',
+                        filter: showPoints ? 'opacity(0.3)':  'none' ,
                     }}
                 />
             </Icon>,
-            name: 'Show Points'
+            name: showPoints ? 'Hide Points' : 'Show Points'
         },
 
 
