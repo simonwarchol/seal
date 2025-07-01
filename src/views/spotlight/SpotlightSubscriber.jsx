@@ -953,7 +953,6 @@ function renderSubBitmaskLayers(props) {
     data.width < base.tileSize ? width : right,
     top,
   ];
-  console.log('Data', data)
   return new SpotlightBitmaskLayer({ ...props }, {
     channelData: data,
     // Uncomment to help debugging - shades the tile being hovered over.
@@ -968,8 +967,6 @@ function renderSubBitmaskLayers(props) {
 const handleClusterSelection = async (featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers) => {
   let changeI = 0;
   featureImportance = featureImportance.sort((a, b) => b[1] - a[1]);
-  console.log("featureImportance", featureImportance);
-
   if (rasterLayers?.[0]?.channels?.length > 0) {
     const newRasterLayers = rasterLayers.map(layer => ({
       ...layer,
@@ -2637,7 +2634,6 @@ export function SpotlightSubscriber(props) {
 
       try {
         const selectionUrl = serverUrl ? `${serverUrl}/selection` : getApiUrl("selection");
-        console.log("Selection Earl", selectionUrl);
         const selectionPost = await fetch(`${selectionUrl}/${datasetId}`, {
           method: "POST",
           headers: {

@@ -360,10 +360,31 @@ def process_selection(selection_ids):
 
     # Convert numpy values to Python native types
     # shap iloc
-    absolute_shap_sums =  CURRENT_DATASET["shap_store"].iloc[selected_indices].mean(axis=0)
+    absolute_shap_sums = CURRENT_DATASET["shap_store"].iloc[selected_indices].mean(axis=0)
     feat_imp = absolute_shap_sums.to_dict()
     # Create list of key,value sorted by key
     feat_imp = sorted(feat_imp.items(), key=lambda item: item[1], reverse=True)
+
+    # Calculate per-feature density histograms for feature importance
+    feat_imp_density = {}
+    for feature, value in feat_imp:
+        # Get all SHAP values for this feature from the selection
+        feature_values = CURRENT_DATASET["shap_store"].iloc[selected_indices][feature].values
+        # Calculate histogram using min-max range
+        min_val = np.nanmin(feature_values)
+        max_val = np.nanmax(feature_values)
+        if min_val == max_val:
+            # Handle edge case where all values are the same
+            min_val = min_val - 0.5
+            max_val = max_val + 0.5
+        hist, bins = np.histogram(feature_values, bins=20, range=(min_val, max_val), density=True)
+        feat_imp_density[feature] = {
+            'counts': hist.tolist(),
+            'bins': bins.tolist(),
+            'min': float(min_val),
+            'max': float(max_val)
+        }
+
     potential_features = CURRENT_DATASET["shap_store"].columns.tolist()
 
     # Convert numpy arrays to Python lists
@@ -383,21 +404,62 @@ def process_selection(selection_ids):
 
     selection_mean_features = selected_rows[potential_features].mean().to_dict()
     normalized_occurrence = {}
+    occurrence_density = {}
+    
     for feature in potential_features:
         if (
             pd.isna(selection_mean_features[feature])
             or pd.isna(CURRENT_DATASET["summary"]["global_mean_features"][feature])
             or CURRENT_DATASET["summary"]["global_mean_features"][feature] == 0
+            or np.isnan(selection_mean_features[feature])
+            or np.isnan(CURRENT_DATASET["summary"]["global_mean_features"][feature])
         ):
             normalized_occurrence[feature] = 0
+            # For invalid features, create empty density data
+            occurrence_density[feature] = {
+                'counts': [0] * 20,
+                'bins': list(range(21)),  # 20 bins needs 21 edges
+                'min': 0,
+                'max': 0
+            }
         else:
-            normalized_occurrence[feature] = (
-                selection_mean_features[feature]
-                - CURRENT_DATASET["summary"]["global_mean_features"][feature]
-            ) / CURRENT_DATASET["summary"]["global_mean_features"][feature]
+            # Get the global mean for this feature
+            global_val = CURRENT_DATASET["summary"]["global_mean_features"][feature]
+            
+            # Calculate normalized occurrence using the mean value
+            selection_val = selection_mean_features[feature]
+            if selection_val >= global_val:
+                normalized_occurrence[feature] = min(1, (selection_val - global_val) / global_val)
+            else:
+                normalized_occurrence[feature] = max(-1, (selection_val - global_val) / global_val)
+            
+            # Handle any NaN results from the calculation
+            if np.isnan(normalized_occurrence[feature]):
+                normalized_occurrence[feature] = 0
+            
+            # Get raw feature values and handle NaNs
+            feature_values = selected_rows[feature].values
+            feature_values = np.nan_to_num(feature_values, nan=global_val)  # Replace NaNs with global mean
+            
+            # Normalize all values using the same formula as normalized_occurrence
+            normalized_values = np.where(
+                feature_values >= global_val,
+                np.minimum(1, (feature_values - global_val) / global_val),
+                np.maximum(-1, (feature_values - global_val) / global_val)
+            )
+            
+            # Calculate histogram using fixed range [-1, 1] for normalized values
+            hist, bins = np.histogram(normalized_values, bins=20, range=(-1, 1), density=True)
+            occurrence_density[feature] = {
+                'counts': hist.tolist(),
+                'bins': bins.tolist(),
+                'min': -1.0,
+                'max': 1.0
+            }
 
     return {
         "feat_imp": feat_imp,
+        "feat_imp_density": feat_imp_density,
         "hulls": hull_results,
         "spatial_coordinates": spatial_coordinates,
         "embedding_coordinates": embedding_coordinates,
@@ -405,6 +467,7 @@ def process_selection(selection_ids):
         "selection_mean_features": selection_mean_features,
         "selection_ids": [int(id) for id in selection_ids],
         "normalized_occurrence": normalized_occurrence,
+        "occurrence_density": occurrence_density
     }
 
 

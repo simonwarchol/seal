@@ -4,7 +4,7 @@ import { ToggleButton, ToggleButtonGroup, Box, Typography, IconButton } from '@m
 import useStore from '../../store';
 import DensityPlotIcon from "../../public/DensityPlot.svg";
 import LolipopPlotIcon from "../../public/LolipopPlot.svg";
-
+import DensityPlotIconWide from "../../public/DensityPlotWide.svg";
 function StickyHeader({
   featureData,
   rectWidth,
@@ -83,7 +83,7 @@ function StickyHeader({
           onMouseEnter={() => setHoveredLegend('legend')}
           onMouseLeave={() => setHoveredLegend(null)}
         >
-          {/* Importance Legend (Always on top) */}
+          {/* Color Legend (Always on top) */}
           <Box sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -91,11 +91,11 @@ function StickyHeader({
             p: 0,
           }}>
             <Typography variant="caption" sx={{ color: '#ffffff', m: 0, p: 0 }}>
-              Importance
+              {importanceInColor ? 'Importance' : 'Occurrence'}
             </Typography>
             <svg width="60" height="10">
               {importanceInColor ? (
-                // Color gradient when importanceInColor is true
+                // Importance color gradient
                 <>
                   <defs>
                     <linearGradient id="importanceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -111,40 +111,22 @@ function StickyHeader({
                   <rect width="60" height="10" fill="url(#importanceGradient)" />
                 </>
               ) : (
-                // Positive-only lollipop when importanceInColor is false
+                // Occurrence color gradient
                 <>
-                  <line
-                    x1="15"
-                    y1="5"
-                    x2="55"
-                    y2="5"
-                    stroke="#000000"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <line
-                    x1="15"
-                    y1="5"
-                    x2="55"
-                    y2="5"
-                    stroke="#ffffff"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                  />
-                  <circle
-                    cx="55"
-                    cy="5"
-                    r="2"
-                    fill="#ffffff"
-                    stroke="#000000"
-                    strokeWidth="1"
-                  />
+                  <defs>
+                    <linearGradient id="occurrenceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor={occuranceColorScale(-1)} />
+                      <stop offset="50%" stopColor={occuranceColorScale(0)} />
+                      <stop offset="100%" stopColor={occuranceColorScale(1)} />
+                    </linearGradient>
+                  </defs>
+                  <rect width="60" height="10" fill="url(#occurrenceGradient)" />
                 </>
               )}
             </svg>
           </Box>
 
-          {/* Occurrence Legend (Always bottom) */}
+          {/* Visualization Type Legend (Always bottom) */}
           <Box sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -152,99 +134,54 @@ function StickyHeader({
             p: 0,
           }}>
             <Typography variant="caption" sx={{ color: '#ffffff', m: 0, p: 0 }}>
-              Occurence
+              {importanceInColor ? 'Occurrence' : 'Importance'}
             </Typography>
-            <svg width="60" height="10">
-              {importanceInColor ? (
-                // Bidirectional lollipop when importanceInColor is true
-                <>
-                  <line
-                    x1="30"
-                    y1="5"
-                    x2="45"
-                    y2="5"
-                    stroke="#000000"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <line
-                    x1="30"
-                    y1="5"
-                    x2="45"
-                    y2="5"
-                    stroke="#ffffff"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                  />
-                  <circle
-                    cx="45"
-                    cy="5"
-                    r="2"
-                    fill="#ffffff"
-                    stroke="#000000"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x="50"
-                    y="8"
-                    fontSize="8"
-                    fill="#ffffff"
-                  >
-                    +
-                  </text>
-                  <line
-                    x1="30"
-                    y1="5"
-                    x2="15"
-                    y2="5"
-                    stroke="#000000"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <line
-                    x1="30"
-                    y1="5"
-                    x2="15"
-                    y2="5"
-                    stroke="#ffffff"
-                    strokeWidth="1"
-                    strokeLinecap="round"
-                  />
-                  <circle
-                    cx="15"
-                    cy="5"
-                    r="2"
-                    fill="#ffffff"
-                    stroke="#000000"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x="5"
-                    y="8"
-                    fontSize="8"
-                    fill="#ffffff"
-                  >
-                    -
-                  </text>
-                </>
-              ) : (
-                // Occurrence color gradient when importanceInColor is false
-                <>
-                  <defs>
-                    <linearGradient id="occurrenceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      {Array.from({ length: 10 }).map((_, i) => (
-                        <stop
-                          key={i}
-                          offset={`${i * 10}%`}
-                          stopColor={occuranceColorScale ? occuranceColorScale(-1 + (i * 0.2)) : '#000000'}
-                        />
-                      ))}
-                    </linearGradient>
-                  </defs>
-                  <rect width="60" height="10" fill="url(#occurrenceGradient)" />
-                </>
-              )}
-            </svg>
+            {showLolipops ? (
+              // Lollipop visualization
+              <svg width="60" height="10">
+                <line
+                  x1="15"
+                  y1="5"
+                  x2="55"
+                  y2="5"
+                  stroke="#000000"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+                <line
+                  x1="15"
+                  y1="5"
+                  x2="55"
+                  y2="5"
+                  stroke="#ffffff"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                />
+                <circle
+                  cx="55"
+                  cy="5"
+                  r="2"
+                  fill="#ffffff"
+                  stroke="#000000"
+                  strokeWidth="1"
+                />
+              </svg>
+            ) : (
+              // Distribution visualization
+              <img 
+                src={DensityPlotIconWide}
+                alt="Distribution"
+                style={{
+                  width: '60px',
+                  height: '15px',
+                  filter: 'brightness(0) invert(1)', // Make it white
+                  objectFit: 'none',
+                  transform: 'scale(1, 1)',
+                  transformOrigin: 'center',
+                  marginTop: '-2px'
+                }}
+              />
+            )}
           </Box>
           {hoveredLegend === 'legend' && (
             <div

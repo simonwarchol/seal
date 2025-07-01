@@ -15,7 +15,8 @@ function FeatureHeatmap({
   const hiddenFeatures = useStore((state) => state.hiddenFeatures);
   const maxRelativeOccurance = useStore((state) => state.maxRelativeOccurance);
   const maxRelativeFeatureImportance = useStore((state) => state.maxRelativeFeatureImportance);
-  console.log('maxRelativeOccurance', maxRelativeOccurance)
+  const showLolipops = useStore((state) => state.showLolipops);
+
   useEffect(() => {
     if (!featureData?.feat_imp || !width || !importanceColorScale || !occuranceColorScale) return;
 
@@ -34,18 +35,12 @@ function FeatureHeatmap({
 
     const maxFeatureImportance = Math.max(...sortedFeatures.map(d => d[1]));
 
-    // const sortedRelativeOccurance = [...featureData.normalized_occurrence]
-    //   .filter(([feature]) => !hiddenFeatures.includes(feature))
-    //   .sort((a, b) => a[0].localeCompare(b[0]));
-
-
     // Adjust height based on visible features
     const rectHeight = height / sortedFeatures.length;
     const halfWidth = width / 2;
 
     // Create a group for the rectangles
     const g = svg.append("g");
-    console.log('xxx', JSON.stringify(sortedFeatures))
 
     // Add background rectangles with colors
     g.selectAll(".background-rect")
@@ -58,90 +53,146 @@ function FeatureHeatmap({
       .attr("fill", d => importanceInColor ?
         importanceColorScale(d[1]) :
         occuranceColorScale(featureData.normalized_occurrence[d[0]])
-      );
+      )
+      .on("mouseover", (event, d) => {
+        if (!importanceInColor) {
+          const value = featureData.normalized_occurrence[d[0]];
+          console.log(`xxx ${d[0]} occurrence: ${value}`);
+        }
+      });
 
-    if (importanceInColor) {
-      // Add diverging lollipops for occurrence differences
-      g.selectAll(".occurrence-line")
-        .data(sortedFeatures)
-        .join("line")
-        .attr("x1", halfWidth)
-        .attr("x2", d => {
-          const diff = featureData.normalized_occurrence[d[0]];
-          // Scale by maxRelativeOccurance
-          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
-        })
-        .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("stroke", "#000000")
-        .attr("stroke-width", 2)
-        .attr("stroke-linecap", "round")
-        .clone(true)
-        .attr("stroke", "#ffffff")
-        .attr("stroke-width", 2);
+    if (!showLolipops) {
+      // Draw density plots for each feature
+      sortedFeatures.forEach((feature, i) => {
+        const densityData = importanceInColor ? 
+          (featureData.feat_imp_density && featureData.feat_imp_density[feature[0]]) : 
+          (featureData.occurrence_density && featureData.occurrence_density[feature[0]]);
 
-      // Add circles at the end of occurrence lollipops
-      g.selectAll(".occurrence-circle")
-        .data(sortedFeatures)
-        .join("circle")
-        .attr("cx", d => {
-          const diff = featureData.normalized_occurrence[d[0]];
-          // Scale by maxRelativeOccurance
-          return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
-        })
-        .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("r", rectHeight / 4)
-        .attr("fill", "#ffffff")
-        .attr("stroke", "#000000")
-        .attr("stroke-width", 1);
+        if (!densityData || !densityData.bins || !densityData.counts) return;
 
-      // Add center line
-      g.append("line")
-        .attr("x1", halfWidth)
-        .attr("x2", halfWidth)
-        .attr("y1", 0)
-        .attr("y2", height)
-        .attr("stroke", "#666")
-        .attr("stroke-width", 1);
+        // Create scales for the density plot
+        const xScale = d3.scaleLinear()
+          .domain([densityData.min, densityData.max])
+          .range([0, width]);
+
+        const yScale = d3.scaleLinear()
+          .domain([0, Math.max(...densityData.counts)])
+          .range([rectHeight, 0]);
+
+        // Create area generator
+        const area = d3.area()
+          .x((d, i) => xScale((densityData.bins[i] + densityData.bins[i + 1]) / 2))
+          .y0(rectHeight)
+          .y1(d => yScale(d))
+          .curve(d3.curveBasis);
+
+        // Create a group for this feature's density plot
+        const featureGroup = g.append("g")
+          .attr("transform", `translate(0, ${i * rectHeight})`);
+
+        // Draw the density area
+        featureGroup.append("path")
+          .datum(densityData.counts)
+          .attr("fill", "rgba(255, 255, 255, 0.3)")
+          .attr("d", area);
+
+        // Draw the top line of the density plot with a black stroke
+        featureGroup.append("path")
+          .datum(densityData.counts)
+          .attr("fill", "none")
+          .attr("stroke", "black")
+          .attr("stroke-width", 0.5)
+          .attr("d", area);
+      });
     } else {
-      // Show importance lollipops
-      const importanceScale = d3.scaleLinear()
-        .domain([0, maxFeatureImportance])  // Feature importance values are always positive
-        .range([0, width * 0.9]);  // Use 90% of total width for better visibility
+      if (importanceInColor) {
+        // Add diverging lollipops for occurrence differences
+        g.selectAll(".occurrence-line")
+          .data(sortedFeatures)
+          .join("line")
+          .attr("x1", halfWidth)
+          .attr("x2", d => {
+            const diff = featureData.normalized_occurrence[d[0]];
+            // Handle NaN or undefined values
+            if (diff === undefined || isNaN(diff)) return halfWidth;
+            // Scale by maxRelativeOccurance
+            return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
+          })
+          .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("stroke", "#000000")
+          .attr("stroke-width", 2)
+          .attr("stroke-linecap", "round")
+          .clone(true)
+          .attr("stroke", "#ffffff")
+          .attr("stroke-width", 1);
 
-      g.selectAll(".importance-line")
-        .data(sortedFeatures)
-        .join("line")
-        .attr("x1", 0)
-        .attr("x2", d => {
-          console.log('xxx', d[1])
-          return importanceScale(d[1])
-        })
-        .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("stroke", "#000000")
-        .attr("stroke-width", 2)
-        .attr("stroke-linecap", "round")
-        .clone(true)
-        .attr("stroke", "#ffffff")
-        .attr("stroke-width", 1);
+        // Add circles at the end of occurrence lollipops
+        g.selectAll(".occurrence-circle")
+          .data(sortedFeatures)
+          .join("circle")
+          .attr("cx", d => {
+            const diff = featureData.normalized_occurrence[d[0]];
+            // Handle NaN or undefined values
+            if (diff === undefined || isNaN(diff)) return halfWidth;
+            // Scale by maxRelativeOccurance
+            return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
+          })
+          .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("r", rectHeight / 4)
+          .attr("fill", "#ffffff")
+          .attr("stroke", "#000000")
+          .attr("stroke-width", 1);
 
-      g.selectAll(".importance-circle")
-        .data(sortedFeatures)
-        .join("circle")
-        .attr("cx", d => importanceScale(d[1]))
-        .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
-        .attr("r", rectHeight / 6)
-        .attr("fill", "#ffffff")
-        .attr("stroke", "#000000")
-        .attr("stroke-width", 1);
+        // Add center line
+        g.append("line")
+          .attr("x1", halfWidth)
+          .attr("x2", halfWidth)
+          .attr("y1", 0)
+          .attr("y2", height)
+          .attr("stroke", "#666")
+          .attr("stroke-width", 1);
+      } else {
+        // Show importance lollipops
+        const importanceScale = d3.scaleLinear()
+          .domain([0, maxFeatureImportance])  // Feature importance values are always positive
+          .range([0, width * 0.9]);  // Use 90% of total width for better visibility
+
+        g.selectAll(".importance-line")
+          .data(sortedFeatures)
+          .join("line")
+          .attr("x1", 0)
+          .attr("x2", d => importanceScale(d[1]))
+          .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("stroke", "#000000")
+          .attr("stroke-width", 2)
+          .attr("stroke-linecap", "round")
+          .clone(true)
+          .attr("stroke", "#ffffff")
+          .attr("stroke-width", 1);
+
+        g.selectAll(".importance-circle")
+          .data(sortedFeatures)
+          .join("circle")
+          .attr("cx", d => importanceScale(d[1]))
+          .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("r", rectHeight / 6)
+          .attr("fill", "#ffffff")
+          .attr("stroke", "#000000")
+          .attr("stroke-width", 1);
+      }
     }
 
-  }, [featureData, width, importanceColorScale, occuranceColorScale, importanceInColor, hiddenFeatures, maxRelativeOccurance, maxRelativeFeatureImportance]);
+  }, [featureData, width, importanceColorScale, occuranceColorScale, importanceInColor, hiddenFeatures, maxRelativeOccurance, maxRelativeFeatureImportance, showLolipops]);
 
-  // Set initial dimensions
   return (
-    <svg ref={svgRef} width={width} height={'100%'} />
+    <svg
+      ref={svgRef}
+      width={width}
+      height="100%"
+      style={{ display: 'block' }}
+    />
   );
 }
 
