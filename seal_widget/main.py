@@ -95,7 +95,7 @@ def get_dataset_paths(dataset_name):
             # "set_csv_path": f"{base_url}/small.csv",
             # "parquet_path": f"{base_url}/df.parquet",
             "csv_path": f"{base_url}/df.parquet",
-            "set_csv_path": None,
+            "set_csv_path": 'https://vae-bed.s3.us-east-2.amazonaws.com/small.csv',
             "parquet_path": f"{base_url}/df.parquet",
             "image_path": f"{base_url}/image.ome.tif",
             "segmentation_path": f"{base_url}/mask.ome.tif",
