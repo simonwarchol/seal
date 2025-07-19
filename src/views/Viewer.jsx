@@ -150,7 +150,6 @@ function Viewer({ value, setValue, height, config, width }) {
   };
   const gregDataset = {
     // embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/greg_tiled.ome.tif",
-    // embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif",
     embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif",
     // embeddingImageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
     // embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif",
@@ -159,9 +158,7 @@ function Viewer({ value, setValue, height, config, width }) {
     // csvUrl: "http://localhost:8181/files/set_csv.csv",
     csvUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.csv",
     parquetUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.parquet",
-    // parquetUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.parquet",
     contourUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/contour.json",
-    // clusterColumns: ["kmeans", "cluster_2d"],
     clusterColumns: ["hdbscan"],
     imageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
     shapUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/shap.parquet",
@@ -206,18 +203,17 @@ function Viewer({ value, setValue, height, config, width }) {
       contourUrl: `${baseUrl}/contour.json`,
       shapUrl: `${baseUrl}/shap.parquet`
     };
-    // if (datasetId === 'WD-76845-097') {
-    //   conf.embeddingImageUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif";
-    //   conf.embeddingSegmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif";
-    //   conf.clusterColumns = ["hdbscan"];
-    //   conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
-    //   conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
-    // }
+    if (datasetId === 'WD-76845-097') {
+      conf.clusterColumns = ["hdbscan"];
+      conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
+      conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
+    }
     console.log('conf', conf);
     return conf;
   };
 
-  let dataset = config || getDatasetConfig(datasetId) || gregDataset;
+
+  let dataset =  config || getDatasetConfig(datasetId) || gregDataset;
   console.log('dataset', dataset);
 
 
@@ -356,7 +352,6 @@ function Viewer({ value, setValue, height, config, width }) {
   // const v4 = vc.addView(ds1, "myCustomZoomController");
   vc.layout(vconcat(hconcat(v1, v3), v5));
   // vc.layout(hconcat(v1));
-  console.log('WindowHeight', windowHeight)
 
 
   return (

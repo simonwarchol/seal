@@ -91,9 +91,17 @@ def get_dataset_paths(dataset_name):
     elif dataset_name == "WD-76845-097":
         base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097"
         return {
-            "csv_path": f"{base_url}/small.csv",
-            "set_csv_path": f"{base_url}/small.csv",
+            # "csv_path": f"{base_url}/small.csv",
+            # "set_csv_path": f"{base_url}/small.csv",
+            # "parquet_path": f"{base_url}/df.parquet",
+            "csv_path": f"{base_url}/df.parquet",
+            "set_csv_path": None,
             "parquet_path": f"{base_url}/df.parquet",
+            "image_path": f"{base_url}/image.ome.tif",
+            "segmentation_path": f"{base_url}/mask.ome.tif",
+            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
+            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
+            "shap_path": f"{base_url}/shap.parquet"
         }
     else:
         base_path = "/Users/swarchol/Research/seal/data"
@@ -127,6 +135,7 @@ def load_dataset(dataset_name, df=None):
         "paths": None
     }
     
+    print('dataset_name', dataset_name)
     paths = get_dataset_paths(dataset_name)
     
     # Load the data
@@ -370,20 +379,29 @@ def process_selection(selection_ids):
     for feature, value in feat_imp:
         # Get all SHAP values for this feature from the selection
         feature_values = CURRENT_DATASET["shap_store"].iloc[selected_indices][feature].values
+        # Replace infinite values with NaN
+        feature_values = np.nan_to_num(feature_values, nan=np.nan, posinf=np.nan, neginf=np.nan)
         # Calculate histogram using min-max range
         min_val = np.nanmin(feature_values)
         max_val = np.nanmax(feature_values)
-        if min_val == max_val:
-            # Handle edge case where all values are the same
-            min_val = min_val - 0.5
-            max_val = max_val + 0.5
-        hist, bins = np.histogram(feature_values, bins=20, range=(min_val, max_val), density=True)
-        feat_imp_density[feature] = {
-            'counts': hist.tolist(),
-            'bins': bins.tolist(),
-            'min': float(min_val),
-            'max': float(max_val)
-        }
+        if min_val == max_val or np.isnan(min_val) or np.isnan(max_val):
+            # Handle edge case where all values are the same or invalid
+            feat_imp_density[feature] = {
+                'counts': [0] * 20,
+                'bins': list(range(21)),  # 20 bins needs 21 edges
+                'min': 0,
+                'max': 0
+            }
+        else:
+            hist, bins = np.histogram(feature_values, bins=20, range=(min_val, max_val), density=True)
+            # Replace any NaN or infinite values in histogram with 0
+            hist = np.nan_to_num(hist, nan=0.0, posinf=0.0, neginf=0.0)
+            feat_imp_density[feature] = {
+                'counts': hist.tolist(),
+                'bins': bins.tolist(),
+                'min': float(min_val),
+                'max': float(max_val)
+            }
 
     potential_features = CURRENT_DATASET["shap_store"].columns.tolist()
 
@@ -423,11 +441,10 @@ def process_selection(selection_ids):
                 'max': 0
             }
         else:
-            # Get the global mean for this feature
-            global_val = CURRENT_DATASET["summary"]["global_mean_features"][feature]
-            
             # Calculate normalized occurrence using the mean value
             selection_val = selection_mean_features[feature]
+            global_val = CURRENT_DATASET["summary"]["global_mean_features"][feature]
+            
             if selection_val >= global_val:
                 normalized_occurrence[feature] = min(1, (selection_val - global_val) / global_val)
             else:
@@ -437,25 +454,33 @@ def process_selection(selection_ids):
             if np.isnan(normalized_occurrence[feature]):
                 normalized_occurrence[feature] = 0
             
-            # Get raw feature values and handle NaNs
+            # Calculate density histogram using raw feature values
             feature_values = selected_rows[feature].values
-            feature_values = np.nan_to_num(feature_values, nan=global_val)  # Replace NaNs with global mean
+            # Replace infinite values with NaN
+            feature_values = np.nan_to_num(feature_values, nan=np.nan, posinf=np.nan, neginf=np.nan)
             
-            # Normalize all values using the same formula as normalized_occurrence
-            normalized_values = np.where(
-                feature_values >= global_val,
-                np.minimum(1, (feature_values - global_val) / global_val),
-                np.maximum(-1, (feature_values - global_val) / global_val)
-            )
+            # Calculate histogram using min-max range of raw values
+            min_val = np.nanmin(feature_values)
+            max_val = np.nanmax(feature_values)
             
-            # Calculate histogram using fixed range [-1, 1] for normalized values
-            hist, bins = np.histogram(normalized_values, bins=20, range=(-1, 1), density=True)
-            occurrence_density[feature] = {
-                'counts': hist.tolist(),
-                'bins': bins.tolist(),
-                'min': -1.0,
-                'max': 1.0
-            }
+            if min_val == max_val or np.isnan(min_val) or np.isnan(max_val):
+                # Handle edge case where all values are the same or invalid
+                occurrence_density[feature] = {
+                    'counts': [0] * 20,
+                    'bins': list(range(21)),  # 20 bins needs 21 edges
+                    'min': 0,
+                    'max': 0
+                }
+            else:
+                hist, bins = np.histogram(feature_values[~np.isnan(feature_values)], bins=20, range=(min_val, max_val), density=True)
+                # Replace any NaN or infinite values in histogram with 0
+                hist = np.nan_to_num(hist, nan=0.0, posinf=0.0, neginf=0.0)
+                occurrence_density[feature] = {
+                    'counts': hist.tolist(),
+                    'bins': bins.tolist(),
+                    'min': float(min_val),
+                    'max': float(max_val)
+                }
 
     return {
         "feat_imp": feat_imp,
