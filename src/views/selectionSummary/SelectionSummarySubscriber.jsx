@@ -103,7 +103,7 @@ export function SelectionsSummarySubscriber(props) {
   const { loaders: imageLayerLoaders, meta: imageLayerMeta } = image || {};
 
   // log sets
-  console.log('cellSets', loaders);
+  // console.log('cellSets', loaders);
 
   // Merge the cell sets with additional sets
   const mergedCellSets = useMemo(

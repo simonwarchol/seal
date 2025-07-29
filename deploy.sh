@@ -9,7 +9,7 @@ PORT="80"  # <-- Change this if your app uses a different port
 
 # === Build and Push ===
 echo "🔨 Building Docker image..."
-docker build --platform linux/amd64 -t seal .
+docker build  --no-cache --platform linux/amd64 -t seal .
 
 echo "🔐 Logging in to ECR..."
 aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${ECR_IMAGE%:*}"

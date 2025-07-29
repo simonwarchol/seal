@@ -1,6 +1,5 @@
 # Build stage for frontend
-FROM oven/bun:1 as builder
-
+FROM oven/bun:1 AS builder
 WORKDIR /build
 
 # Copy only the files needed for installing dependencies
@@ -10,7 +9,7 @@ RUN bun install
 # Copy source files and build configuration
 COPY src ./src
 COPY rsbuild.config.mjs ./
-RUN bun run build
+RUN exec bun run build
 
 # Final stage
 FROM python:3.10-slim

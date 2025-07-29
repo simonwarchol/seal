@@ -46,7 +46,7 @@ function LandingPage() {
                     alt="SEAL Logo Box"
                     style={{
                         width: 'auto',
-                        height: '30vh',
+                        height: '20vh',
                         marginBottom: '0'
                     }}
                 />
@@ -67,6 +67,7 @@ function LandingPage() {
                         <span style={{ color: '#4973ff' }}> L</span>inked
                     </span> Imaging Data
                 </Typography>
+
 
                 {/* Authors */}
                 <Typography
@@ -123,6 +124,39 @@ function LandingPage() {
                         </Typography>
                     </div>
                 </MobileView>
+
+
+                {/* bioRxiv Preprint Link */}
+                <div style={{ marginBottom: '30px' }}>
+                    <Typography
+                        component="a"
+                        href="https://www.biorxiv.org/content/10.1101/2025.07.19.665696"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            color: '#ffffff',
+                            backgroundColor: '#4973ff',
+                            padding: '10px 20px',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '1.1rem',
+                            fontWeight: 'bold',
+                            display: 'inline-block',
+                            transition: 'background-color 0.3s ease',
+                            border: '2px solid #4973ff'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#4973ff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#4973ff';
+                            e.target.style.color = '#ffffff';
+                        }}
+                    >
+                        📄 Preprint
+                    </Typography>
+                </div>
 
                 {/* Dataset Grid */}
                 <div style={{
