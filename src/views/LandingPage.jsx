@@ -22,8 +22,14 @@ const datasets = [
 
 // Version Footer Component
 function VersionFooter() {
-    const gitHash = process.env.REACT_APP_GIT_HASH || 'unknown';
-    const buildDate = process.env.REACT_APP_BUILD_DATE || 'unknown';
+    const buildDate = process.env.REACT_APP_BUILD_DATE || new Date().toLocaleString('en-US', { 
+        timeZone: 'America/New_York',
+        month: '2-digit',
+        day: '2-digit', 
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    }).replace(',', '');
     
     return (
         <div style={{
@@ -40,7 +46,7 @@ function VersionFooter() {
             pointerEvents: 'none',
             opacity: 0.7
         }}>
-            v{gitHash.substring(0, 7)} • {buildDate}
+            {buildDate} EST
         </div>
     );
 }

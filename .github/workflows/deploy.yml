@@ -46,10 +46,7 @@ jobs:
 
       - name: Build, tag, and push Docker image
         run: |
-          docker build --platform linux/amd64 \
-            --build-arg REACT_APP_GIT_HASH=$REACT_APP_GIT_HASH \
-            --build-arg REACT_APP_BUILD_DATE="$REACT_APP_BUILD_DATE" \
-            -t seal .
+          docker build --platform linux/amd64 -t seal .
 
           docker tag seal:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
