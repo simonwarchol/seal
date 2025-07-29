@@ -11,6 +11,10 @@ const isDev = process.env.NODE_ENV === 'development';
 console.log('isDev', isDev)
 const apiUrl = isDev ? 'http://0.0.0.0:8181' : '/api';
 
+// Get version information from environment variables
+const gitHash = process.env.REACT_APP_GIT_HASH || 'dev';
+const buildDate = process.env.REACT_APP_BUILD_DATE || new Date().toISOString().split('T')[0];
+
 export default defineConfig({
   environments: {
     widget: {
@@ -55,6 +59,8 @@ export default defineConfig({
         define: {
           'process.env.BASE_URL': JSON.stringify('http://0.0.0.0:8181'),
           'import.meta.env.BASE_URL': JSON.stringify('http://0.0.0.0:8181'),
+          'process.env.REACT_APP_GIT_HASH': JSON.stringify(gitHash),
+          'process.env.REACT_APP_BUILD_DATE': JSON.stringify(buildDate),
         },
       },
     },
@@ -80,6 +86,8 @@ export default defineConfig({
         define: {
           'process.env.BASE_URL': JSON.stringify(apiUrl),
           'import.meta.env.BASE_URL': JSON.stringify(apiUrl),
+          'process.env.REACT_APP_GIT_HASH': JSON.stringify(gitHash),
+          'process.env.REACT_APP_BUILD_DATE': JSON.stringify(buildDate),
         },
       },
     },

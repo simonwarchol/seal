@@ -20,6 +20,31 @@ const datasets = [
     }
 ];
 
+// Version Footer Component
+function VersionFooter() {
+    const gitHash = process.env.REACT_APP_GIT_HASH || 'unknown';
+    const buildDate = process.env.REACT_APP_BUILD_DATE || 'unknown';
+    
+    return (
+        <div style={{
+            position: 'fixed',
+            bottom: '5px',
+            right: '5px',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            color: '#888888',
+            padding: '2px 6px',
+            borderRadius: '3px',
+            fontSize: '0.6rem',
+            fontFamily: 'monospace',
+            zIndex: 1000,
+            pointerEvents: 'none',
+            opacity: 0.7
+        }}>
+            v{gitHash.substring(0, 7)} • {buildDate}
+        </div>
+    );
+}
+
 function LandingPage() {
     const navigate = useNavigate();
 
@@ -219,6 +244,9 @@ function LandingPage() {
                     ))}
                 </div>
             </div>
+
+            {/* Version Footer */}
+            <VersionFooter />
         </section>
     );
 }
