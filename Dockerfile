@@ -2,6 +2,14 @@
 FROM oven/bun:1 AS builder
 WORKDIR /build
 
+# Accept build arguments for version information
+ARG REACT_APP_GIT_HASH
+ARG REACT_APP_BUILD_DATE
+
+# Set them as environment variables for the build process
+ENV REACT_APP_GIT_HASH=$REACT_APP_GIT_HASH
+ENV REACT_APP_BUILD_DATE=$REACT_APP_BUILD_DATE
+
 # Copy only the files needed for installing dependencies
 COPY package.json bun.lockb ./
 RUN bun install

@@ -13,7 +13,14 @@ const apiUrl = isDev ? 'http://0.0.0.0:8181' : '/api';
 
 // Get version information from environment variables
 const gitHash = process.env.REACT_APP_GIT_HASH || 'dev';
-const buildDate = process.env.REACT_APP_BUILD_DATE || new Date().toISOString().split('T')[0];
+const buildDate = process.env.REACT_APP_BUILD_DATE || new Date().toLocaleString('en-US', { 
+  timeZone: 'America/New_York',
+  month: '2-digit',
+  day: '2-digit', 
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false
+}).replace(',', '');
 
 export default defineConfig({
   environments: {
