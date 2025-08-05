@@ -157,8 +157,15 @@ function LandingPage() {
                 </MobileView>
 
 
-                {/* bioRxiv Preprint Link */}
-                <div style={{ marginBottom: '30px' }}>
+                {/* External Links */}
+                <div style={{ 
+                    marginBottom: '30px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '15px',
+                    flexWrap: 'wrap'
+                }}>
+                    {/* bioRxiv Preprint Link */}
                     <Typography
                         component="a"
                         href="https://www.biorxiv.org/content/10.1101/2025.07.19.665696"
@@ -186,6 +193,36 @@ function LandingPage() {
                         }}
                     >
                         📄 Preprint
+                    </Typography>
+
+                    {/* GitHub Link */}
+                    <Typography
+                        component="a"
+                        href="https://github.com/simonwarchol/seal"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            color: '#ffffff',
+                            backgroundColor: '#333333',
+                            padding: '10px 20px',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontSize: '1.1rem',
+                            fontWeight: 'bold',
+                            display: 'inline-block',
+                            transition: 'background-color 0.3s ease',
+                            border: '2px solid #333333'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#333333';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#333333';
+                            e.target.style.color = '#ffffff';
+                        }}
+                    >
+                        🐙 GitHub
                     </Typography>
                 </div>
 
