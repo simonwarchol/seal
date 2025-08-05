@@ -14,6 +14,8 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 import os
+import pickle
+import hashlib
 import tifffile as tf
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
@@ -496,11 +498,73 @@ def process_selection(selection_ids):
     }
 
 
+def create_cache_key(path: List[str], dataset_name: str) -> str:
+    """Create a unique cache key based on selection path and dataset name"""
+    # Combine path elements and dataset name to create a unique identifier
+    cache_str = f"{dataset_name}_{'_'.join(path)}"
+    # Create a hash to handle long paths and special characters
+    return hashlib.md5(cache_str.encode()).hexdigest()
+
+
+def get_cache_filepath(cache_key: str) -> str:
+    """Get the full file path for a cache key"""
+    cache_dir = "selection_cache"
+    os.makedirs(cache_dir, exist_ok=True)
+    return os.path.join(cache_dir, f"{cache_key}.pickle")
+
+
+def load_cached_selection(cache_key: str) -> Optional[Dict]:
+    """Load cached selection data if it exists"""
+    cache_filepath = get_cache_filepath(cache_key)
+    if os.path.exists(cache_filepath):
+        try:
+            with open(cache_filepath, 'rb') as f:
+                return pickle.load(f)
+        except Exception as e:
+            print(f"Error loading cache file {cache_filepath}: {e}")
+            # Remove corrupted cache file
+            try:
+                os.remove(cache_filepath)
+            except:
+                pass
+    return None
+
+
+def save_cached_selection(cache_key: str, data: Dict) -> None:
+    """Save selection data to cache"""
+    cache_filepath = get_cache_filepath(cache_key)
+    try:
+        with open(cache_filepath, 'wb') as f:
+            pickle.dump(data, f)
+    except Exception as e:
+        print(f"Error saving cache file {cache_filepath}: {e}")
+
+
 @app.post("/selection/{dataset_name}")
 async def selection(dataset_name: str, selection_data: SelectionSet):
     dataset = load_dataset(dataset_name)
+    
+    # Check if this selection should be cached (path[0] is NOT "My Selections")
+    should_cache = len(selection_data.path) > 0 and selection_data.path[0] != "My Selections"
+    
+    if should_cache:
+        # Create cache key and check for existing cached data
+        cache_key = create_cache_key(selection_data.path, dataset_name)
+        cached_data = load_cached_selection(cache_key)
+        
+        if cached_data is not None:
+            print(f"Returning cached data for selection: {selection_data.path}")
+            return {"message": "Complete", "data": cached_data}
+    
+    # Process selection (either not cacheable or not in cache)
     selection_ids = [parse_id(_) for _ in selection_data.set]
     response_data = process_selection(selection_ids)
+    
+    # Save to cache if this selection should be cached
+    if should_cache:
+        print(f"Caching selection data for: {selection_data.path}")
+        save_cached_selection(cache_key, response_data)
+    
     return {"message": "Complete", "data": response_data}
 
 

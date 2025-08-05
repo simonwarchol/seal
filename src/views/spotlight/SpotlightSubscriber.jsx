@@ -3120,7 +3120,7 @@ export function SpotlightSubscriber(props) {
         contours={contours}
         showPoints={showPoints}
       />
-      {tooltipsVisible && (
+      {/* {tooltipsVisible && (
         <SpatialTooltipSubscriber
           parentUuid={uuid}
           obsHighlight={cellHighlight}
@@ -3132,7 +3132,7 @@ export function SpotlightSubscriber(props) {
           hoverCoord={hoverCoord}
           getObsIdFromHoverData={getObsIdFromHoverData}
         />
-      )}
+      )} */}
       <Legend
         visible
         // Fix to dark theme due to black background of spatial plot.
