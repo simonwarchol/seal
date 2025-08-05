@@ -20,6 +20,10 @@ function StickyHeader({
   occuranceColorScale,
   importanceInColor = true,
   setImportanceInColor,
+  selections = [],
+  setCompareSelections,
+  sortedSelections = [],
+  setIsCompareModeActive,
   ...props
 }) {
   const hiddenFeatures = useStore((state) => state.hiddenFeatures);
@@ -290,7 +294,25 @@ function StickyHeader({
           <ToggleButton
             value="channels"
             m={0}
-            onClick={() => setCompareMode(!compareMode)}
+            onClick={() => {
+              const newCompareMode = !compareMode;
+              setCompareMode(newCompareMode);
+              
+              // If enabling compare mode and exactly 2 selections are visible, auto-select them
+              if (newCompareMode && selections && selections.length === 2) {
+                // Convert selections to the format expected by setCompareSelections
+                const selectionObjects = selections.map(selectionPath => {
+                  // Find the corresponding selection object from sortedSelections
+                  const matchingSelection = sortedSelections.find(s => 
+                    s.path[0] === selectionPath[0] && s.path[1] === selectionPath[1]
+                  );
+                  return matchingSelection || { path: selectionPath };
+                });
+                
+                setCompareSelections(selectionObjects);
+                setIsCompareModeActive(true); // Set to true since we have exactly 2 selections
+              }
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',

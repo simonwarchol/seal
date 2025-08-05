@@ -79,11 +79,11 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
         };
     }, [setFeatures]);
 
-    const handleViewChange = (event, newMode) => {
-        if (newMode !== null) {
-            setViewMode(newMode);
-        }
-    };
+    // const handleViewChange = (event, newMode) => {
+    //     if (newMode !== null) {
+    //         setViewMode(newMode);
+    //     }
+    // };
 
     const [rectWidth, setRectWidth] = useState(0);
     const [compareSelections, setCompareSelections] = useState([]);
@@ -427,6 +427,10 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         occuranceColorScale={occuranceColorScale}
                         importanceInColor={importanceInColor}
                         setImportanceInColor={setImportanceInColor}
+                        selections={selections}
+                        setCompareSelections={setCompareSelections}
+                        sortedSelections={sortedSelections}
+                        setIsCompareModeActive={setIsCompareModeActive}
                     />
 
                     {/* Only show the comparison UI when in compare mode */}
