@@ -418,6 +418,7 @@ uniform bool selectedBackground;
 uniform bool backgroundColorWhite;
 uniform bool spotlightSelection;
 uniform bool outlineSelection;
+uniform float segmentationLayerOpacity;
 
 varying vec2 vTexCoord;
 // Check if a pixel is part of the outline by sampling neighboring pixels
@@ -690,10 +691,13 @@ void main() {
         sampledColor = sampleAndGetColor(channel5, vTexCoord, channelsVisible[5]);
         gl_FragColor = (sampledColor == gl_FragColor || sampledColor == vec4(0.)) ? gl_FragColor : sampledColor;
 
-        // Apply opacity
+        // Apply opacity - only use segmentationLayerOpacity for segmentation layers
         float alpha = opacity;
         if (gl_FragColor.rgb == vec3(0., 0., 0.)) {
             alpha = 0.0;
+        } else {
+            // Apply segmentation layer opacity only when we have non-background content
+            alpha = alpha * segmentationLayerOpacity;
         }
         gl_FragColor = vec4(gl_FragColor.rgb, alpha);
     }
@@ -713,6 +717,7 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
       model: this._getModel(gl),
       channelsVisible: new Array(6).fill(false),
       backgroundColorWhite: false,
+      segmentationLayerOpacity: 1.0,
       opacity: 1.0
     });
   }
@@ -737,14 +742,15 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
       model,
       channelsVisible,
       backgroundColorWhite,
-      opacity
+      opacity,
+      segmentationLayerOpacity
     } = this.state;
 
     const spotlightSelection = this?.props?.spotlightSelection ?? false;
     const outlineSelection = this?.props?.outlineSelection ?? false;
     const selectedBackground = this?.props?.selectedBackground === 'show';
     const currentBackgroundColorWhite = this?.props?.backgroundColorWhite ?? false;
-
+    const currentSegmentationLayerOpacity = this?.props?.segmentationLayerOpacity ?? 1.0;
     // Update state if needed
     if (currentBackgroundColorWhite !== backgroundColorWhite) {
       this.setState({ backgroundColorWhite: currentBackgroundColorWhite });
@@ -761,7 +767,8 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
           spotlightSelection,
           outlineSelection,
           backgroundColorWhite: currentBackgroundColorWhite,
-          opacity
+          opacity,
+          segmentationLayerOpacity: currentSegmentationLayerOpacity
         })
       )
       .draw();
@@ -772,9 +779,12 @@ export class SpotlightBitmaskLayer extends BitmaskLayer {
     super.updateState({ props, oldProps, changeFlags });
     
     if (changeFlags.propsChanged) {
-      const { backgroundColorWhite } = props;
+      const { backgroundColorWhite, segmentationLayerOpacity } = props;
       if (backgroundColorWhite !== oldProps.backgroundColorWhite) {
         this.setState({ backgroundColorWhite });
+      }
+      if (segmentationLayerOpacity !== oldProps.segmentationLayerOpacity) {
+        this.setState({ segmentationLayerOpacity });
       }
     }
   }

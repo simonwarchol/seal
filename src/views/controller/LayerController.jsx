@@ -747,7 +747,7 @@ export default function LayerController(props) {
                     <Slider
                       id={`layer-${name}-opacity-closed`}
                       value={opacity}
-                      onChange={(e, v) => setOpacity(v)}
+                      onChange={(e, v) => setOpacity(v, true)}
                       valueLabelDisplay="auto"
                       aria-label={`Adjust opacity for layer ${name}`}
                       min={0}

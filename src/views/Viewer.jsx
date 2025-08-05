@@ -210,7 +210,7 @@ function Viewer({ value, setValue, height, config, width }) {
       conf.csvUrl = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/small.csv";
       conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
       conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
-      conf.initialChannels = ["FOXP3","CD45", "CD20"];
+      conf.initialChannels = ["Collagen","Desmin", "CD20"];
     }
     return conf;
   };
