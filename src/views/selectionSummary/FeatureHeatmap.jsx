@@ -46,10 +46,13 @@ function FeatureHeatmap({
     g.selectAll(".background-rect")
       .data(sortedFeatures)
       .join("rect")
-      .attr("x", 0)
-      .attr("y", (d, i) => i * rectHeight)
-      .attr("width", width)
-      .attr("height", rectHeight)
+              .attr("x", 0)
+        .attr("y", (d, i) => {
+          const y = i * rectHeight;
+          return isFinite(y) ? y : 0;
+        })
+        .attr("width", width)
+        .attr("height", rectHeight)
       .attr("fill", d => importanceInColor ?
         importanceColorScale(d[1]) :
         occuranceColorScale(featureData.normalized_occurrence[d[0]])
@@ -88,7 +91,7 @@ function FeatureHeatmap({
 
         // Create a group for this feature's density plot
         const featureGroup = g.append("g")
-          .attr("transform", `translate(0, ${i * rectHeight})`);
+          .attr("transform", `translate(0, ${isFinite(i * rectHeight) ? i * rectHeight : 0})`);
 
         // Draw the density area
         featureGroup.append("path")
@@ -113,13 +116,20 @@ function FeatureHeatmap({
           .attr("x1", halfWidth)
           .attr("x2", d => {
             const diff = featureData.normalized_occurrence[d[0]];
-            // Handle NaN or undefined values
-            if (diff === undefined || isNaN(diff)) return halfWidth;
+            // Handle NaN, undefined, or infinite values
+            if (diff === undefined || isNaN(diff) || !isFinite(diff)) return halfWidth;
             // Scale by maxRelativeOccurance
-            return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
+            const scaledValue = halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
+            return isFinite(scaledValue) ? scaledValue : halfWidth;
           })
-          .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
-          .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("y1", (d, i) => {
+            const y = i * rectHeight + rectHeight / 2;
+            return isFinite(y) ? y : 0;
+          })
+          .attr("y2", (d, i) => {
+            const y = i * rectHeight + rectHeight / 2;
+            return isFinite(y) ? y : 0;
+          })
           .attr("stroke", "#000000")
           .attr("stroke-width", 2)
           .attr("stroke-linecap", "round")
@@ -133,12 +143,16 @@ function FeatureHeatmap({
           .join("circle")
           .attr("cx", d => {
             const diff = featureData.normalized_occurrence[d[0]];
-            // Handle NaN or undefined values
-            if (diff === undefined || isNaN(diff)) return halfWidth;
+            // Handle NaN, undefined, or infinite values
+            if (diff === undefined || isNaN(diff) || !isFinite(diff)) return halfWidth;
             // Scale by maxRelativeOccurance
-            return halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
+            const scaledValue = halfWidth + ((diff / maxRelativeOccurance) * halfWidth * 0.9);
+            return isFinite(scaledValue) ? scaledValue : halfWidth;
           })
-          .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("cy", (d, i) => {
+            const y = i * rectHeight + rectHeight / 2;
+            return isFinite(y) ? y : 0;
+          })
           .attr("r", rectHeight / 4)
           .attr("fill", "#ffffff")
           .attr("stroke", "#000000")
@@ -162,9 +176,18 @@ function FeatureHeatmap({
           .data(sortedFeatures)
           .join("line")
           .attr("x1", 0)
-          .attr("x2", d => importanceScale(d[1]))
-          .attr("y1", (d, i) => i * rectHeight + rectHeight / 2)
-          .attr("y2", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("x2", d => {
+            const scaledValue = importanceScale(d[1]);
+            return isFinite(scaledValue) ? scaledValue : 0;
+          })
+          .attr("y1", (d, i) => {
+            const y = i * rectHeight + rectHeight / 2;
+            return isFinite(y) ? y : 0;
+          })
+          .attr("y2", (d, i) => {
+            const y = i * rectHeight + rectHeight / 2;
+            return isFinite(y) ? y : 0;
+          })
           .attr("stroke", "#000000")
           .attr("stroke-width", 2)
           .attr("stroke-linecap", "round")
@@ -175,8 +198,14 @@ function FeatureHeatmap({
         g.selectAll(".importance-circle")
           .data(sortedFeatures)
           .join("circle")
-          .attr("cx", d => importanceScale(d[1]))
-          .attr("cy", (d, i) => i * rectHeight + rectHeight / 2)
+          .attr("cx", d => {
+            const scaledValue = importanceScale(d[1]);
+            return isFinite(scaledValue) ? scaledValue : 0;
+          })
+          .attr("cy", (d, i) => {
+            const y = i * rectHeight + rectHeight / 2;
+            return isFinite(y) ? y : 0;
+          })
           .attr("r", rectHeight / 6)
           .attr("fill", "#ffffff")
           .attr("stroke", "#000000")

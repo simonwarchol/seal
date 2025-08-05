@@ -654,7 +654,9 @@ vec4 sampleAndGetColor(sampler2D dataTex, vec2 coord, bool isOn) {
     
     // Only apply background color if we have valid data
     if (sampledData == 0.0 && isBackground(sampledColor)) {
-      resultColor = !backgroundColorWhite ? vec4(0.0) : vec4(1.0, 1.0, 1.0, 1.0);
+      if (selectedBackground){
+        resultColor = !backgroundColorWhite ? vec4(0.00000001, 0.0, 0.0, 1.0) : vec4(1.0, 1.0, 1.0, 1.0);
+      }
     }
    
     return resultColor + hoveredColor;

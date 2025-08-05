@@ -1166,6 +1166,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
     this.spotlightSelection = props?.spotlightSelection;
     this.selectedBackground = props?.selectedBackground;
     this.backgroundColorWhite = props?.backgroundColorWhite;
+    this.segmentationLayerOpacity = props?.segmentationLayerOpacity;
     this.channelNames = props?.channelNames;
     this.channelColors = props?.channelColors;
     this.contours = props?.contours;
@@ -1709,6 +1710,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
         expressionData: this.expression.data,
         selectedBackground: this.props.selectedBackground,
         backgroundColorWhite: this.props.backgroundColorWhite,
+        segmentationLayerOpacity: this.props.segmentationLayerOpacity,
         outlineSelection: this.props.outlineSelection,
         spotlightSelection: this.props.spotlightSelection,
         // There is no onHover here,
@@ -2035,7 +2037,7 @@ class Spatial extends AbstractSpatialOrScatterplot {
       forceUpdate = true;
     }
 
-    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "outlineSelection", "spotlightSelection", "featureCount", "titleFontSize", "backgroundColorWhite"].some(shallowDiff)) {
+    if (["hoverClusterOpacities", "showClusterOutlines", "showClusterTitles", "selectedBackground", "outlineSelection", "spotlightSelection", "featureCount", "titleFontSize", "backgroundColorWhite", "segmentationLayerOpacity"].some(shallowDiff)) {
       this.onUpdateCellsLayer()
       forceUpdate = true;
     }
@@ -2475,6 +2477,7 @@ export function SpotlightSubscriber(props) {
   const showClusterTitles = useStore((state) => state.showClusterTitles);
   const selectedBackground = useStore((state) => state.selectedBackground)
   const backgroundColorWhite = useStore((state) => state.backgroundColorWhite)
+  const segmentationLayerOpacity = useStore((state) => state.segmentationLayerOpacity)
   const outlineSelection = useStore((state) => state.outlineSelection)
   const spotlightSelection = useStore((state) => state.spotlightSelection)
   const featureCount = useStore((state) => state.featureCount);
@@ -3223,6 +3226,7 @@ export function SpotlightSubscriber(props) {
         selectNeighborhood={selectNeighborhood}
         selectedBackground={selectedBackground}
         backgroundColorWhite={backgroundColorWhite}
+        segmentationLayerOpacity={segmentationLayerOpacity}
         outlineSelection={outlineSelection}
         spotlightSelection={spotlightSelection}
         channelNames={channelNames}

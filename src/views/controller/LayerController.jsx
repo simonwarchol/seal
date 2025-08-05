@@ -250,6 +250,8 @@ export default function LayerController(props) {
 
   const lockedChannels = useStore((state) => state.lockedChannels)
   const setLockedChannels = useStore((state) => state.setLockedChannels)
+  const segmentationLayerOpacity = useStore((state) => state.segmentationLayerOpacity)
+  const setSegmentationLayerOpacity = useStore((state) => state.setSegmentationLayerOpacity)
   // export default useStore;
 
 
@@ -292,7 +294,12 @@ export default function LayerController(props) {
     handleLayerChange({ ...layer, colormap: v });
   }
 
-  function setOpacity(v) {
+  function setOpacity(v, isSegmentationLayer=false) {
+    console.log("Setting opacity to:", v, layer, layer.name);
+    if (isSegmentationLayer){
+      console.log("Setting segmentation layer opacity to:", v);
+      setSegmentationLayerOpacity(v);
+    }
     handleLayerChange({ ...layer, opacity: v });
   }
 
@@ -664,7 +671,7 @@ export default function LayerController(props) {
               <Slider
                 id={`layer-${name}-opacity-closed`}
                 value={opacity}
-                onChange={(e, v) => setOpacity(v)}
+                onChange={(e, v) => setOpacity(v, true)}
                 valueLabelDisplay="auto"
                 aria-label={`Adjust opacity for layer ${name}`}
                 min={0}

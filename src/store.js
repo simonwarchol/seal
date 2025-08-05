@@ -96,6 +96,8 @@ const useStore = create((set) => ({
     setShowLolipops: (show) => set({ showLolipops: show }),
     initialChannels: null,
     setInitialChannels: (channels) => set({ initialChannels: channels }),
+    segmentationLayerOpacity: 1.0,
+    setSegmentationLayerOpacity: (opacity) => set({ segmentationLayerOpacity: opacity }),
 }))
 
 export default useStore;
