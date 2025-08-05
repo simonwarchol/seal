@@ -964,6 +964,61 @@ function renderSubBitmaskLayers(props) {
     tileId: { x, y, z },
   });
 }
+const handleInitialChannelSelection = (channelNames, rasterLayers, channels, lockedChannels, setRasterLayers) => {
+  if (!channelNames || channelNames.length === 0) return null;
+  
+  // Don't proceed if raster layers are not ready
+  if (!rasterLayers || rasterLayers.length === 0 || !rasterLayers[0]?.channels?.length) {
+    return null;
+  }
+  
+  let changeI = 1; // Start from 1 to skip the first channel (DNA)
+  const newRasterLayers = rasterLayers.map(layer => ({
+    ...layer,
+    channels: layer.channels.map((channel, i) => {
+      // Skip the first channel (index 0) - keep it as DNA
+      if (i === 0) {
+        return channel;
+      }
+      
+      // Update all channels after DNA (indices 1, 2, 3) with the specified channels
+      if (changeI > channelNames.length) {
+        return channel;
+      }
+
+      const c = channels.indexOf(channelNames[changeI - 1]); // Adjust index since we start from 1
+      if (c === -1) {
+        console.warn(`Channel "${channelNames[changeI - 1]}" not found in available channels`);
+        changeI++;
+        return channel;
+      } else if (lockedChannels?.[i]) {
+        changeI++;
+        return channel;
+      } else {
+        changeI++;
+        return {
+          ...channel,
+          selection: { c, z: 0, t: 0 }
+        };
+      }
+    })
+  }));
+
+  // Only update if there's an actual change
+  const hasChanges = newRasterLayers.some((layer, layerIndex) => 
+    layer.channels.some((channel, channelIndex) => 
+      JSON.stringify(channel.selection) !== JSON.stringify(rasterLayers[layerIndex]?.channels[channelIndex]?.selection)
+    )
+  );
+
+  if (hasChanges) {
+    setRasterLayers(newRasterLayers);
+    return newRasterLayers[0].channels;
+  }
+  
+  return null;
+};
+
 const handleClusterSelection = async (featureImportance, featureCount, rasterLayers, channels, lockedChannels, setRasterLayers) => {
   let changeI = 0;
   featureImportance = featureImportance.sort((a, b) => b[1] - a[1]);
@@ -2407,9 +2462,11 @@ export function SpotlightSubscriber(props) {
 
 
   const [originalViewState, setOriginalViewState] = useState(null);
+  const [lastAppliedChannels, setLastAppliedChannels] = useState(null);
 
   const selectionPath = useStore((state) => state.selectionPath)
   const lockedChannels = useStore((state) => state.lockedChannels)
+  const initialChannels = useStore((state) => state.initialChannels)
   const hoverClusterOpacities = useStore((state) => state.hoverClusterOpacities)
   const setHoverClusterOpacities = useStore((state) => state.setHoverClusterOpacities)
   const setFeatures = useStore((state) => state.setFeatures)
@@ -3000,6 +3057,59 @@ export function SpotlightSubscriber(props) {
       })
     }
   }, [channelNames, channelColors])
+
+  // Get all available channel names for initial channel selection
+  const allAvailableChannels = useMemo(() => {
+    if (
+      imageLayers &&
+      imageLayers.length > 0 &&
+      imageLayerLoaders &&
+      imageLayerLoaders.length > 0
+    ) {
+      const firstImageLayer = imageLayers[0];
+      const firstImageLayerLoader = imageLayerLoaders?.[firstImageLayer?.index];
+      if (firstImageLayerLoader && firstImageLayerLoader.channels) {
+        return firstImageLayerLoader.channels;
+      }
+    }
+    return [];
+  }, [imageLayers, imageLayerLoaders]);
+
+  // Apply initial channel selection when component loads (only once per channel set)
+  useEffect(() => {
+    const channelsKey = JSON.stringify(initialChannels);
+    
+    if (
+      initialChannels &&
+      initialChannels.length > 0 &&
+      imageLayers &&
+      imageLayers.length > 0 &&
+      allAvailableChannels.length > 0 &&
+      channelsKey !== lastAppliedChannels
+    ) {
+      console.log('Applying initial channels:', initialChannels);
+      console.log('Available channels:', allAvailableChannels);
+      console.log('Current raster layers:', imageLayers);
+      try {
+        const result = handleInitialChannelSelection(
+          initialChannels,
+          imageLayers,
+          allAvailableChannels,
+          lockedChannels,
+          setRasterLayers
+        );
+        if (result !== null) {
+          setLastAppliedChannels(channelsKey);
+          console.log('Successfully applied initial channels');
+        } else {
+          console.log('No changes needed for initial channels');
+        }
+      } catch (error) {
+        console.error('Error applying initial channels:', error);
+        setLastAppliedChannels(channelsKey); // Prevent retrying
+      }
+    }
+  }, [initialChannels, imageLayers, allAvailableChannels, lastAppliedChannels])
 
   return (
 

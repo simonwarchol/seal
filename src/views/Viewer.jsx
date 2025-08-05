@@ -4,7 +4,7 @@ import {
   hconcat,
   vconcat
 } from "@vitessce/config";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import "../index.css";
 import "../Seal.css";
 // import { VitS } from "@vitessce/vit-s";
@@ -25,6 +25,7 @@ import { SpotlightSubscriber } from "./spotlight/SpotlightSubscriber";
 function Viewer({ value, setValue, height, config, width }) {
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const datasetId = useStore((state) => state.datasetId);
+  const setInitialChannels = useStore((state) => state.setInitialChannels);
 
   useEffect(() => {
     const handleResize = () => {
@@ -209,13 +210,24 @@ function Viewer({ value, setValue, height, config, width }) {
       conf.csvUrl = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/small.csv";
       conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
       conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
+      conf.initialChannels = ["FOXP3","CD45", "CD20"];
     }
     return conf;
   };
 
 
-  let dataset =  config || getDatasetConfig(datasetId) || gregDataset;
+  const dataset = useMemo(() => {
+    return config || getDatasetConfig(datasetId) || gregDataset;
+  }, [config, datasetId]);
   // console.log('dataset', dataset);
+
+  // Set initial channels from dataset config  
+  useEffect(() => {
+    const newChannels = dataset?.initialChannels || null;
+    const newChannelsKey = JSON.stringify(newChannels);
+    console.log('Setting initial channels from dataset config:', newChannels);
+    setInitialChannels(newChannels);
+  }, [JSON.stringify(dataset?.initialChannels)]);
 
 
   const vc = new VitessceConfig({

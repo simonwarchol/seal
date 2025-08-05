@@ -94,6 +94,8 @@ const useStore = create((set) => ({
     setShowPoints: (show) => set({ showPoints: show }),
     showLolipops: true,
     setShowLolipops: (show) => set({ showLolipops: show }),
+    initialChannels: null,
+    setInitialChannels: (channels) => set({ initialChannels: channels }),
 }))
 
 export default useStore;
