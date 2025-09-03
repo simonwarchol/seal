@@ -140,56 +140,7 @@ function Viewer({ value, setValue, height, config, width }) {
     ]),
   ];
 
-  const exemplarDataset = {
-    embeddingImageUrl: "http://localhost:8181/files/embedding_image.ome.tif",
-    embeddingSegmentationUrl: "http://localhost:8181/files/embedding_segmentation.ome.tif",
-    csvUrl: "http://localhost:8181/files/csv.csv",
-    clusterColumns: ["kmeans", "agcluster"],
-    imageUrl: "http://localhost:8181/files/image.ome.tif",
-    segmentationUrl: "http://localhost:8181/files/segmentation.ome.tif",
 
-  };
-  const gregDataset = {
-    // embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/greg_tiled.ome.tif",
-    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled.ome.tif",
-    // embeddingImageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
-    // embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/tiled-mask.ome.tif",
-    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/test-mask.ome.tif",
-    // embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/greg_tiled-mask.ome.tif",
-    // csvUrl: "http://localhost:8181/files/set_csv.csv",
-    csvUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.csv",
-    parquetUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.parquet",
-    contourUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/contour.json",
-    clusterColumns: ["hdbscan"],
-    imageUrl: "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif",
-    shapUrl: "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/shap.parquet",
-    segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff",
-    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
-
-
-  };
-  const astroDataset = {
-    embeddingImageUrl: "http://localhost:8181/data/astro/hybrid.ome.tif",
-    embeddingSegmentationUrl: "http://localhost:8181/data/astro/hybrid.mask.ome.tif",
-    csvUrl: "http://localhost:8181/data/astro/updated_astro.csv",
-    clusterColumns: ["cluster"],
-    imageUrl: "http://localhost:8181/data/astro/astro.ome.tif",
-    segmentationUrl: "http://localhost:8181/data/astro/astro_seg_masks.ome.tif",
-    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
-  };
-  const dan1Dataset = {
-    embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan2.ome.tif",
-    // embeddingImageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan2.ome.tif",
-    embeddingSegmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/dan2-mask.ome.tif",
-    csvUrl: "http://localhost:8181/files/set_csv.csv",
-    clusterColumns: ["kmeans"],
-    imageUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/combined.ome.tif",
-    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/cellRing_from_mcmicro.ome.tif",
-    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask.ome.tif ",
-    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/nucleiRing.ome.tif",
-    segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/reprocessed_seg_mask_nuclei.ome.tif",
-    // segmentationUrl: "https://vae-bed.s3.us-east-2.amazonaws.com/better-tiled-mask.ome.tif",
-  };
 
   const getDatasetConfig = (datasetId) => {
     const baseUrl = `https://seal-vis.s3.us-east-1.amazonaws.com/${datasetId}`;
@@ -209,15 +160,19 @@ function Viewer({ value, setValue, height, config, width }) {
       // conf.csvUrl = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/df.csv";
       conf.csvUrl = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097/small.csv";
       conf.imageUrl = "https://lin-2021-crc-atlas.s3.amazonaws.com/data/WD-76845-097.ome.tif";
-      conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
-      conf.initialChannels = ["Collagen","Desmin", "CD20"];
+      // conf.segmentationUrl = "https://vae-bed.s3.us-east-2.amazonaws.com/good-WD-76845-097.ome.tiff";
+      conf.initialChannels = ["Collagen", "Desmin", "CD20"];
+    }
+    if (datasetId === 'melanoma') {
+      conf.csvUrl = "https://seal-vis.s3.us-east-1.amazonaws.com/melanoma/small.csv";
+
     }
     return conf;
   };
 
 
   const dataset = useMemo(() => {
-    return config || getDatasetConfig(datasetId) || gregDataset;
+    return config || getDatasetConfig(datasetId);
   }, [config, datasetId]);
   // console.log('dataset', dataset);
 

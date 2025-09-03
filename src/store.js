@@ -31,6 +31,8 @@ const useStore = create((set) => ({
             }
         };
     }),
+    isLoadingSelectionData: false,
+    setIsLoadingSelectionData: (loading) => set({ isLoadingSelectionData: loading }),
     hoverSelection: null,
     setHoverSelection: (selection) => set({ hoverSelection: selection }),
     hoverClusterOpacities: {},

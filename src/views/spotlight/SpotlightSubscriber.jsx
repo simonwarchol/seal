@@ -2473,6 +2473,7 @@ export function SpotlightSubscriber(props) {
   const setHoverClusterOpacities = useStore((state) => state.setHoverClusterOpacities)
   const setFeatures = useStore((state) => state.setFeatures)
   const setSetFeatures = useStore((state) => state.setSetFeatures)
+  const setIsLoadingSelectionData = useStore((state) => state.setIsLoadingSelectionData)
   const showClusterOutlines = useStore((state) => state.showClusterOutlines);
   const showClusterTitles = useStore((state) => state.showClusterTitles);
   const selectedBackground = useStore((state) => state.selectedBackground)
@@ -2718,42 +2719,51 @@ export function SpotlightSubscriber(props) {
       }
     };
 
-    if (!cellSetSelection || cellSetSelection?.length === 0) return;
+    if (!cellSetSelection || cellSetSelection?.length === 0) {
+      setIsLoadingSelectionData(false);
+      return;
+    }
 
     const fetchAllSelectionData = async () => {
-      const promises = cellSetSelection.map(selp => {
-        const inAdditionalSets = additionalCellSets ? treeFindNodeByNamePath(additionalCellSets, selp) : null;
-        const inMainSets = cellSets ? treeFindNodeByNamePath(cellSets, selp) : null;
+      setIsLoadingSelectionData(true);
+      
+      try {
+        const promises = cellSetSelection.map(selp => {
+          const inAdditionalSets = additionalCellSets ? treeFindNodeByNamePath(additionalCellSets, selp) : null;
+          const inMainSets = cellSets ? treeFindNodeByNamePath(cellSets, selp) : null;
 
-        if (inAdditionalSets) {
-          return fetchSelectionData(additionalCellSets, selp, inAdditionalSets);
-        } else if (inMainSets) {
-          return fetchSelectionData(cellSets, selp, inMainSets);
-        }
-        return null;
-      });
-
-      const results = await Promise.all(promises);
-      const validResults = results.filter(Boolean);
-
-      if (validResults.length > 0) {
-        setSetFeatures(prev => {
-          const newState = { ...prev };
-          validResults.forEach(result => {
-            Object.entries(result).forEach(([key, value]) => {
-              newState[key] = {
-                ...newState[key],
-                ...value
-              };
-            });
-          });
-          return newState;
+          if (inAdditionalSets) {
+            return fetchSelectionData(additionalCellSets, selp, inAdditionalSets);
+          } else if (inMainSets) {
+            return fetchSelectionData(cellSets, selp, inMainSets);
+          }
+          return null;
         });
+
+        const results = await Promise.all(promises);
+        const validResults = results.filter(Boolean);
+
+        if (validResults.length > 0) {
+          setSetFeatures(prev => {
+            const newState = { ...prev };
+            validResults.forEach(result => {
+              Object.entries(result).forEach(([key, value]) => {
+                newState[key] = {
+                  ...newState[key],
+                  ...value
+                };
+              });
+            });
+            return newState;
+          });
+        }
+      } finally {
+        setIsLoadingSelectionData(false);
       }
     };
 
     fetchAllSelectionData();
-  }, [cellSetSelection, additionalCellSets, cellSets, selectionPath, serverUrl]);
+  }, [cellSetSelection, additionalCellSets, cellSets, selectionPath, serverUrl, setIsLoadingSelectionData]);
 
   const setCellSelectionProp = useCallback(
     (v) => {

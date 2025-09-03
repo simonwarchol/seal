@@ -14,12 +14,14 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 import os
+import requests
 import pickle
 import hashlib
 import tifffile as tf
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.inspection import permutation_importance
 from sklearn.model_selection import train_test_split
+
 # from line_profiler_pycharm import profile
 from pathlib import Path
 
@@ -47,85 +49,73 @@ CURRENT_DATASET = {
     "contour_lines": None,
     "spatial_tree": None,  # KD-tree for spatial coordinates
     "embedding_tree": None,  # KD-tree for UMAP coordinates
-    "paths": None
+    "paths": None,
 }
 
-def get_dataset_paths(dataset_name):
-    """Return the paths for a given dataset"""
-    # Check if bucket for dataset exists    
-    
-    if dataset_name == "exemplar-001":
-        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/exemplar-001"
-        return {
-            "csv_path": f"{base_url}/df.parquet",
-            "set_csv_path": None,
-            "parquet_path": f"{base_url}/df.parquet",
-            "image_path": f"{base_url}/image.ome.tif",
-            "segmentation_path": f"{base_url}/mask.ome.tif",
-            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
-            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
-            "shap_path": f"{base_url}/shap.parquet"
-        }
-    elif dataset_name == "exemplar-001v2":
-        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/exemplar-001v2"
-        return {
-            "csv_path": f"{base_url}/df.parquet",
-            "set_csv_path": None,
-            "parquet_path": f"{base_url}/df.parquet",
-            "image_path": f"{base_url}/image.ome.tif",
-            "segmentation_path": f"{base_url}/mask.ome.tif",
-            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
-            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
-            "shap_path": f"{base_url}/shap.parquet"
-        }
-    elif dataset_name == "SDSS":
-        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/SDSS"
-        return {
-            "csv_path": f"{base_url}/df.parquet",
-            "set_csv_path": None,
-            "parquet_path": f"{base_url}/df.parquet",
-            "image_path": f"{base_url}/image.ome.tif",
-            "segmentation_path": f"{base_url}/mask.ome.tif",
-            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
-            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
-            "shap_path": f"{base_url}/shap.parquet"
-        }
-    elif dataset_name == "WD-76845-097":
-        base_url = "https://seal-vis.s3.us-east-1.amazonaws.com/WD-76845-097"
-        return {
-            # "csv_path": f"{base_url}/small.csv",
-            # "set_csv_path": f"{base_url}/small.csv",
-            # "parquet_path": f"{base_url}/df.parquet",
-            "csv_path": f"{base_url}/df.parquet",
-            "set_csv_path": 'https://vae-bed.s3.us-east-2.amazonaws.com/small.csv',
-            "parquet_path": f"{base_url}/df.parquet",
-            "image_path": f"{base_url}/image.ome.tif",
-            "segmentation_path": f"{base_url}/mask.ome.tif",
-            "embedding_image_path": f"{base_url}/hybrid.ome.tif",
-            "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
-            "shap_path": f"{base_url}/shap.parquet"
-        }
-    else:
-        base_path = "/Users/swarchol/Research/seal/data"
-        return {
-            "csv_path": f"{base_path}/{dataset_name}/updated.csv",
-            "set_csv_path": None,
-            "parquet_path": None,
-            "image_path": f"{base_path}/{dataset_name}/image.ome.tif",
-            "segmentation_path": f"{base_path}/{dataset_name}/segmentation.ome.tif",
-            "embedding_image_path": f"{base_path}/{dataset_name}/hybrid.ome.tif",
-            "embedding_segmentation_path": f"{base_path}/{dataset_name}/hybrid-mask.ome.tif",
-            "shap_path": f"{base_path}/{dataset_name}/shap.parquet"
-        }
+def get_dataset_paths(
+    dataset_name: str,
+    local_base: str = "/Users/swarchol/Research/seal/data",
+    head_timeout: float = 3.0,
+    check_files: tuple[str, ...] = ("df.parquet",),  # minimal probe; add more if you want stricter validation
+):
+    """
+    Return paths for a given dataset.
+    Tries public S3 first: https://seal-vis.s3.us-east-1.amazonaws.com/{dataset_name}
+    If the remote check fails, falls back to the legacy local layout.
+    """
+    base_url = f"https://seal-vis.s3.us-east-1.amazonaws.com/{dataset_name}"
 
+    # Remote layout (shared by all known remote datasets)
+    remote = {
+        "csv_path": f"{base_url}/df.parquet",
+        "set_csv_path": None,
+        "parquet_path": f"{base_url}/df.parquet",
+        "image_path": f"{base_url}/image.ome.tif",
+        "segmentation_path": f"{base_url}/mask.ome.tif",
+        "embedding_image_path": f"{base_url}/hybrid.ome.tif",
+        "embedding_segmentation_path": f"{base_url}/hybrid-mask.ome.tif",
+        "shap_path": f"{base_url}/shap.parquet",
+    }
+
+    # Special remote override(s)
+    if dataset_name == "WD-76845-097":
+        remote["set_csv_path"] = f"{base_url}/small.csv"
+
+    # Probe remote existence (HEAD a small set of canonical files)
+    try:
+        ok = True
+        for fname in check_files:
+            url = f"{base_url}/{fname}"
+            r = requests.head(url, timeout=head_timeout, allow_redirects=True)
+            if r.status_code != 200:
+                ok = False
+                break
+        if ok:
+            return remote
+    except requests.RequestException:
+        pass
+
+    # Legacy local fallback layout (matches your original else: branch exactly)
+    base_path = os.path.join(local_base, dataset_name)
+    local = {
+        "csv_path": f"{base_path}/updated.csv",
+        "set_csv_path": None,
+        "parquet_path": None,
+        "image_path": f"{base_path}/image.ome.tif",
+        "segmentation_path": f"{base_path}/segmentation.ome.tif",
+        "embedding_image_path": f"{base_path}/hybrid.ome.tif",
+        "embedding_segmentation_path": f"{base_path}/hybrid-mask.ome.tif",
+        "shap_path": f"{base_path}/shap.parquet",
+    }
+    return local
 def load_dataset(dataset_name, df=None):
     """Load a specific dataset, replacing any currently loaded dataset"""
     global CURRENT_DATASET
-    
+
     # If the requested dataset is already loaded, return
     if CURRENT_DATASET["name"] == dataset_name:
         return CURRENT_DATASET
-    
+
     # Clear current dataset from memory
     CURRENT_DATASET = {
         "name": None,
@@ -134,12 +124,12 @@ def load_dataset(dataset_name, df=None):
         "shap_store": None,
         "spatial_tree": None,
         "embedding_tree": None,
-        "paths": None
+        "paths": None,
     }
-    
-    print('dataset_name', dataset_name)
+
+    print("dataset_name", dataset_name)
     paths = get_dataset_paths(dataset_name)
-    
+
     # Load the data
     if df is not None:
         CURRENT_DATASET["csv_df"] = df
@@ -153,21 +143,45 @@ def load_dataset(dataset_name, df=None):
     # Calculate features and summary
     potential_features = get_potential_features(CURRENT_DATASET["csv_df"])
     mean_features = CURRENT_DATASET["csv_df"][potential_features].mean()
-    
+
     summary = {
         "embedding_ranges": [
-            [float(CURRENT_DATASET["csv_df"]["UMAP_X"].min()), float(CURRENT_DATASET["csv_df"]["UMAP_X"].max())],
-            [float(CURRENT_DATASET["csv_df"]["UMAP_Y"].min()), float(CURRENT_DATASET["csv_df"]["UMAP_Y"].max())],
+            [
+                float(CURRENT_DATASET["csv_df"]["UMAP_X"].min()),
+                float(CURRENT_DATASET["csv_df"]["UMAP_X"].max()),
+            ],
+            [
+                float(CURRENT_DATASET["csv_df"]["UMAP_Y"].min()),
+                float(CURRENT_DATASET["csv_df"]["UMAP_Y"].max()),
+            ],
         ],
         "spatial_ranges": [
-            [float(CURRENT_DATASET["csv_df"]["X_centroid"].min()), float(CURRENT_DATASET["csv_df"]["X_centroid"].max())],
-            [float(CURRENT_DATASET["csv_df"]["Y_centroid"].min()), float(CURRENT_DATASET["csv_df"]["Y_centroid"].max())],
+            [
+                float(CURRENT_DATASET["csv_df"]["X_centroid"].min()),
+                float(CURRENT_DATASET["csv_df"]["X_centroid"].max()),
+            ],
+            [
+                float(CURRENT_DATASET["csv_df"]["Y_centroid"].min()),
+                float(CURRENT_DATASET["csv_df"]["Y_centroid"].max()),
+            ],
         ],
         "embedding_subsample": CURRENT_DATASET["csv_df"][["UMAP_X", "UMAP_Y"]]
-        .values[np.random.choice(CURRENT_DATASET["csv_df"].shape[0], min(1000, CURRENT_DATASET["csv_df"].shape[0]), replace=False)]
+        .values[
+            np.random.choice(
+                CURRENT_DATASET["csv_df"].shape[0],
+                min(1000, CURRENT_DATASET["csv_df"].shape[0]),
+                replace=False,
+            )
+        ]
         .tolist(),
         "spatial_subsample": CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]]
-        .values[np.random.choice(CURRENT_DATASET["csv_df"].shape[0], min(1000, CURRENT_DATASET["csv_df"].shape[0]), replace=False)]
+        .values[
+            np.random.choice(
+                CURRENT_DATASET["csv_df"].shape[0],
+                min(1000, CURRENT_DATASET["csv_df"].shape[0]),
+                replace=False,
+            )
+        ]
         .tolist(),
         "global_mean_features": mean_features.to_dict(),
     }
@@ -175,19 +189,28 @@ def load_dataset(dataset_name, df=None):
     try:
         shap_store = pd.read_parquet(paths["shap_path"])
     except:
-        shap_store = np.load(f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy")
+        shap_store = np.load(
+            f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy"
+        )
 
     # Update CURRENT_DATASET
-    CURRENT_DATASET.update({
-        "name": dataset_name,
-        "summary": summary,
-        "shap_store": shap_store,
-        "paths": paths,
-        "spatial_tree": cKDTree(CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]].values),
-        "embedding_tree": cKDTree(CURRENT_DATASET["csv_df"][["UMAP_X", "UMAP_Y"]].values)
-    })
-    
+    CURRENT_DATASET.update(
+        {
+            "name": dataset_name,
+            "summary": summary,
+            "shap_store": shap_store,
+            "paths": paths,
+            "spatial_tree": cKDTree(
+                CURRENT_DATASET["csv_df"][["X_centroid", "Y_centroid"]].values
+            ),
+            "embedding_tree": cKDTree(
+                CURRENT_DATASET["csv_df"][["UMAP_X", "UMAP_Y"]].values
+            ),
+        }
+    )
+
     return CURRENT_DATASET
+
 
 def get_potential_features(df):
     # Check which of the potential features are in the csv_df
@@ -310,12 +333,25 @@ def get_potential_features(df):
         "extinction_r",
         "airmass_r",
         "mCr4_r",
-        'CD11B', 'CD16', 'CD45', 'CD57', 'DNA_6', 'DNA_7', 'DNA_8', 'ECAD', 'ELANE', 'FOXP3', 'NCAM', 'SMA'
+        "CD11B",
+        "CD16",
+        "CD45",
+        "CD57",
+        "DNA_6",
+        "DNA_7",
+        "DNA_8",
+        "ECAD",
+        "ELANE",
+        "FOXP3",
+        "NCAM",
+        "SMA",
+
     ]
 
     all_features = list(set(all_features))
     potential_features = [feature for feature in all_features if feature in df.columns]
     return sorted(potential_features)
+
 
 @app.get("/")
 def read_root():
@@ -329,11 +365,13 @@ class SelectionIDs(BaseModel):
 class SelectionSet(BaseModel):
     name: str
     path: List[str]
-    set: List[List[Optional[Any]]]  # Assuming the inner lists can contain any type, including None
-    mode: Optional[str] = 'knn'  # 'knn' or 'distance'
+    set: List[
+        List[Optional[Any]]
+    ]  # Assuming the inner lists can contain any type, including None
+    mode: Optional[str] = "knn"  # 'knn' or 'distance'
     knn: Optional[int] = 10
     radius: Optional[float] = 50.0
-    coordinate_space: Optional[str] = 'spatial'  # 'spatial' or 'embedding'
+    coordinate_space: Optional[str] = "spatial"  # 'spatial' or 'embedding'
 
 
 class CompareSet(BaseModel):
@@ -366,12 +404,16 @@ def parse_id(_id):
 
 def process_selection(selection_ids):
     """Process selection using current dataset"""
-    selected_rows = CURRENT_DATASET["csv_df"][CURRENT_DATASET["csv_df"]["CellID"].isin(selection_ids)]
+    selected_rows = CURRENT_DATASET["csv_df"][
+        CURRENT_DATASET["csv_df"]["CellID"].isin(selection_ids)
+    ]
     selected_indices = selected_rows.index.tolist()
 
     # Convert numpy values to Python native types
     # shap iloc
-    absolute_shap_sums = CURRENT_DATASET["shap_store"].iloc[selected_indices].mean(axis=0)
+    absolute_shap_sums = (
+        CURRENT_DATASET["shap_store"].iloc[selected_indices].mean(axis=0)
+    )
     feat_imp = absolute_shap_sums.to_dict()
     # Create list of key,value sorted by key
     feat_imp = sorted(feat_imp.items(), key=lambda item: item[1], reverse=True)
@@ -380,29 +422,35 @@ def process_selection(selection_ids):
     feat_imp_density = {}
     for feature, value in feat_imp:
         # Get all SHAP values for this feature from the selection
-        feature_values = CURRENT_DATASET["shap_store"].iloc[selected_indices][feature].values
+        feature_values = (
+            CURRENT_DATASET["shap_store"].iloc[selected_indices][feature].values
+        )
         # Replace infinite values with NaN
-        feature_values = np.nan_to_num(feature_values, nan=np.nan, posinf=np.nan, neginf=np.nan)
+        feature_values = np.nan_to_num(
+            feature_values, nan=np.nan, posinf=np.nan, neginf=np.nan
+        )
         # Calculate histogram using min-max range
         min_val = np.nanmin(feature_values)
         max_val = np.nanmax(feature_values)
         if min_val == max_val or np.isnan(min_val) or np.isnan(max_val):
             # Handle edge case where all values are the same or invalid
             feat_imp_density[feature] = {
-                'counts': [0] * 20,
-                'bins': list(range(21)),  # 20 bins needs 21 edges
-                'min': 0,
-                'max': 0
+                "counts": [0] * 20,
+                "bins": list(range(21)),  # 20 bins needs 21 edges
+                "min": 0,
+                "max": 0,
             }
         else:
-            hist, bins = np.histogram(feature_values, bins=20, range=(min_val, max_val), density=True)
+            hist, bins = np.histogram(
+                feature_values, bins=20, range=(min_val, max_val), density=True
+            )
             # Replace any NaN or infinite values in histogram with 0
             hist = np.nan_to_num(hist, nan=0.0, posinf=0.0, neginf=0.0)
             feat_imp_density[feature] = {
-                'counts': hist.tolist(),
-                'bins': bins.tolist(),
-                'min': float(min_val),
-                'max': float(max_val)
+                "counts": hist.tolist(),
+                "bins": bins.tolist(),
+                "min": float(min_val),
+                "max": float(max_val),
             }
 
     potential_features = CURRENT_DATASET["shap_store"].columns.tolist()
@@ -425,7 +473,7 @@ def process_selection(selection_ids):
     selection_mean_features = selected_rows[potential_features].mean().to_dict()
     normalized_occurrence = {}
     occurrence_density = {}
-    
+
     for feature in potential_features:
         if (
             pd.isna(selection_mean_features[feature])
@@ -437,51 +485,62 @@ def process_selection(selection_ids):
             normalized_occurrence[feature] = 0
             # For invalid features, create empty density data
             occurrence_density[feature] = {
-                'counts': [0] * 20,
-                'bins': list(range(21)),  # 20 bins needs 21 edges
-                'min': 0,
-                'max': 0
+                "counts": [0] * 20,
+                "bins": list(range(21)),  # 20 bins needs 21 edges
+                "min": 0,
+                "max": 0,
             }
         else:
             # Calculate normalized occurrence using the mean value
             selection_val = selection_mean_features[feature]
             global_val = CURRENT_DATASET["summary"]["global_mean_features"][feature]
-            
+
             if selection_val >= global_val:
-                normalized_occurrence[feature] = min(1, (selection_val - global_val) / global_val)
+                normalized_occurrence[feature] = min(
+                    1, (selection_val - global_val) / global_val
+                )
             else:
-                normalized_occurrence[feature] = max(-1, (selection_val - global_val) / global_val)
-            
+                normalized_occurrence[feature] = max(
+                    -1, (selection_val - global_val) / global_val
+                )
+
             # Handle any NaN results from the calculation
             if np.isnan(normalized_occurrence[feature]):
                 normalized_occurrence[feature] = 0
-            
+
             # Calculate density histogram using raw feature values
             feature_values = selected_rows[feature].values
             # Replace infinite values with NaN
-            feature_values = np.nan_to_num(feature_values, nan=np.nan, posinf=np.nan, neginf=np.nan)
-            
+            feature_values = np.nan_to_num(
+                feature_values, nan=np.nan, posinf=np.nan, neginf=np.nan
+            )
+
             # Calculate histogram using min-max range of raw values
             min_val = np.nanmin(feature_values)
             max_val = np.nanmax(feature_values)
-            
+
             if min_val == max_val or np.isnan(min_val) or np.isnan(max_val):
                 # Handle edge case where all values are the same or invalid
                 occurrence_density[feature] = {
-                    'counts': [0] * 20,
-                    'bins': list(range(21)),  # 20 bins needs 21 edges
-                    'min': 0,
-                    'max': 0
+                    "counts": [0] * 20,
+                    "bins": list(range(21)),  # 20 bins needs 21 edges
+                    "min": 0,
+                    "max": 0,
                 }
             else:
-                hist, bins = np.histogram(feature_values[~np.isnan(feature_values)], bins=20, range=(min_val, max_val), density=True)
+                hist, bins = np.histogram(
+                    feature_values[~np.isnan(feature_values)],
+                    bins=20,
+                    range=(min_val, max_val),
+                    density=True,
+                )
                 # Replace any NaN or infinite values in histogram with 0
                 hist = np.nan_to_num(hist, nan=0.0, posinf=0.0, neginf=0.0)
                 occurrence_density[feature] = {
-                    'counts': hist.tolist(),
-                    'bins': bins.tolist(),
-                    'min': float(min_val),
-                    'max': float(max_val)
+                    "counts": hist.tolist(),
+                    "bins": bins.tolist(),
+                    "min": float(min_val),
+                    "max": float(max_val),
                 }
 
     return {
@@ -494,7 +553,7 @@ def process_selection(selection_ids):
         "selection_mean_features": selection_mean_features,
         "selection_ids": [int(id) for id in selection_ids],
         "normalized_occurrence": normalized_occurrence,
-        "occurrence_density": occurrence_density
+        "occurrence_density": occurrence_density,
     }
 
 
@@ -518,7 +577,7 @@ def load_cached_selection(cache_key: str) -> Optional[Dict]:
     cache_filepath = get_cache_filepath(cache_key)
     if os.path.exists(cache_filepath):
         try:
-            with open(cache_filepath, 'rb') as f:
+            with open(cache_filepath, "rb") as f:
                 return pickle.load(f)
         except Exception as e:
             print(f"Error loading cache file {cache_filepath}: {e}")
@@ -534,7 +593,7 @@ def save_cached_selection(cache_key: str, data: Dict) -> None:
     """Save selection data to cache"""
     cache_filepath = get_cache_filepath(cache_key)
     try:
-        with open(cache_filepath, 'wb') as f:
+        with open(cache_filepath, "wb") as f:
             pickle.dump(data, f)
     except Exception as e:
         print(f"Error saving cache file {cache_filepath}: {e}")
@@ -543,28 +602,30 @@ def save_cached_selection(cache_key: str, data: Dict) -> None:
 @app.post("/selection/{dataset_name}")
 async def selection(dataset_name: str, selection_data: SelectionSet):
     dataset = load_dataset(dataset_name)
-    
+
     # Check if this selection should be cached (path[0] is NOT "My Selections")
-    should_cache = len(selection_data.path) > 0 and selection_data.path[0] != "My Selections"
-    
+    should_cache = (
+        len(selection_data.path) > 0 and selection_data.path[0] != "My Selections"
+    )
+
     if should_cache:
         # Create cache key and check for existing cached data
         cache_key = create_cache_key(selection_data.path, dataset_name)
         cached_data = load_cached_selection(cache_key)
-        
+
         if cached_data is not None:
             print(f"Returning cached data for selection: {selection_data.path}")
             return {"message": "Complete", "data": cached_data}
-    
+
     # Process selection (either not cacheable or not in cache)
     selection_ids = [parse_id(_) for _ in selection_data.set]
     response_data = process_selection(selection_ids)
-    
+
     # Save to cache if this selection should be cached
     if should_cache:
         print(f"Caching selection data for: {selection_data.path}")
         save_cached_selection(cache_key, response_data)
-    
+
     return {"message": "Complete", "data": response_data}
 
 
@@ -672,9 +733,13 @@ async def neighbors(dataset_name: str, selection_data: SelectionSet):
     selection_ids = [parse_id(_) for _ in selection_data.set]
 
     # Determine which tree and coordinates to use based on coordinate_space
-    coordinate_space = selection_data.coordinate_space if hasattr(selection_data, 'coordinate_space') else 'spatial'
-    
-    if coordinate_space == 'spatial':
+    coordinate_space = (
+        selection_data.coordinate_space
+        if hasattr(selection_data, "coordinate_space")
+        else "spatial"
+    )
+
+    if coordinate_space == "spatial":
         tree = dataset["spatial_tree"]
         coord_columns = ["X_centroid", "Y_centroid"]
     else:  # embedding
@@ -684,20 +749,22 @@ async def neighbors(dataset_name: str, selection_data: SelectionSet):
     # Ensure the tree exists
     if tree is None:
         tree = cKDTree(dataset["csv_df"][coord_columns].values)
-        if coordinate_space == 'spatial':
+        if coordinate_space == "spatial":
             dataset["spatial_tree"] = tree
         else:
             dataset["embedding_tree"] = tree
 
-    indices = dataset["csv_df"][dataset["csv_df"]["CellID"].isin(selection_ids)].index.values
+    indices = dataset["csv_df"][
+        dataset["csv_df"]["CellID"].isin(selection_ids)
+    ].index.values
     points = dataset["csv_df"].iloc[indices][coord_columns].values
 
     # Get mode and parameters from request
-    mode = selection_data.mode if hasattr(selection_data, 'mode') else 'knn'
-    knn = selection_data.knn if hasattr(selection_data, 'knn') else 10
-    radius = selection_data.radius if hasattr(selection_data, 'radius') else 50
+    mode = selection_data.mode if hasattr(selection_data, "mode") else "knn"
+    knn = selection_data.knn if hasattr(selection_data, "knn") else 10
+    radius = selection_data.radius if hasattr(selection_data, "radius") else 50
 
-    if mode == 'knn':
+    if mode == "knn":
         # KNN mode - find k nearest neighbors
         neighbors = tree.query(points, k=knn + 1)  # +1 because first neighbor is self
         neighbor_indices = neighbors[1][:, 1:]  # exclude self from neighbors
@@ -822,5 +889,5 @@ async def serve_set_csv():
 
 # load()
 if __name__ == "__main__":
-#     load()
+    #     load()
     uvicorn.run("main:app", host="0.0.0.0", port=8181, reload=True, workers=8)

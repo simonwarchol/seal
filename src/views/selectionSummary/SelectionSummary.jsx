@@ -39,6 +39,7 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
     const importanceInColor = useStore((state) => state.importanceInColor);
     const setImportanceInColor = useStore((state) => state.setImportanceInColor);
     const viewMode = useStore((state) => state.viewMode);
+    const isLoadingSelectionData = useStore((state) => state.isLoadingSelectionData);
     const scrollContainerRef = useRef(null);
     const [heatmapContainerWidth, setHeatmapContainerWidth] = useState(0);
     const heatmapContainerRef = useRef();
@@ -411,9 +412,40 @@ function SelectionSummary({ selections = [], cellSets, setCellSetSelection, rast
                         whiteSpace: 'nowrap',
                         paddingBottom: '0',
                         height: '100%', // Set height to 100% to occupy the full height of the parent
-
+                        position: 'relative'
                     }}
                 >
+                    {/* Loading Spinner */}
+                    {isLoadingSelectionData && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 1000,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '10px',
+                            backgroundColor: 'rgba(26, 26, 26, 0.9)',
+                            padding: '20px',
+                            borderRadius: '8px',
+                            border: '1px solid #333333'
+                        }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                border: '3px solid #333333',
+                                borderTop: '3px solid #4973ff',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite'
+                            }}></div>
+                            <Typography style={{ color: '#ffffff', fontSize: '14px' }}>
+                                Loading selection data...
+                            </Typography>
+                        </div>
+                    )}
+
                     <StickyHeader
                         sortBy={sortBy}
                         setSortBy={setSortBy}
