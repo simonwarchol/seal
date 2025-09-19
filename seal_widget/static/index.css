@@ -103,6 +103,16 @@ body {
   width: 100% !important;
 }
 
+@keyframes spin {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .rc-tree {
   margin: 0;
   padding: 5px;

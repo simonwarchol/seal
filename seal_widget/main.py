@@ -52,11 +52,14 @@ CURRENT_DATASET = {
     "paths": None,
 }
 
+
 def get_dataset_paths(
     dataset_name: str,
     local_base: str = "/Users/swarchol/Research/seal/data",
     head_timeout: float = 3.0,
-    check_files: tuple[str, ...] = ("df.parquet",),  # minimal probe; add more if you want stricter validation
+    check_files: tuple[str, ...] = (
+        "df.parquet",
+    ),  # minimal probe; add more if you want stricter validation
 ):
     """
     Return paths for a given dataset.
@@ -108,6 +111,8 @@ def get_dataset_paths(
         "shap_path": f"{base_path}/shap.parquet",
     }
     return local
+
+
 def load_dataset(dataset_name, df=None):
     """Load a specific dataset, replacing any currently loaded dataset"""
     global CURRENT_DATASET
@@ -345,7 +350,6 @@ def get_potential_features(df):
         "FOXP3",
         "NCAM",
         "SMA",
-
     ]
 
     all_features = list(set(all_features))
