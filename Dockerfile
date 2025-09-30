@@ -34,8 +34,8 @@ COPY --from=builder /build/build/dist ./dist
 # Copy seal directory
 COPY seal_widget ./seal_widget
 
-# Copy data directory
-COPY data ./data
+# Create data directory (will be mounted as volume)
+RUN mkdir -p ./data
 
 # Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf
