@@ -13,3 +13,4 @@ tifffile==2025.1.10
 scikit-learn==1.5.2
 anywidget==0.9.13
 fastparquet==2024.11.0
+requests==2.32.3

@@ -21,7 +21,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     supervisor \
     nginx \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /var/log
 
 # Copy Python requirements and install
 COPY requirements.txt ./
@@ -32,6 +33,9 @@ COPY --from=builder /build/build/dist ./dist
 
 # Copy seal directory
 COPY seal_widget ./seal_widget
+
+# Copy data directory
+COPY data ./data
 
 # Copy configuration files
 COPY nginx.conf /etc/nginx/nginx.conf

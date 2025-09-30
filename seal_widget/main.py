@@ -27,6 +27,14 @@ from pathlib import Path
 
 from fastapi.responses import RedirectResponse
 
+# Determine if running in Docker or locally
+def get_data_base_path():
+    """Get the appropriate data base path based on environment."""
+    if os.path.exists("/app"):  # Running in Docker
+        return "/app/data"
+    else:  # Running locally
+        return "/Users/swarchol/Research/seal/data"
+
 app = FastAPI()
 origins = ["*"]
 
@@ -55,12 +63,14 @@ CURRENT_DATASET = {
 
 def get_dataset_paths(
     dataset_name: str,
-    local_base: str = "/Users/swarchol/Research/seal/data",
+    local_base: str = None,
     head_timeout: float = 3.0,
     check_files: tuple[str, ...] = (
         "df.parquet",
     ),  # minimal probe; add more if you want stricter validation
 ):
+    if local_base is None:
+        local_base = get_data_base_path()
     """
     Return paths for a given dataset.
     Tries public S3 first: https://seal-vis.s3.us-east-1.amazonaws.com/{dataset_name}
@@ -194,8 +204,9 @@ def load_dataset(dataset_name, df=None):
     try:
         shap_store = pd.read_parquet(paths["shap_path"])
     except:
+        data_base = get_data_base_path()
         shap_store = np.load(
-            f"/Users/swarchol/Research/seal/data/{dataset_name}.shap.npy"
+            f"{data_base}/{dataset_name}.shap.npy"
         )
 
     # Update CURRENT_DATASET
@@ -721,7 +732,8 @@ async def serve_data_file(file_path: str):
     FileResponse: The requested file if it exists
     """
     # Construct the full path to the file
-    full_path = os.path.join("/Users/swarchol/Research/seal/data", file_path)
+    data_base = get_data_base_path()
+    full_path = os.path.join(data_base, file_path)
 
     # Check if the file exists
     if not os.path.exists(full_path) or not os.path.isfile(full_path):
